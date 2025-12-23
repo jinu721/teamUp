@@ -42,15 +42,6 @@ app.use('/api', messageRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/community', communityRoutes);
 
-app.get('/api/health', (req, res) => {
-  res.json({
-    success: true,
-    message: 'TeamUp API is running',
-    timestamp: new Date().toISOString(),
-    onlineUsers: socketService.getOnlineUsersCount()
-  });
-});
-
 app.use(errorHandler);
 
 const startServer = async (): Promise<void> => {
@@ -58,21 +49,7 @@ const startServer = async (): Promise<void> => {
     await connectDatabase();
 
     server.listen(PORT, () => {
-      console.log(`
-╔═══════════════════════════════════════════════════════════╗
-║                                                           ║
-║   🚀 TeamUp Server Running                                ║
-║                                                           ║
-║   📡 HTTP Server:    http://localhost:${PORT}              ║
-║   🔌 WebSocket:      ws://localhost:${PORT}                ║
-║   📊 Health Check:   http://localhost:${PORT}/api/health   ║
-║                                                           ║
-║   ✅ Real-time features enabled via Socket.io             ║
-║   ✅ MongoDB connected                                     ║
-║   ✅ JWT authentication active                             ║
-║                                                           ║
-╚═══════════════════════════════════════════════════════════╝
-      `);
+      console.log(`Server Started on port ${PORT}`);
     });
   } catch (error) {
     console.error('Failed to start server:', error);
