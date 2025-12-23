@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -38,7 +38,7 @@ export enum NotificationType {
   COMMENT = 'comment'
 }
 
-export interface IUser {
+export interface IUser extends Document {
   _id: Types.ObjectId;
   name: string;
   email: string;
@@ -52,7 +52,7 @@ export interface IUser {
   updatedAt: Date;
 }
 
-export interface IProject {
+export interface IProject extends Document {
   _id: Types.ObjectId;
   title: string;
   description: string;
@@ -66,7 +66,7 @@ export interface IProject {
   updatedAt: Date;
 }
 
-export interface ITask {
+export interface ITask extends Document {
   _id: Types.ObjectId;
   project: Types.ObjectId;
   title: string;
@@ -80,7 +80,7 @@ export interface ITask {
   updatedAt: Date;
 }
 
-export interface IMessage {
+export interface IMessage extends Document {
   _id: Types.ObjectId;
   project: Types.ObjectId;
   sender: Types.ObjectId;
@@ -89,7 +89,7 @@ export interface IMessage {
   createdAt: Date;
 }
 
-export interface ICommunityProject {
+export interface ICommunityProject extends Document {
   _id: Types.ObjectId;
   title: string;
   description: string;
@@ -107,7 +107,7 @@ export interface ICommunityProject {
   updatedAt: Date;
 }
 
-export interface INotification {
+export interface INotification extends Document {
   _id: Types.ObjectId;
   user: Types.ObjectId;
   type: NotificationType;

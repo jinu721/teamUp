@@ -30,7 +30,7 @@ export class AuthService {
 
     const token = generateToken({ id: user._id.toString(), email: user.email });
 
-    const userResponse = user.toObject();
+    const userResponse = JSON.parse(JSON.stringify(user));
     delete userResponse.password;
 
     return { user: userResponse, token };
@@ -51,7 +51,7 @@ export class AuthService {
 
     const token = generateToken({ id: user._id.toString(), email: user.email });
 
-    const userResponse = user.toObject();
+    const userResponse = JSON.parse(JSON.stringify(user));
     delete userResponse.password;
 
     return { user: userResponse, token };
