@@ -19,26 +19,27 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
 
       const permissionService = PermissionService.getInstance();
 
-      // Determine scope ID from request parameters
-      // Automatically detect if it's a project or team scope based on parameter name or resource
-      let scopeId: string | undefined;
-      if (scopeParam) {
-        scopeId = req.params[scopeParam];
-      } else if (req.params.projectId) {
-        scopeId = req.params.projectId;
-      } else if (req.params.teamId) {
-        scopeId = req.params.teamId;
-      }
-
+      // Build context only from projectId and teamId parameters
+      // Ignore other route parameters like membershipId, userId, taskId, etc.
       const context: any = {};
-      if (scopeId) {
-        // If resource is project or scopeParam suggests project, set projectId
-        if (resource === 'project' || resource === 'task' || scopeParam === 'projectId' || req.params.projectId) {
-          context.projectId = scopeId;
+
+      // Only use explicit scope parameter if provided and it's a valid scope type
+      if (scopeParam && (scopeParam === 'projectId' || scopeParam === 'teamId')) {
+        const scopeId = req.params[scopeParam];
+        if (scopeId) {
+          if (scopeParam === 'projectId') {
+            context.projectId = scopeId;
+          } else if (scopeParam === 'teamId') {
+            context.teamId = scopeId;
+          }
         }
-        // If resource is team or scopeParam suggests team, set teamId
-        if (resource === 'team' || scopeParam === 'teamId' || req.params.teamId) {
-          context.teamId = scopeId;
+      } else {
+        // Auto-detect from standard parameters
+        if (req.params.projectId) {
+          context.projectId = req.params.projectId;
+        }
+        if (req.params.teamId) {
+          context.teamId = req.params.teamId;
         }
       }
 
