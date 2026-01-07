@@ -106,6 +106,7 @@ export interface Workshop {
   upvoteCount?: number;
   downvoteCount?: number;
   voteScore?: number;
+  memberCount?: number;
 }
 
 // ==================== MEMBERSHIP INTERFACES ====================

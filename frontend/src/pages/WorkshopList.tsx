@@ -199,6 +199,7 @@ const WorkshopList: React.FC = () => {
                 key={workshop._id}
                 workshop={workshop}
                 currentUserId={user?._id}
+                memberCount={workshop.memberCount}
               />
             ))}
           </div>

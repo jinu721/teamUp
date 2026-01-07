@@ -635,9 +635,11 @@ export class WorkshopTaskService {
 
     // Emit real-time event
     if (this.socketService) {
+      this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:commented', {
         taskId,
-        comment: updatedTask.comments[updatedTask.comments.length - 1]
+        comment: updatedTask.comments[updatedTask.comments.length - 1],
+        task: updatedTask
       });
     }
 
@@ -666,9 +668,11 @@ export class WorkshopTaskService {
 
     // Emit real-time event
     if (this.socketService) {
+      this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:attachment:added', {
         taskId,
-        attachment: updatedTask.attachments[updatedTask.attachments.length - 1]
+        attachment: updatedTask.attachments[updatedTask.attachments.length - 1],
+        task: updatedTask
       });
     }
 

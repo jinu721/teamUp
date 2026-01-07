@@ -191,7 +191,26 @@ const TaskDetail: React.FC = () => {
         if (!newComment.trim() || !workshopId || !projectId || !taskId) return;
         setSubmitting(true);
         try {
-            const response = await api.addWorkshopTaskComment(workshopId, projectId, taskId, newComment);
+            // Parse mentions
+            const mentions: string[] = [];
+            const mentionMatches = newComment.match(/@(\w+)/g);
+            if (mentionMatches && activeMembers) {
+                mentionMatches.forEach(match => {
+                    const name = match.substring(1); // remove @
+                    const member = activeMembers.find(m => {
+                        const mName = typeof m.user === 'string' ? '' : m.user.name;
+                        // Simple case-insensitive match on full name or first name
+                        return mName.toLowerCase().includes(name.toLowerCase());
+                    });
+                    if (member) {
+                        const userId = typeof member.user === 'string' ? member.user : member.user._id;
+                        mentions.push(userId);
+                    }
+                });
+            }
+
+            const response = await api.addWorkshopTaskComment(workshopId, projectId, taskId, newComment, mentions);
+            // Updating task is handled by socket, but we set it here for immediate feedback
             setTask(response.data);
             setNewComment('');
             toast({ title: 'Comment added' });
@@ -833,7 +852,7 @@ const TaskDetail: React.FC = () => {
                                                     className="flex-1 accent-blue-600 h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer"
                                                 />
                                                 <span className={`w-10 h-10 flex items-center justify-center rounded-lg font-bold text-white ${(editData.priority || 3) >= 4 ? 'bg-red-500' :
-                                                        (editData.priority || 3) >= 2 ? 'bg-blue-500' : 'bg-slate-500'
+                                                    (editData.priority || 3) >= 2 ? 'bg-blue-500' : 'bg-slate-500'
                                                     }`}>
                                                     {editData.priority || 3}
                                                 </span>
@@ -922,8 +941,8 @@ const TaskDetail: React.FC = () => {
                                                                 key={m.user._id}
                                                                 onClick={() => toggleArrayItem('contributors', m.user._id)}
                                                                 className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.contributors?.includes(m.user._id)
-                                                                        ? 'bg-blue-50 border-blue-100 text-blue-700'
-                                                                        : 'hover:bg-slate-100'
+                                                                    ? 'bg-blue-50 border-blue-100 text-blue-700'
+                                                                    : 'hover:bg-slate-100'
                                                                     }`}
                                                             >
                                                                 {editData.contributors?.includes(m.user._id) ? <CheckCircle2 className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}
@@ -952,8 +971,8 @@ const TaskDetail: React.FC = () => {
                                                                 key={m.user._id}
                                                                 onClick={() => toggleArrayItem('watchers', m.user._id)}
                                                                 className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.watchers?.includes(m.user._id)
-                                                                        ? 'bg-slate-200 text-slate-900 font-bold'
-                                                                        : 'hover:bg-slate-100'
+                                                                    ? 'bg-slate-200 text-slate-900 font-bold'
+                                                                    : 'hover:bg-slate-100'
                                                                     }`}
                                                             >
                                                                 {editData.watchers?.includes(m.user._id) ? <CheckSquare className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}
@@ -1009,8 +1028,8 @@ const TaskDetail: React.FC = () => {
                                                             key={t._id}
                                                             onClick={() => toggleArrayItem('blockedBy', t._id)}
                                                             className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.blockedBy?.includes(t._id)
-                                                                    ? 'bg-red-50 text-red-700 border border-red-100'
-                                                                    : 'hover:bg-slate-200'
+                                                                ? 'bg-red-50 text-red-700 border border-red-100'
+                                                                : 'hover:bg-slate-200'
                                                                 }`}
                                                         >
                                                             {editData.blockedBy?.includes(t._id) ? <Lock className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}
@@ -1033,8 +1052,8 @@ const TaskDetail: React.FC = () => {
                                                             key={t._id}
                                                             onClick={() => toggleArrayItem('blocking', t._id)}
                                                             className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.blocking?.includes(t._id)
-                                                                    ? 'bg-blue-50 text-blue-700 border border-blue-100'
-                                                                    : 'hover:bg-slate-200'
+                                                                ? 'bg-blue-50 text-blue-700 border border-blue-100'
+                                                                : 'hover:bg-slate-200'
                                                                 }`}
                                                         >
                                                             {editData.blocking?.includes(t._id) ? <Activity className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}

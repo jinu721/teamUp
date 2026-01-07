@@ -52,6 +52,8 @@ const ProjectDetail: React.FC = () => {
     const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
     const [showAssignTeamDialog, setShowAssignTeamDialog] = useState(false);
     const [showAssignIndividualDialog, setShowAssignIndividualDialog] = useState(false);
+    const [showAssignManagerDialog, setShowAssignManagerDialog] = useState(false);
+    const [showAssignMaintainerDialog, setShowAssignMaintainerDialog] = useState(false);
 
     // Form states
     const [editData, setEditData] = useState<UpdateWorkshopProjectData>({});
@@ -231,6 +233,49 @@ const ProjectDetail: React.FC = () => {
         }
     };
 
+    const handleAssignManager = async () => {
+        if (!workshopId || !projectId || !selectedUserId) return;
+        setSubmitting(true);
+        try {
+            const response = await api.assignProjectManager(workshopId, projectId, selectedUserId);
+            setProject(response.data);
+            setSelectedUserId('');
+            setShowAssignManagerDialog(false);
+            toast({ title: 'Project Manager assigned' });
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.response?.data?.message, variant: 'destructive' });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleAssignMaintainer = async () => {
+        if (!workshopId || !projectId || !selectedUserId) return;
+        setSubmitting(true);
+        try {
+            const response = await api.addProjectMaintainer(workshopId, projectId, selectedUserId);
+            setProject(response.data);
+            setSelectedUserId('');
+            setShowAssignMaintainerDialog(false);
+            toast({ title: 'Maintainer added' });
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.response?.data?.message, variant: 'destructive' });
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const handleRemoveMaintainer = async (userId: string) => {
+        if (!workshopId || !projectId) return;
+        try {
+            const response = await api.removeProjectMaintainer(workshopId, projectId, userId);
+            setProject(response.data);
+            toast({ title: 'Maintainer removed' });
+        } catch (error: any) {
+            toast({ title: 'Error', description: error.response?.data?.message, variant: 'destructive' });
+        }
+    };
+
     if (projectLoading) {
         return (
             <AppLayout>
@@ -374,6 +419,9 @@ const ProjectDetail: React.FC = () => {
                             onRemoveTeam={handleRemoveTeam}
                             onAssignIndividual={() => setShowAssignIndividualDialog(true)}
                             onRemoveIndividual={handleRemoveIndividual}
+                            onAssignManager={() => setShowAssignManagerDialog(true)}
+                            onAssignMaintainer={() => setShowAssignMaintainerDialog(true)}
+                            onRemoveMaintainer={handleRemoveMaintainer}
                         />
                     </div>
                 </div>
@@ -557,6 +605,7 @@ const ProjectDetail: React.FC = () => {
 
             {/* Assign Individual Dialog */}
             <Dialog open={showAssignIndividualDialog} onOpenChange={setShowAssignIndividualDialog}>
+                {/* ... existing content ... */}
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Assign Individual</DialogTitle>
@@ -592,6 +641,85 @@ const ProjectDetail: React.FC = () => {
                         <Button variant="outline" onClick={() => setShowAssignIndividualDialog(false)}>Cancel</Button>
                         <Button onClick={handleAssignIndividual} disabled={submitting || !selectedUserId}>
                             {submitting ? 'Assign' : 'Assign Individual'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Assign Manager Dialog */}
+            <Dialog open={showAssignManagerDialog} onOpenChange={setShowAssignManagerDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Assign Project Manager</DialogTitle>
+                        <DialogDescription>Select a workshop member to lead this project.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Member</Label>
+                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a manager" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {activeMembers.map(m => {
+                                        const memberUser = typeof m.user === 'string' ? null : m.user;
+                                        if (!memberUser) return null;
+                                        return (
+                                            <SelectItem key={memberUser._id} value={memberUser._id}>
+                                                {memberUser.name}
+                                            </SelectItem>
+                                        );
+                                    })}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAssignManagerDialog(false)}>Cancel</Button>
+                        <Button onClick={handleAssignManager} disabled={submitting || !selectedUserId}>
+                            {submitting ? 'Assign' : 'Assign Manager'}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Assign Maintainer Dialog */}
+            <Dialog open={showAssignMaintainerDialog} onOpenChange={setShowAssignMaintainerDialog}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Add Maintainer</DialogTitle>
+                        <DialogDescription>Select a workshop member to help maintain this project.</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Member</Label>
+                            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a member" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {activeMembers
+                                        .filter(m => {
+                                            const userId = typeof m.user === 'string' ? m.user : m.user._id;
+                                            return !(project.maintainers || []).some(mn => (typeof mn === 'string' ? mn : mn._id) === userId);
+                                        })
+                                        .map(m => {
+                                            const memberUser = typeof m.user === 'string' ? null : m.user;
+                                            if (!memberUser) return null;
+                                            return (
+                                                <SelectItem key={memberUser._id} value={memberUser._id}>
+                                                    {memberUser.name}
+                                                </SelectItem>
+                                            );
+                                        })}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setShowAssignMaintainerDialog(false)}>Cancel</Button>
+                        <Button onClick={handleAssignMaintainer} disabled={submitting || !selectedUserId}>
+                            {submitting ? 'Add' : 'Add Maintainer'}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

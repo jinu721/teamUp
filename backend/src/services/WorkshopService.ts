@@ -186,7 +186,16 @@ export class WorkshopService {
       }
     }
 
-    return Array.from(workshopMap.values());
+    const results = [];
+    for (const workshop of Array.from(workshopMap.values())) {
+      const memberCount = await this.membershipRepository.countByWorkshop(workshop._id.toString(), MembershipState.ACTIVE);
+      results.push({
+        ...workshop.toObject(),
+        memberCount
+      });
+    }
+
+    return results;
   }
 
   async updateWorkshop(workshopId: string, actorId: string, updates: UpdateWorkshopDTO): Promise<IWorkshop> {

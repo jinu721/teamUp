@@ -381,6 +381,21 @@ class ApiService {
     return response.data;
   }
 
+  async assignProjectManager(workshopId: string, projectId: string, userId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/manager`, { userId });
+    return response.data;
+  }
+
+  async addProjectMaintainer(workshopId: string, projectId: string, userId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/maintainers`, { userId });
+    return response.data;
+  }
+
+  async removeProjectMaintainer(workshopId: string, projectId: string, userId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/maintainers/${userId}`);
+    return response.data;
+  }
+
 
   // ==================== WORKSHOP TASKS ====================
 
