@@ -1,0 +1,340 @@
+import { Response, NextFunction } from 'express';
+import { RoleRepository } from '../repositories/RoleRepository';
+import { RoleAssignmentRepository } from '../repositories/RoleAssignmentRepository';
+import { WorkshopRepository } from '../repositories/WorkshopRepository';
+import { AuditService } from '../services/AuditService';
+import { SocketService } from '../services/SocketService';
+import { PermissionService } from '../services/PermissionService';
+import { AuthRequest } from '../types';
+import {
+  CreateRoleDTO,
+  UpdateRoleDTO,
+  PermissionScope
+} from '../types/workshop';
+import { NotFoundError, AuthorizationError, ValidationError } from '../utils/errors';
+import { Types } from 'mongoose';
+
+/**
+ * Controller for managing workshop roles and assignments
+ */
+export class RoleController {
+  private roleRepository: RoleRepository;
+  private roleAssignmentRepository: RoleAssignmentRepository;
+  private workshopRepository: WorkshopRepository;
+  private auditService: AuditService;
+  private socketService: SocketService | null = null;
+  private permissionService: PermissionService;
+
+  constructor() {
+    this.roleRepository = new RoleRepository();
+    this.roleAssignmentRepository = new RoleAssignmentRepository();
+    this.workshopRepository = new WorkshopRepository();
+    this.auditService = new AuditService();
+    this.permissionService = PermissionService.getInstance();
+  }
+
+  setSocketService(socketService: SocketService): void {
+    this.socketService = socketService;
+  }
+
+  /**
+   * Helper to validate ObjectId
+   */
+  private isValidId(id: any): boolean {
+    if (!id) return false;
+    return Types.ObjectId.isValid(id.toString());
+  }
+
+  /**
+   * Create a new role
+   */
+  createRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId } = req.params;
+      const actorId = req.user!.id;
+      const roleData: CreateRoleDTO = req.body;
+
+      if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+        throw new AuthorizationError('Only workshop managers can create roles');
+      }
+
+      const role = await this.roleRepository.create(workshopId, roleData);
+
+      await this.auditService.log({
+        workshopId,
+        action: 'role_created' as any,
+        actorId,
+        targetId: role._id.toString(),
+        targetType: 'Role',
+        details: roleData as any
+      });
+
+      if (this.socketService) {
+        this.socketService.emitToWorkshop(workshopId, 'role:created', role);
+      }
+
+      res.status(201).json({ success: true, data: role });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Get all roles in a workshop
+   */
+  getRoles = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId } = req.params;
+      const roles = await this.roleRepository.findByWorkshop(workshopId);
+      res.json({ success: true, data: roles });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Get a specific role
+   */
+  getRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      const role = await this.roleRepository.findById(id);
+      if (!role) throw new NotFoundError('Role');
+      res.json({ success: true, data: role });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Update a role
+   */
+  updateRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId, id } = req.params;
+      const actorId = req.user!.id;
+      const updates: UpdateRoleDTO = req.body;
+
+      if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+        throw new AuthorizationError('Only workshop managers can update roles');
+      }
+
+      const role = await this.roleRepository.update(id, updates);
+
+      await this.auditService.log({
+        workshopId,
+        action: 'role_updated' as any,
+        actorId,
+        targetId: id,
+        targetType: 'Role',
+        details: updates as any
+      });
+
+      // Invalidate cache for all users with this role
+      const assignments = await this.roleAssignmentRepository.findByRole(id);
+      for (const assignment of assignments) {
+        const assignedUserId = typeof assignment.user === 'string' ? assignment.user : assignment.user._id.toString();
+        this.permissionService.invalidateUserCache(assignedUserId, workshopId);
+      }
+
+      if (this.socketService) {
+        const eventData = {
+          role,
+          roleId: id,
+          workshopId,
+          affectedUserIds: assignments.map(a => typeof a.user === 'string' ? a.user : a.user._id.toString()),
+          timestamp: new Date().toISOString()
+        };
+
+        console.log(`🔔 [RoleController] Emitting role:updated event:`, eventData);
+
+        // Emit to workshop room
+        this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
+
+        // Emit to each affected user directly
+        for (const assignment of assignments) {
+          const assignedUserId = typeof assignment.user === 'string' ? assignment.user : assignment.user._id.toString();
+          this.socketService.emitToUser(assignedUserId, 'role:updated', eventData);
+        }
+      }
+
+      res.json({ success: true, data: role });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Delete a role
+   */
+  deleteRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId, id } = req.params;
+      const actorId = req.user!.id;
+
+      if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+        throw new AuthorizationError('Only workshop managers can delete roles');
+      }
+
+      await this.roleAssignmentRepository.deleteByRole(id);
+      await this.roleRepository.delete(id);
+
+      await this.auditService.log({
+        workshopId,
+        action: 'role_deleted' as any,
+        actorId,
+        targetId: id,
+        targetType: 'Role'
+      });
+
+      if (this.socketService) {
+        this.socketService.emitToWorkshop(workshopId, 'role:deleted', { roleId: id, workshopId });
+      }
+
+      res.json({ success: true, message: 'Role deleted' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Assign role to user
+   */
+  assignRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId, id } = req.params;
+      const actorId = req.user!.id;
+      const { userId, scopeId: providedScopeId } = req.body;
+
+      if (!userId) throw new ValidationError('User ID is required');
+
+      if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+        throw new AuthorizationError('Only workshop managers can assign roles');
+      }
+
+      const role = await this.roleRepository.findById(id);
+      if (!role) throw new NotFoundError('Role');
+
+      // Validate scopeId if needed
+      let finalScopeId: string | undefined = undefined;
+      if (role.scope !== PermissionScope.WORKSHOP) {
+        const sid = role.scopeId ? role.scopeId.toString() : providedScopeId;
+        if (!this.isValidId(sid)) {
+          throw new ValidationError(`Scope ID (Project/Team) is required for ${role.scope} scoped roles`);
+        }
+        finalScopeId = sid;
+      }
+
+      // Check for duplicate
+      const alreadyAssigned = await this.roleAssignmentRepository.exists(workshopId, id, userId, role.scope, finalScopeId);
+      if (alreadyAssigned) {
+        throw new ValidationError('Role already assigned to this user at this scope');
+      }
+
+      const assignment = await this.roleAssignmentRepository.create({
+        workshopId,
+        roleId: id,
+        userId,
+        scope: role.scope,
+        scopeId: finalScopeId,
+        assignedBy: actorId
+      });
+
+      await this.auditService.log({
+        workshopId,
+        action: 'role_assigned' as any,
+        actorId,
+        targetId: userId,
+        targetType: 'User',
+        details: { roleId: id, scope: role.scope, scopeId: finalScopeId }
+      });
+
+      this.permissionService.invalidateUserCache(userId, workshopId);
+
+      if (this.socketService) {
+        const eventData = {
+          assignment,
+          userId,
+          roleId: id,
+          workshopId,
+          timestamp: new Date().toISOString()
+        };
+
+        console.log(`🔔 [RoleController] Emitting role:assigned event:`, eventData);
+
+        // Emit to workshop room
+        this.socketService.emitToWorkshop(workshopId, 'role:assigned', eventData);
+        this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
+
+        // CRITICAL: Also emit directly to the affected user
+        this.socketService.emitToUser(userId, 'role:assigned', eventData);
+        this.socketService.emitToUser(userId, 'role:updated', eventData);
+      }
+
+      res.json({ success: true, data: assignment });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Revoke role from user
+   */
+  revokeRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId, id, userId } = req.params;
+      const actorId = req.user!.id;
+
+      if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+        throw new AuthorizationError('Only workshop managers can revoke roles');
+      }
+
+      await this.roleAssignmentRepository.deleteByUserAndRole(workshopId, userId, id);
+
+      await this.auditService.log({
+        workshopId,
+        action: 'role_revoked' as any,
+        actorId,
+        targetId: userId,
+        targetType: 'User',
+        details: { roleId: id }
+      });
+
+      this.permissionService.invalidateUserCache(userId, workshopId);
+
+      if (this.socketService) {
+        const eventData = {
+          userId,
+          roleId: id,
+          workshopId,
+          timestamp: new Date().toISOString()
+        };
+
+        console.log(`🔔 [RoleController] Emitting role:revoked event:`, eventData);
+
+        // Emit to workshop room
+        this.socketService.emitToWorkshop(workshopId, 'role:revoked', eventData);
+
+        // CRITICAL: Also emit directly to the affected user
+        this.socketService.emitToUser(userId, 'role:revoked', eventData);
+      }
+
+      res.json({ success: true, message: 'Role revoked' });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  /**
+   * Get user's roles in a workshop
+   */
+  getUserRoles = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { workshopId, userId } = req.params;
+      const assignments = await this.roleAssignmentRepository.findByUser(workshopId, userId);
+      res.json({ success: true, data: assignments });
+    } catch (error) {
+      next(error);
+    }
+  };
+}

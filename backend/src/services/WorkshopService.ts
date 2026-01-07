@@ -1,0 +1,439 @@
+import {
+  IWorkshop,
+  IMembership,
+  CreateWorkshopDTO,
+  UpdateWorkshopDTO,
+  MembershipState,
+  MembershipSource,
+  AuditAction,
+  // WorkshopVisibility,
+  PermissionScope,
+  PermissionType
+} from '../types/workshop';
+// import { AuthRequest } from '../types/index';
+import { WorkshopRepository } from '../repositories/WorkshopRepository';
+import { MembershipRepository } from '../repositories/MembershipRepository';
+import { TeamRepository } from '../repositories/TeamRepository';
+import { RoleRepository } from '../repositories/RoleRepository';
+import { RoleAssignmentRepository } from '../repositories/RoleAssignmentRepository';
+import { WorkshopProjectRepository } from '../repositories/WorkshopProjectRepository';
+import { AuditService } from './AuditService';
+import { PermissionService } from './PermissionService';
+import { NotFoundError, AuthorizationError, ValidationError } from '../utils/errors';
+import { SocketService } from './SocketService';
+import { EmailService } from './EmailService';
+import { ChatService } from './ChatService';
+import { Types } from 'mongoose';
+import { Membership } from '../models/Membership';
+import { User } from '../models/User';
+
+/**
+ * Helper to extract ID from a potentially populated reference
+ */
+function getIdString(ref: any): string {
+  if (ref && typeof ref === 'object' && '_id' in ref) {
+    return ref._id.toString();
+  }
+  return ref?.toString() || '';
+}
+
+/**
+ * Workshop Service
+ * Handles all workshop-related business logic
+ */
+export class WorkshopService {
+  private workshopRepository: WorkshopRepository;
+  private membershipRepository: MembershipRepository;
+  private teamRepository: TeamRepository;
+  private roleRepository: RoleRepository;
+  private roleAssignmentRepository: RoleAssignmentRepository;
+  private projectRepository: WorkshopProjectRepository;
+  private auditService: AuditService;
+  private permissionService: PermissionService;
+  private socketService: SocketService | null = null;
+  private emailService: EmailService;
+  private chatService: ChatService;
+
+  constructor() {
+    this.workshopRepository = new WorkshopRepository();
+    this.membershipRepository = new MembershipRepository();
+    this.teamRepository = new TeamRepository();
+    this.roleRepository = new RoleRepository();
+    this.roleAssignmentRepository = new RoleAssignmentRepository();
+    this.projectRepository = new WorkshopProjectRepository();
+    this.auditService = new AuditService();
+    this.permissionService = PermissionService.getInstance();
+    this.emailService = new EmailService();
+    this.chatService = new ChatService();
+  }
+
+  /**
+   * Set socket service for real-time updates
+   */
+  setSocketService(socketService: SocketService): void {
+    this.socketService = socketService;
+    this.chatService.setSocketService(socketService);
+  }
+
+  /**
+   * Create a new workshop
+   */
+  async createWorkshop(ownerId: string, data: CreateWorkshopDTO): Promise<IWorkshop> {
+    const workshop = await this.workshopRepository.create(ownerId, data);
+
+    // Create owner's membership (automatically active)
+    await this.membershipRepository.create({
+      workshopId: workshop._id.toString(),
+      userId: ownerId,
+      source: MembershipSource.INVITATION,
+      state: MembershipState.ACTIVE
+    });
+
+    // Sync to chat rooms (owner should be in general chat if it exists)
+    await this.chatService.syncUserToWorkshopRooms(ownerId, workshop._id.toString());
+
+    // Initialize default roles for the workshop
+    await this.createDefaultRoles(workshop._id.toString());
+
+    await this.auditService.logWorkshopCreated(
+      workshop._id.toString(),
+      ownerId,
+      { name: data.name, visibility: data.visibility }
+    );
+
+    return await this.workshopRepository.findById(workshop._id.toString()) || workshop;
+  }
+
+  /**
+   * Initialize default roles for a new workshop
+   */
+  private async createDefaultRoles(workshopId: string): Promise<void> {
+    const defaultRoles = [
+      {
+        name: 'Workshop Admin',
+        description: 'Full administrative access to the entire workshop',
+        scope: PermissionScope.WORKSHOP,
+        permissions: [
+          { action: '*', resource: '*', type: PermissionType.GRANT }
+        ]
+      },
+      {
+        name: 'Project Lead',
+        description: 'Manage projects, teams, and tasks',
+        scope: PermissionScope.WORKSHOP,
+        permissions: [
+          { action: 'manage', resource: 'project', type: PermissionType.GRANT },
+          { action: 'manage', resource: 'team', type: PermissionType.GRANT },
+          { action: 'manage', resource: 'task', type: PermissionType.GRANT },
+          { action: 'manage', resource: 'chat_room', type: PermissionType.GRANT },
+          { action: 'view', resource: '*', type: PermissionType.GRANT }
+        ]
+      },
+      {
+        name: 'Member',
+        description: 'Standard member with read/write access to assigned projects',
+        scope: PermissionScope.WORKSHOP,
+        permissions: [
+          { action: 'create', resource: 'task', type: PermissionType.GRANT },
+          { action: 'update', resource: 'task', type: PermissionType.GRANT },
+          { action: 'create', resource: 'chat_room', type: PermissionType.GRANT },
+          { action: 'view', resource: 'project', type: PermissionType.GRANT },
+          { action: 'view', resource: 'team', type: PermissionType.GRANT },
+          { action: 'view', resource: 'task', type: PermissionType.GRANT }
+        ]
+      },
+      {
+        name: 'Viewer',
+        description: 'Read-only access to workshop resources',
+        scope: PermissionScope.WORKSHOP,
+        permissions: [
+          { action: 'view', resource: '*', type: PermissionType.GRANT }
+        ]
+      }
+    ];
+
+    for (const roleData of defaultRoles) {
+      await this.roleRepository.create(workshopId, roleData);
+    }
+  }
+
+  /**
+   * Get workshop by ID
+   */
+  async getWorkshop(workshopId: string): Promise<IWorkshop> {
+    const workshop = await this.workshopRepository.findById(workshopId);
+    if (!workshop) throw new NotFoundError('Workshop');
+    return workshop;
+  }
+
+  /**
+   * Get workshops for a user
+   */
+  async getUserWorkshops(userId: string): Promise<IWorkshop[]> {
+    const ownedOrManaged = await this.workshopRepository.findByUser(userId);
+    const memberships = await this.membershipRepository.findByUser(userId, MembershipState.ACTIVE);
+    const memberWorkshopIds = memberships.map(m => getIdString(m.workshop));
+
+    const workshopMap = new Map<string, IWorkshop>();
+    for (const w of ownedOrManaged) {
+      workshopMap.set(w._id.toString(), w);
+    }
+
+    for (const workshopId of memberWorkshopIds) {
+      if (!workshopMap.has(workshopId)) {
+        const workshop = await this.workshopRepository.findById(workshopId);
+        if (workshop) workshopMap.set(workshopId, workshop);
+      }
+    }
+
+    return Array.from(workshopMap.values());
+  }
+
+  async updateWorkshop(workshopId: string, actorId: string, updates: UpdateWorkshopDTO): Promise<IWorkshop> {
+    if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+      throw new AuthorizationError('No permission');
+    }
+    const workshop = await this.workshopRepository.update(workshopId, updates);
+    await this.auditService.logWorkshopUpdated(workshopId, actorId, updates as any);
+    return workshop;
+  }
+
+  async deleteWorkshop(workshopId: string, actorId: string): Promise<void> {
+    if (!(await this.workshopRepository.isOwner(workshopId, actorId))) {
+      throw new AuthorizationError('Only owner can delete');
+    }
+    await this.roleAssignmentRepository.deleteByWorkshop(workshopId);
+    await this.roleRepository.deleteByWorkshop(workshopId);
+    await this.teamRepository.deleteByWorkshop(workshopId);
+    await this.projectRepository.deleteByWorkshop(workshopId);
+    await this.membershipRepository.deleteByWorkshop(workshopId);
+    await this.workshopRepository.delete(workshopId);
+    await this.auditService.log({
+      workshopId,
+      action: AuditAction.WORKSHOP_DELETED,
+      actorId,
+      targetId: workshopId,
+      targetType: 'Workshop'
+    });
+  }
+
+  async assignManager(workshopId: string, actorId: string, managerId: string): Promise<IWorkshop> {
+    if (!(await this.workshopRepository.isOwner(workshopId, actorId))) {
+      throw new AuthorizationError('Only owner can assign managers');
+    }
+    if (actorId === managerId) throw new ValidationError('Cannot assign self');
+    const membership = await this.membershipRepository.findActive(workshopId, managerId);
+    if (!membership) throw new ValidationError('User must be active member');
+
+    const workshop = await this.workshopRepository.addManager(workshopId, managerId);
+    this.permissionService.invalidateUserCache(managerId, workshopId);
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'workshop:manager:assigned', { workshopId, managerId, workshop });
+    return workshop;
+  }
+
+  async removeManager(workshopId: string, actorId: string, managerId: string): Promise<IWorkshop> {
+    if (!(await this.workshopRepository.isOwner(workshopId, actorId))) {
+      throw new AuthorizationError('No permission');
+    }
+    const workshop = await this.workshopRepository.removeManager(workshopId, managerId);
+    this.permissionService.invalidateUserCache(managerId, workshopId);
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'workshop:manager:removed', { workshopId, managerId, workshop });
+    return workshop;
+  }
+
+  async inviteMember(workshopId: string, actorId: string, invitedUserId: string, roleId?: string): Promise<IMembership> {
+    if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
+      throw new AuthorizationError('No permission');
+    }
+    const existing = await this.membershipRepository.findByWorkshopAndUser(workshopId, invitedUserId);
+    let membership: IMembership;
+
+    if (existing) {
+      if (existing.state === MembershipState.ACTIVE) throw new ValidationError('Already member');
+      membership = await Membership.findByIdAndUpdate(
+        existing._id,
+        { $set: { state: MembershipState.PENDING, invitedBy: new Types.ObjectId(actorId) }, $unset: { removedBy: 1, removedAt: 1 } },
+        { new: true }
+      ).populate(['user', 'workshop', 'invitedBy']) as IMembership;
+    } else {
+      membership = await this.membershipRepository.create({
+        workshopId,
+        userId: invitedUserId,
+        source: MembershipSource.INVITATION,
+        invitedBy: actorId,
+        state: MembershipState.PENDING
+      });
+    }
+
+    // Assign role if provided
+    if (roleId) {
+      const role = await this.roleRepository.findById(roleId);
+      if (role) {
+        // Only assign if role belongs to this workshop
+        if (role.workshop.toString() === workshopId) {
+          await this.roleAssignmentRepository.create({
+            workshopId,
+            roleId,
+            userId: invitedUserId,
+            scope: role.scope,
+            scopeId: role.scopeId?.toString(),
+            assignedBy: actorId
+          });
+        }
+      }
+    }
+
+    await this.auditService.logMemberInvited(workshopId, actorId, invitedUserId);
+    const inviter = await User.findById(actorId);
+    if (membership && inviter) {
+      const targetEmail = (membership.user as any)?.email;
+      if (targetEmail) {
+        await this.emailService.sendWorkshopInvitation(targetEmail, inviter.name || 'Admin', (membership.workshop as any)?.name, workshopId);
+      }
+    }
+
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:invited', membership);
+    return membership;
+  }
+
+  async handleJoinRequest(workshopId: string, userId: string): Promise<IMembership> {
+    const workshop = await this.getWorkshop(workshopId);
+    const existing = await this.membershipRepository.findByWorkshopAndUser(workshopId, userId);
+
+    if (existing && existing.state === MembershipState.ACTIVE) {
+      throw new ValidationError('Already member');
+    }
+
+    const autoApprove = !workshop.settings.requireApprovalForJoin;
+    const state = autoApprove ? MembershipState.ACTIVE : MembershipState.PENDING;
+
+    let membership: IMembership;
+    if (existing) {
+      // Reuse existing pending/removed membership
+      membership = await this.membershipRepository.updateState(
+        existing._id.toString(),
+        state,
+        state === MembershipState.ACTIVE ? userId : undefined
+      );
+      // Update source to reflect it's now a join request if it was an invitation
+      if (existing.source === MembershipSource.INVITATION && !autoApprove) {
+        await Membership.findByIdAndUpdate(existing._id, { $set: { source: MembershipSource.JOIN_REQUEST } });
+        membership.source = MembershipSource.JOIN_REQUEST;
+      }
+    } else {
+      membership = await this.membershipRepository.create({
+        workshopId,
+        userId,
+        source: autoApprove ? MembershipSource.OPEN_ACCESS : MembershipSource.JOIN_REQUEST,
+        state
+      });
+    }
+
+    if (state === MembershipState.ACTIVE) {
+      this.permissionService.invalidateUserCache(userId, workshopId);
+      await this.chatService.syncUserToWorkshopRooms(userId, workshopId);
+      if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:joined', membership);
+    } else {
+      if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:created', membership);
+    }
+    return membership;
+  }
+
+  async approveJoinRequest(workshopId: string, actorId: string, membershipId: string): Promise<IMembership> {
+    if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) throw new AuthorizationError('No permission');
+    const updated = await this.membershipRepository.updateState(membershipId, MembershipState.ACTIVE, actorId);
+    if (updated.user) {
+      this.permissionService.invalidateUserCache(updated.user.toString(), workshopId);
+      await this.chatService.syncUserToWorkshopRooms(updated.user.toString(), workshopId);
+      await this.auditService.logJoinRequestApproved(workshopId, actorId, updated.user.toString());
+    }
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:approved', updated);
+    return updated;
+  }
+
+  async rejectJoinRequest(workshopId: string, actorId: string, membershipId: string, reason?: string): Promise<IMembership> {
+    if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) throw new AuthorizationError('No permission');
+    const updated = await this.membershipRepository.updateState(membershipId, MembershipState.REMOVED, actorId);
+    if (updated.user) await this.auditService.logJoinRequestRejected(workshopId, actorId, updated.user.toString(), reason);
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:rejected', { membershipId });
+    return updated;
+  }
+
+  async revokeMembership(workshopId: string, actorId: string, userId: string, _reason?: string): Promise<IMembership> {
+    if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) throw new AuthorizationError('No permission');
+    const membership = await this.membershipRepository.findActive(workshopId, userId);
+    if (!membership) throw new NotFoundError('Active membership');
+
+    const updated = await this.membershipRepository.updateState(membership._id.toString(), MembershipState.REMOVED, actorId);
+    const teams = await this.teamRepository.findByMemberInWorkshop(workshopId, userId);
+    for (const team of teams) await this.teamRepository.removeMember(team._id.toString(), userId);
+    await this.roleAssignmentRepository.deleteByUser(workshopId, userId);
+
+    this.permissionService.invalidateUserCache(userId, workshopId);
+    await this.chatService.syncUserToWorkshopRooms(userId, workshopId);
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:removed', { membershipId: updated._id.toString() });
+    return updated;
+  }
+
+  async handleMemberLeave(workshopId: string, userId: string): Promise<void> {
+    const membership = await this.membershipRepository.findActive(workshopId, userId);
+    if (!membership) throw new NotFoundError('Active membership');
+    await this.membershipRepository.updateState(membership._id.toString(), MembershipState.REMOVED, userId);
+    this.permissionService.invalidateUserCache(userId, workshopId);
+    await this.chatService.syncUserToWorkshopRooms(userId, workshopId);
+    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:left', { membershipId: membership._id.toString() });
+  }
+
+  async getMembers(workshopId: string, state?: MembershipState): Promise<any[]> {
+    const memberships = await this.membershipRepository.findByWorkshop(workshopId, state);
+    const assignments = await this.roleAssignmentRepository.findByWorkshop(workshopId);
+
+    return memberships.map(membership => {
+      const user = membership.user as any;
+      const userId = user._id?.toString() || user.toString();
+
+      const userRoles = assignments
+        .filter(a => (a.user as any)._id?.toString() === userId || (a.user as any).toString() === userId)
+        .map(a => a.role);
+
+      return {
+        ...membership.toObject(),
+        roles: userRoles
+      };
+    });
+  }
+
+  async getPendingRequests(workshopId: string): Promise<IMembership[]> {
+    return await this.membershipRepository.findPendingByWorkshop(workshopId);
+  }
+
+  async getPublicWorkshops(options?: any): Promise<{ workshops: IWorkshop[]; total: number }> {
+    const workshops = await this.workshopRepository.findPublic(options);
+    const total = await this.workshopRepository.countPublic(options);
+    return { workshops, total };
+  }
+
+  async upvoteWorkshop(_userId: string, workshopId: string): Promise<IWorkshop> {
+    const updated = await this.workshopRepository.incrementVote(workshopId, 1, true);
+    return updated;
+  }
+
+  async downvoteWorkshop(_userId: string, workshopId: string): Promise<IWorkshop> {
+    const updated = await this.workshopRepository.incrementVote(workshopId, -1, false);
+    return updated;
+  }
+
+  async isMember(workshopId: string, userId: string): Promise<boolean> {
+    return await this.membershipRepository.isActiveMember(workshopId, userId);
+  }
+
+  async checkPermission(
+    userId: string,
+    workshopId: string,
+    action: string,
+    resource: string,
+    context?: any
+  ) {
+    return await this.permissionService.checkPermission(userId, workshopId, action, resource, context);
+  }
+}

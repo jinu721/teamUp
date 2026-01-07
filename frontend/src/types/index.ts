@@ -1,3 +1,52 @@
+// ==================== ENUMS ====================
+
+export enum TaskStatus {
+  TODO = 'todo',
+  IN_PROGRESS = 'in_progress',
+  DONE = 'done'
+}
+
+export enum TaskPriority {
+  LOW = 'low',
+  MEDIUM = 'medium',
+  HIGH = 'high',
+  URGENT = 'urgent'
+}
+
+export enum ProjectCategory {
+  WEB_DEVELOPMENT = 'web_development',
+  MOBILE_DEVELOPMENT = 'mobile_development',
+  DATA_SCIENCE = 'data_science',
+  DESIGN = 'design',
+  MARKETING = 'marketing',
+  OTHER = 'other'
+}
+
+export enum CommitmentType {
+  FULL_TIME = 'full_time',
+  PART_TIME = 'part_time',
+  FREELANCE = 'freelance',
+  VOLUNTEER = 'volunteer',
+  OPEN_SOURCE = 'open_source'
+}
+
+export enum SortOrder {
+  NEW = 'new',
+  TOP = 'top',
+  TRENDING = 'trending'
+}
+
+export enum NotificationType {
+  TASK_ASSIGNED = 'task_assigned',
+  TASK_UPDATED = 'task_updated',
+  MESSAGE = 'message',
+  PROJECT_INVITE = 'project_invite',
+  JOIN_REQUEST = 'join_request',
+  COMMENT = 'comment'
+}
+
+// ==================== USER ====================
+
 export interface User {
   _id: string;
   name: string;
@@ -9,72 +58,101 @@ export interface User {
   lastActive: Date;
 }
 
-export interface Project {
-  _id: string;
-  title: string;
-  description: string;
-  category: string;
-  owner: User;
-  teamMembers: User[];
-  startDate: Date;
-  endDate?: Date;
-  isPublic: boolean;
-  createdAt: Date;
-  updatedAt: Date;
+// ==================== WORKSHOP ====================
+
+export enum WorkshopVisibility {
+  PUBLIC = 'public',
+  PRIVATE = 'private',
+  INTERNAL = 'internal'
 }
 
-export interface Task {
-  _id: string;
-  project: string;
-  title: string;
-  description?: string;
-  status: 'todo' | 'in_progress' | 'done';
-  assignedTo?: User;
-  createdBy: User;
-  dueDate?: Date;
-  attachments: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+// Community types replaced by Workshop
 
-export interface Message {
-  _id: string;
-  project: string;
-  sender: User;
-  content: string;
-  attachments: string[];
-  createdAt: Date;
-}
-
-export interface CommunityProject {
-  _id: string;
-  title: string;
-  description: string;
-  tags: string[];
-  requiredSkills: string[];
-  owner: User;
-  likes: string[];
-  comments: Comment[];
-  joinRequests: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Comment {
-  user: User;
-  content: string;
-  createdAt: Date;
-}
+// ==================== NOTIFICATION ====================
 
 export interface Notification {
   _id: string;
   user: string;
-  type: string;
+  type: NotificationType;
   title: string;
   message: string;
-  relatedProject?: Project;
-  relatedTask?: Task;
+  relatedProject?: any; // Avoiding circular dependency with WorkshopProject
+  relatedWorkshop?: any; // Avoiding circular dependency with Workshop
+  relatedTask?: any; // Avoiding circular dependency with WorkshopTask
   relatedUser?: User;
   isRead: boolean;
   createdAt: Date;
 }
+
+// ==================== API RESPONSES ====================
+
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+export interface VoteResponse {
+  upvoteCount: number;
+  downvoteCount: number;
+  voteScore: number;
+  userVote: 'upvote' | 'downvote' | null;
+}
+
+
+export interface CreateTaskData {
+  title: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  labels?: string[];
+  assignedTo?: string;
+  dueDate?: Date;
+}
+
+// ==================== FILTERS ====================
+
+
+// ==================== HELPER TYPES ====================
+
+export const PROJECT_CATEGORY_LABELS: Record<ProjectCategory, string> = {
+  [ProjectCategory.WEB_DEVELOPMENT]: 'Web Development',
+  [ProjectCategory.MOBILE_DEVELOPMENT]: 'Mobile Development',
+  [ProjectCategory.DATA_SCIENCE]: 'Data Science',
+  [ProjectCategory.DESIGN]: 'Design',
+  [ProjectCategory.MARKETING]: 'Marketing',
+  [ProjectCategory.OTHER]: 'Other'
+};
+
+export const COMMITMENT_TYPE_LABELS: Record<CommitmentType, string> = {
+  [CommitmentType.FULL_TIME]: 'Full Time',
+  [CommitmentType.PART_TIME]: 'Part Time',
+  [CommitmentType.FREELANCE]: 'Freelance',
+  [CommitmentType.VOLUNTEER]: 'Volunteer',
+  [CommitmentType.OPEN_SOURCE]: 'Open Source'
+};
+
+export const TASK_STATUS_LABELS: Record<TaskStatus, string> = {
+  [TaskStatus.TODO]: 'To Do',
+  [TaskStatus.IN_PROGRESS]: 'In Progress',
+  [TaskStatus.DONE]: 'Done'
+};
+
+export const TASK_PRIORITY_LABELS: Record<TaskPriority, string> = {
+  [TaskPriority.LOW]: 'Low',
+  [TaskPriority.MEDIUM]: 'Medium',
+  [TaskPriority.HIGH]: 'High',
+  [TaskPriority.URGENT]: 'Urgent'
+};

@@ -31,7 +31,7 @@ export class SocketService {
     this.io.use(async (socket: AuthenticatedSocket, next) => {
       try {
         const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
-        
+
         if (!token) {
           return next(new Error('Authentication error: No token provided'));
         }
@@ -62,6 +62,26 @@ export class SocketService {
       socket.join(`user:${userId}`);
 
       this.io.emit('user:online', { userId, isOnline: true });
+
+      socket.on('workshop:join', (workshopId: string) => {
+        socket.join(`workshop:${workshopId}`);
+        console.log(`User ${userId} joined workshop room: ${workshopId}`);
+      });
+
+      socket.on('workshop:leave', (workshopId: string) => {
+        socket.leave(`workshop:${workshopId}`);
+        console.log(`User ${userId} left workshop room: ${workshopId}`);
+      });
+
+      socket.on('team:join', (teamId: string) => {
+        socket.join(`team:${teamId}`);
+        console.log(`User ${userId} joined team room: ${teamId}`);
+      });
+
+      socket.on('team:leave', (teamId: string) => {
+        socket.leave(`team:${teamId}`);
+        console.log(`User ${userId} left team room: ${teamId}`);
+      });
 
       socket.on('project:join', (projectId: string) => {
         socket.join(`project:${projectId}`);
@@ -97,6 +117,31 @@ export class SocketService {
         });
       });
 
+      // Chat room events
+      socket.on('chat:join', (roomId: string) => {
+        socket.join(`chat:${roomId}`);
+        console.log(`User ${userId} joined chat room: ${roomId}`);
+      });
+
+      socket.on('chat:leave', (roomId: string) => {
+        socket.leave(`chat:${roomId}`);
+        console.log(`User ${userId} left chat room: ${roomId}`);
+      });
+
+      socket.on('chat:typing:start', (data: { roomId: string }) => {
+        socket.to(`chat:${data.roomId}`).emit('chat:typing:start', {
+          userId,
+          roomId: data.roomId
+        });
+      });
+
+      socket.on('chat:typing:stop', (data: { roomId: string }) => {
+        socket.to(`chat:${data.roomId}`).emit('chat:typing:stop', {
+          userId,
+          roomId: data.roomId
+        });
+      });
+
       socket.on('disconnect', async () => {
         console.log(`❌ User disconnected: ${userId} (${socket.id})`);
 
@@ -117,12 +162,24 @@ export class SocketService {
     });
   }
 
+  public emitToWorkshop(workshopId: string, event: string, data: any): void {
+    this.io.to(`workshop:${workshopId}`).emit(event, data);
+  }
+
+  public emitToTeam(teamId: string, event: string, data: any): void {
+    this.io.to(`team:${teamId}`).emit(event, data);
+  }
+
   public emitToUser(userId: string, event: string, data: any): void {
     this.io.to(`user:${userId}`).emit(event, data);
   }
 
   public emitToProject(projectId: string, event: string, data: any): void {
     this.io.to(`project:${projectId}`).emit(event, data);
+  }
+
+  public emitToChatRoom(roomId: string, event: string, data: any): void {
+    this.io.to(`chat:${roomId}`).emit(event, data);
   }
 
   public emitToCommunity(event: string, data: any): void {

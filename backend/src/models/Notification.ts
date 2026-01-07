@@ -25,11 +25,15 @@ const notificationSchema = new Schema<INotification>(
     },
     relatedProject: {
       type: Schema.Types.ObjectId,
-      ref: 'Project'
+      ref: 'WorkshopProject'
+    },
+    relatedWorkshop: {
+      type: Schema.Types.ObjectId,
+      ref: 'Workshop'
     },
     relatedTask: {
       type: Schema.Types.ObjectId,
-      ref: 'Task'
+      ref: 'WorkshopTask'
     },
     relatedUser: {
       type: Schema.Types.ObjectId,

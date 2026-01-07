@@ -1,5 +1,5 @@
 import { Notification } from '../models/Notification';
-import { INotification, NotificationType } from '../types';
+import { INotification } from '../types';
 import { Types } from 'mongoose';
 
 export class NotificationRepository {
@@ -11,26 +11,26 @@ export class NotificationRepository {
   async findById(id: string): Promise<INotification | null> {
     return await Notification.findById(id)
       .populate('relatedUser', 'name email profilePhoto')
-      .populate('relatedProject', 'title')
+      .populate('relatedProject', 'name')
       .populate('relatedTask', 'title');
   }
 
   async findByUserId(userId: string, limit: number = 50): Promise<INotification[]> {
     return await Notification.find({ user: new Types.ObjectId(userId) })
       .populate('relatedUser', 'name email profilePhoto')
-      .populate('relatedProject', 'title')
+      .populate('relatedProject', 'name')
       .populate('relatedTask', 'title')
       .sort({ createdAt: -1 })
       .limit(limit);
   }
 
   async findUnreadByUserId(userId: string): Promise<INotification[]> {
-    return await Notification.find({ 
+    return await Notification.find({
       user: new Types.ObjectId(userId),
-      isRead: false 
+      isRead: false
     })
       .populate('relatedUser', 'name email profilePhoto')
-      .populate('relatedProject', 'title')
+      .populate('relatedProject', 'name')
       .populate('relatedTask', 'title')
       .sort({ createdAt: -1 });
   }

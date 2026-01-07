@@ -1,6 +1,9 @@
 import { Request } from 'express';
 import { Types, Document } from 'mongoose';
 
+// Re-export all workshop types
+export * from './workshop';
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
@@ -21,12 +24,26 @@ export enum TaskStatus {
 }
 
 export enum ProjectCategory {
-  WEB_DEV = 'web_development',
-  MOBILE_DEV = 'mobile_development',
+  WEB_DEVELOPMENT = 'web_development',
+  MOBILE_DEVELOPMENT = 'mobile_development',
   DATA_SCIENCE = 'data_science',
   DESIGN = 'design',
   MARKETING = 'marketing',
   OTHER = 'other'
+}
+
+export enum CommitmentType {
+  FULL_TIME = 'full_time',
+  PART_TIME = 'part_time',
+  FREELANCE = 'freelance',
+  VOLUNTEER = 'volunteer',
+  OPEN_SOURCE = 'open_source'
+}
+
+export enum SortOrder {
+  NEW = 'new',
+  TOP = 'top',
+  TRENDING = 'trending'
 }
 
 export enum NotificationType {
@@ -34,8 +51,14 @@ export enum NotificationType {
   TASK_UPDATED = 'task_updated',
   MESSAGE = 'message',
   PROJECT_INVITE = 'project_invite',
+  PROJECT_ASSIGNED = 'project_assigned',
   JOIN_REQUEST = 'join_request',
-  COMMENT = 'comment'
+  COMMENT = 'comment',
+  WORKSHOP_INVITE = 'workshop_invite',
+  TEAM_ASSIGNED = 'team_assigned',
+  ROLE_ASSIGNED = 'role_assigned',
+  MEMBERSHIP_APPROVED = 'membership_approved',
+  MEMBERSHIP_REJECTED = 'membership_rejected'
 }
 
 export interface IUser extends Document {
@@ -52,57 +75,44 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-export interface IProject extends Document {
-  _id: Types.ObjectId;
-  title: string;
-  description: string;
-  category: ProjectCategory;
-  owner: Types.ObjectId;
-  teamMembers: Types.ObjectId[];
-  startDate: Date;
-  endDate?: Date;
-  isPublic: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ITask extends Document {
-  _id: Types.ObjectId;
-  project: Types.ObjectId;
-  title: string;
-  description?: string;
-  status: TaskStatus;
-  assignedTo?: Types.ObjectId;
-  createdBy: Types.ObjectId;
-  dueDate?: Date;
-  attachments: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface IMessage extends Document {
-  _id: Types.ObjectId;
-  project: Types.ObjectId;
-  sender: Types.ObjectId;
-  content: string;
-  attachments: string[];
-  createdAt: Date;
-}
-
 export interface ICommunityProject extends Document {
   _id: Types.ObjectId;
   title: string;
   description: string;
+  category: ProjectCategory;
+  commitmentType: CommitmentType;
   tags: string[];
   requiredSkills: string[];
   owner: Types.ObjectId;
-  likes: Types.ObjectId[];
-  comments: {
-    user: Types.ObjectId;
-    content: string;
-    createdAt: Date;
-  }[];
-  joinRequests: Types.ObjectId[];
+  votes: IVote[];
+  upvoteCount: number;
+  downvoteCount: number;
+  voteScore: number;
+  comments: IComment[];
+  joinRequests: IJoinRequest[];
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface IVote {
+  userId: Types.ObjectId;
+  voteType: 'upvote' | 'downvote';
+  createdAt: Date;
+}
+
+export interface IComment {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+  content: string;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+export interface IJoinRequest {
+  _id: Types.ObjectId;
+  user: Types.ObjectId;
+  status: 'pending' | 'approved' | 'rejected';
+  message?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -114,6 +124,7 @@ export interface INotification extends Document {
   title: string;
   message: string;
   relatedProject?: Types.ObjectId;
+  relatedWorkshop?: Types.ObjectId;
   relatedTask?: Types.ObjectId;
   relatedUser?: Types.ObjectId;
   isRead: boolean;

@@ -1,4 +1,32 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
+import {
+  ApiResponse,
+  PaginatedResponse,
+  User,
+  Notification
+} from '../types';
+import {
+  Workshop,
+  Membership,
+  Team,
+  Role,
+  RoleAssignment,
+  WorkshopProject,
+  WorkshopTask,
+  AuditLog,
+  PermissionResult,
+  CreateWorkshopData,
+  UpdateWorkshopData,
+  CreateTeamData,
+  UpdateTeamData,
+  CreateRoleData,
+  UpdateRoleData,
+  CreateWorkshopProjectData,
+  UpdateWorkshopProjectData,
+  CreateWorkshopTaskData,
+  UpdateWorkshopTaskData,
+  AuditLogFilters
+} from '../types/workshop';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -13,6 +41,7 @@ class ApiService {
       }
     });
 
+    // Request interceptor - add auth token
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('token');
@@ -24,6 +53,7 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
+    // Response interceptor - handle 401 errors
     this.api.interceptors.response.use(
       (response) => response,
       (error: AxiosError) => {
@@ -37,130 +67,443 @@ class ApiService {
     );
   }
 
-  async register(name: string, email: string, password: string) {
+  // ==================== AUTH ====================
+
+  async register(name: string, email: string, password: string): Promise<ApiResponse<{ token: string; user: User }>> {
     const response = await this.api.post('/auth/register', { name, email, password });
     return response.data;
   }
 
-  async login(email: string, password: string) {
+  async login(email: string, password: string): Promise<ApiResponse<{ token: string; user: User }>> {
     const response = await this.api.post('/auth/login', { email, password });
     return response.data;
   }
 
-  async getProfile() {
+  async getProfile(): Promise<ApiResponse<User>> {
     const response = await this.api.get('/auth/me');
     return response.data;
   }
 
-  async getProjects() {
-    const response = await this.api.get('/projects');
+  async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
+    const response = await this.api.put('/auth/profile', data);
     return response.data;
   }
 
-  async getProjectById(id: string) {
-    const response = await this.api.get(`/projects/${id}`);
+  // ==================== INVITATIONS ====================
+
+  async getInvitationDetails(token: string): Promise<ApiResponse<any>> {
+    const response = await this.api.get(`/invites/${token}`);
     return response.data;
   }
 
-  async createProject(data: any) {
-    const response = await this.api.post('/projects', data);
+  async acceptInvitation(token: string): Promise<ApiResponse<any> & { message?: string }> {
+    const response = await this.api.post(`/invites/${token}/accept`);
     return response.data;
   }
 
-  async updateProject(id: string, data: any) {
-    const response = await this.api.put(`/projects/${id}`, data);
-    return response.data;
-  }
+  // ==================== MESSAGES ====================
 
-  async deleteProject(id: string) {
-    const response = await this.api.delete(`/projects/${id}`);
-    return response.data;
-  }
+  // ==================== NOTIFICATIONS ====================
 
-  async inviteTeamMember(projectId: string, email: string) {
-    const response = await this.api.post(`/projects/${projectId}/invite`, { email });
-    return response.data;
-  }
-
-  async getProjectTasks(projectId: string) {
-    const response = await this.api.get(`/projects/${projectId}/tasks`);
-    return response.data;
-  }
-
-  async createTask(projectId: string, data: any) {
-    const response = await this.api.post(`/projects/${projectId}/tasks`, data);
-    return response.data;
-  }
-
-  async updateTask(taskId: string, data: any) {
-    const response = await this.api.put(`/tasks/${taskId}`, data);
-    return response.data;
-  }
-
-  async updateTaskStatus(taskId: string, status: string) {
-    const response = await this.api.put(`/tasks/${taskId}/status`, { status });
-    return response.data;
-  }
-
-  async deleteTask(taskId: string) {
-    const response = await this.api.delete(`/tasks/${taskId}`);
-    return response.data;
-  }
-
-  async getProjectMessages(projectId: string, limit?: number) {
-    const response = await this.api.get(`/projects/${projectId}/messages`, {
-      params: { limit }
-    });
-    return response.data;
-  }
-
-  async sendMessage(projectId: string, content: string, attachments?: string[]) {
-    const response = await this.api.post(`/projects/${projectId}/messages`, {
-      content,
-      attachments
-    });
-    return response.data;
-  }
-
-  async getNotifications(limit?: number) {
+  async getNotifications(limit?: number): Promise<ApiResponse<Notification[]>> {
     const response = await this.api.get('/notifications', { params: { limit } });
     return response.data;
   }
 
-  async markNotificationAsRead(id: string) {
+  async getUnreadNotifications(): Promise<ApiResponse<Notification[]>> {
+    const response = await this.api.get('/notifications/unread');
+    return response.data;
+  }
+
+  async getUnreadCount(): Promise<ApiResponse<{ count: number }>> {
+    const response = await this.api.get('/notifications/count');
+    return response.data;
+  }
+
+  async markNotificationAsRead(id: string): Promise<ApiResponse<Notification>> {
     const response = await this.api.put(`/notifications/${id}/read`);
     return response.data;
   }
 
-  async markAllNotificationsAsRead() {
+  async markAllNotificationsAsRead(): Promise<ApiResponse<void>> {
     const response = await this.api.put('/notifications/read-all');
     return response.data;
   }
 
-  async getCommunityProjects(limit?: number, skip?: number) {
-    const response = await this.api.get('/community/projects', {
-      params: { limit, skip }
+  async deleteNotification(id: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/notifications/${id}`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP DISCOVERY ====================
+
+  async getPublicWorkshops(
+    filters?: { search?: string; category?: string; tags?: string[]; sort?: string },
+    page?: number,
+    limit?: number
+  ): Promise<PaginatedResponse<Workshop>> {
+    const response = await this.api.get('/workshops/public', {
+      params: {
+        ...filters,
+        page,
+        limit
+      }
     });
     return response.data;
   }
 
-  async createCommunityProject(data: any) {
-    const response = await this.api.post('/community/projects', data);
+  async upvoteWorkshop(workshopId: string): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.post(`/workshops/${workshopId}/upvote`);
     return response.data;
   }
 
-  async likeCommunityProject(id: string) {
-    const response = await this.api.post(`/community/projects/${id}/like`);
+  async downvoteWorkshop(workshopId: string): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.post(`/workshops/${workshopId}/downvote`);
     return response.data;
   }
 
-  async commentOnCommunityProject(id: string, content: string) {
-    const response = await this.api.post(`/community/projects/${id}/comment`, { content });
+  // ==================== WORKSHOPS ====================
+
+  async getWorkshops(): Promise<ApiResponse<Workshop[]>> {
+    const response = await this.api.get('/workshops/my-workshops');
     return response.data;
   }
 
-  async requestToJoinCommunityProject(id: string) {
-    const response = await this.api.post(`/community/projects/${id}/join`);
+  async getWorkshopById(id: string): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.get(`/workshops/${id}`);
+    return response.data;
+  }
+
+  async createWorkshop(data: CreateWorkshopData): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.post('/workshops', data);
+    return response.data;
+  }
+
+  async updateWorkshop(id: string, data: UpdateWorkshopData): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.put(`/workshops/${id}`, data);
+    return response.data;
+  }
+
+  async deleteWorkshop(id: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${id}`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP MANAGERS ====================
+
+  async assignWorkshopManager(workshopId: string, userId: string): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.post(`/workshops/${workshopId}/managers`, { userId });
+    return response.data;
+  }
+
+  async removeWorkshopManager(workshopId: string, userId: string): Promise<ApiResponse<Workshop>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/managers/${userId}`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP MEMBERSHIP ====================
+
+  async getWorkshopMembers(workshopId: string): Promise<ApiResponse<Membership[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/members`);
+    return response.data;
+  }
+
+  async inviteWorkshopMember(workshopId: string, email: string, roleId?: string): Promise<ApiResponse<Membership>> {
+    const response = await this.api.post(`/workshops/${workshopId}/invite`, { email, roleId });
+    return response.data;
+  }
+
+  async requestToJoinWorkshop(workshopId: string, message?: string): Promise<ApiResponse<Membership>> {
+    const response = await this.api.post(`/workshops/${workshopId}/join`, { message });
+    return response.data;
+  }
+
+  async respondToWorkshopJoinRequest(
+    workshopId: string,
+    membershipId: string,
+    status: 'approved' | 'rejected'
+  ): Promise<ApiResponse<Membership>> {
+    const endpoint = status === 'approved'
+      ? `/workshops/${workshopId}/approve/${membershipId}`
+      : `/workshops/${workshopId}/reject/${membershipId}`;
+    const response = await this.api.post(endpoint);
+    return response.data;
+  }
+
+  async revokeWorkshopMembership(workshopId: string, userId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/members/${userId}`);
+    return response.data;
+  }
+
+  async leaveWorkshop(workshopId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.post(`/workshops/${workshopId}/leave`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP TEAMS ====================
+
+  async getWorkshopTeams(workshopId: string): Promise<ApiResponse<Team[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/teams`);
+    return response.data;
+  }
+
+  async getTeamById(workshopId: string, teamId: string): Promise<ApiResponse<Team>> {
+    const response = await this.api.get(`/workshops/${workshopId}/teams/${teamId}`);
+    return response.data;
+  }
+
+  async createTeam(workshopId: string, data: CreateTeamData): Promise<ApiResponse<Team>> {
+    const response = await this.api.post(`/workshops/${workshopId}/teams`, data);
+    return response.data;
+  }
+
+  async updateTeam(workshopId: string, teamId: string, data: UpdateTeamData): Promise<ApiResponse<Team>> {
+    const response = await this.api.put(`/workshops/${workshopId}/teams/${teamId}`, data);
+    return response.data;
+  }
+
+  async deleteTeam(workshopId: string, teamId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/teams/${teamId}`);
+    return response.data;
+  }
+
+  async addTeamMember(workshopId: string, teamId: string, userId: string): Promise<ApiResponse<Team>> {
+    const response = await this.api.post(`/workshops/${workshopId}/teams/${teamId}/members/${userId}`);
+    return response.data;
+  }
+
+  async removeWorkshopTeamMember(workshopId: string, teamId: string, userId: string): Promise<ApiResponse<Team>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/teams/${teamId}/members/${userId}`);
+    return response.data;
+  }
+
+  async assignTeamInternalRole(
+    workshopId: string,
+    teamId: string,
+    userId: string,
+    roleName: string
+  ): Promise<ApiResponse<Team>> {
+    const response = await this.api.post(`/workshops/${workshopId}/teams/${teamId}/roles`, { userId, roleName });
+    return response.data;
+  }
+
+  async removeTeamInternalRole(
+    workshopId: string,
+    teamId: string,
+    userId: string,
+    roleName: string
+  ): Promise<ApiResponse<Team>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/teams/${teamId}/roles/${userId}/${roleName}`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP ROLES ====================
+
+  async getWorkshopRoles(workshopId: string): Promise<ApiResponse<Role[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/roles`);
+    return response.data;
+  }
+
+  async getRoleById(workshopId: string, roleId: string): Promise<ApiResponse<Role>> {
+    const response = await this.api.get(`/workshops/${workshopId}/roles/${roleId}`);
+    return response.data;
+  }
+
+  async createRole(workshopId: string, data: CreateRoleData): Promise<ApiResponse<Role>> {
+    const response = await this.api.post(`/workshops/${workshopId}/roles`, data);
+    return response.data;
+  }
+
+  async updateRole(workshopId: string, roleId: string, data: UpdateRoleData): Promise<ApiResponse<Role>> {
+    const response = await this.api.put(`/workshops/${workshopId}/roles/${roleId}`, data);
+    return response.data;
+  }
+
+  async deleteRole(workshopId: string, roleId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/roles/${roleId}`);
+    return response.data;
+  }
+
+  async assignRole(workshopId: string, roleId: string, userId: string, scopeId?: string): Promise<ApiResponse<RoleAssignment>> {
+    const response = await this.api.post(`/workshops/${workshopId}/roles/${roleId}/assign`, { userId, scopeId });
+    return response.data;
+  }
+
+  async revokeRole(workshopId: string, roleId: string, userId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/roles/${roleId}/assign/${userId}`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP PROJECTS ====================
+
+  async getWorkshopProjects(workshopId: string): Promise<ApiResponse<WorkshopProject[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/projects`);
+    return response.data;
+  }
+
+  async getWorkshopProjectById(workshopId: string, projectId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.get(`/workshops/${workshopId}/projects/${projectId}`);
+    return response.data;
+  }
+
+  async createWorkshopProject(workshopId: string, data: CreateWorkshopProjectData): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects`, data);
+    return response.data;
+  }
+
+  async updateWorkshopProject(workshopId: string, projectId: string, data: UpdateWorkshopProjectData): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.put(`/workshops/${workshopId}/projects/${projectId}`, data);
+    return response.data;
+  }
+
+  async deleteWorkshopProject(workshopId: string, projectId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}`);
+    return response.data;
+  }
+
+  async assignTeamToProject(workshopId: string, projectId: string, teamId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/teams`, { teamId });
+    return response.data;
+  }
+
+  async removeTeamFromProject(workshopId: string, projectId: string, teamId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/teams/${teamId}`);
+    return response.data;
+  }
+
+  async assignIndividualToProject(workshopId: string, projectId: string, userId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/individuals`, { userId });
+    return response.data;
+  }
+
+  async removeIndividualFromProject(workshopId: string, projectId: string, userId: string): Promise<ApiResponse<WorkshopProject>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/individuals/${userId}`);
+    return response.data;
+  }
+
+
+  // ==================== WORKSHOP TASKS ====================
+
+  async getWorkshopProjectTasks(workshopId: string, projectId: string): Promise<ApiResponse<WorkshopTask[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/projects/${projectId}/tasks`);
+    return response.data;
+  }
+
+  async getWorkshopTaskById(workshopId: string, projectId: string, taskId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.get(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}`);
+    return response.data;
+  }
+
+  async createWorkshopTask(workshopId: string, projectId: string, data: CreateWorkshopTaskData): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks`, data);
+    return response.data;
+  }
+
+  async updateWorkshopTask(workshopId: string, projectId: string, taskId: string, data: UpdateWorkshopTaskData): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.put(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}`, data);
+    return response.data;
+  }
+
+  async deleteWorkshopTask(workshopId: string, projectId: string, taskId: string): Promise<ApiResponse<void>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}`);
+    return response.data;
+  }
+
+  async updateWorkshopTaskStatus(workshopId: string, projectId: string, taskId: string, status: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.put(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/status`, { status });
+    return response.data;
+  }
+
+  async addWorkshopTaskComment(workshopId: string, projectId: string, taskId: string, content: string, mentions: string[] = []): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/comments`, { content, mentions });
+    return response.data;
+  }
+
+  async addWorkshopTaskAttachment(workshopId: string, projectId: string, taskId: string, fileData: { fileName: string; fileUrl: string; fileType: string; fileSize: number }): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/attachments`, fileData);
+    return response.data;
+  }
+
+  async assignTeamToTask(workshopId: string, projectId: string, taskId: string, teamId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/teams`, { teamId });
+    return response.data;
+  }
+
+  async removeTeamFromTask(workshopId: string, projectId: string, taskId: string, teamId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/teams/${teamId}`);
+    return response.data;
+  }
+
+  async assignIndividualToTask(workshopId: string, projectId: string, taskId: string, userId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/individuals`, { userId });
+    return response.data;
+  }
+
+  async removeIndividualFromTask(workshopId: string, projectId: string, taskId: string, userId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/individuals/${userId}`);
+    return response.data;
+  }
+
+  async addTaskDependency(workshopId: string, projectId: string, taskId: string, dependencyId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.post(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/dependencies`, { dependencyId });
+    return response.data;
+  }
+
+  async removeTaskDependency(workshopId: string, projectId: string, taskId: string, dependencyId: string): Promise<ApiResponse<WorkshopTask>> {
+    const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/dependencies/${dependencyId}`);
+    return response.data;
+  }
+
+  async getTaskActivityHistory(workshopId: string, projectId: string, taskId: string): Promise<ApiResponse<WorkshopTask['activityHistory']>> {
+    const response = await this.api.get(`/workshops/${workshopId}/projects/${projectId}/tasks/${taskId}/activity`);
+    return response.data;
+  }
+
+  // ==================== WORKSHOP AUDIT LOGS ====================
+
+  async getWorkshopAuditLogs(
+    workshopId: string,
+    filters?: AuditLogFilters,
+    page?: number,
+    limit?: number
+  ): Promise<PaginatedResponse<AuditLog>> {
+    const response = await this.api.get(`/workshops/${workshopId}/audit`, {
+      params: {
+        ...filters,
+        page,
+        limit
+      }
+    });
+    return response.data;
+  }
+
+  // ==================== PERMISSIONS ====================
+
+  async checkPermission(
+    workshopId: string,
+    action: string,
+    resource: string,
+    context?: { projectId?: string; teamId?: string }
+  ): Promise<ApiResponse<PermissionResult>> {
+    const response = await this.api.get(`/workshops/${workshopId}/permissions/check`, {
+      params: {
+        action,
+        resource,
+        ...context
+      }
+    });
+    return response.data;
+  }
+  async uploadFile(file: File, type: 'image' | 'audio' | 'document' = 'document'): Promise<ApiResponse<{ fileUrl: string; fileName: string; fileType: string; fileSize: number }>> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
+
+    const response = await this.api.post('/chat/upload-only', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    });
     return response.data;
   }
 }
