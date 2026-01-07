@@ -193,9 +193,9 @@ export class WorkshopRepository {
   async incrementVote(workshopId: string, amount: number, isUpvote: boolean): Promise<IWorkshop> {
     const update: any = { $inc: { voteScore: amount } };
     if (isUpvote) {
-      update.$inc.upvoteCount = amount > 0 ? 1 : -1;
+      update.$inc.upvoteCount = 1;
     } else {
-      update.$inc.downvoteCount = amount > 0 ? 1 : -1;
+      update.$inc.downvoteCount = 1;
     }
 
     const workshop = await Workshop.findByIdAndUpdate(
