@@ -168,20 +168,9 @@ class SocketService {
       'community:comment:deleted',
       'community:join:responded',
 
-      // Workshop events
-      'workshop:updated',
-      'workshop:deleted',
-      'workshop:manager:assigned',
-      'workshop:manager:removed',
+      // Workshop events (additional)
       'workshop:project:created',
       'workshop:team:created',
-      'membership:request:created',
-      'membership:request:approved',
-      'membership:request:rejected',
-      'membership:joined',
-      'membership:removed',
-      'role:assigned',
-      'role:revoked',
       'role:updated',
       'role:deleted',
 

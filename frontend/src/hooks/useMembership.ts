@@ -67,7 +67,13 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
       ? membership.workshop
       : membership.workshop._id;
     if (memberWorkshopId === workshopId) {
-      setMembers(prev => [...prev, membership]);
+      setMembers(prev => {
+        // Prevent duplicates
+        if (prev.some(m => m._id === membership._id)) {
+          return prev;
+        }
+        return [...prev, membership];
+      });
     }
   });
 
