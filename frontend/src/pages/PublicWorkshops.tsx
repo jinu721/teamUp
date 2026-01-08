@@ -70,7 +70,11 @@ const PublicWorkshops: React.FC = () => {
             if (reset) {
                 setWorkshops(response.data);
             } else {
-                setWorkshops(prev => [...prev, ...response.data]);
+                setWorkshops(prev => {
+                    const existingIds = new Set(prev.map(w => w._id));
+                    const newWorkshops = response.data.filter((w: any) => !existingIds.has(w._id));
+                    return [...prev, ...newWorkshops];
+                });
             }
             setHasMore(response.data.length === 20); // Simple pagination check
         } catch (error) {

@@ -54,7 +54,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleNewNotification = (notification: Notification) => {
-    setNotifications(prev => [notification, ...prev].slice(0, 10));
+    setNotifications(prev => {
+      if (prev.some(n => n._id === notification._id)) return prev;
+      return [notification, ...prev].slice(0, 10);
+    });
     toast({
       title: notification.title,
       description: notification.message,

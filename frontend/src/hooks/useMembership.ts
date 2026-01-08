@@ -47,7 +47,10 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
     if (typeof membership.workshop === 'string'
       ? membership.workshop === workshopId
       : membership.workshop._id === workshopId) {
-      setMembers(prev => [...prev, membership]);
+      setMembers(prev => {
+        if (prev.some(m => m._id === membership._id)) return prev;
+        return [...prev, membership];
+      });
     }
   });
 

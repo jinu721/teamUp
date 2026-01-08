@@ -45,7 +45,10 @@ export function useTeams(workshopId: string | undefined): UseTeamsReturn {
   }, [fetchTeams]);
 
   const addTeam = useCallback((team: Team) => {
-    setTeams(prev => [...prev, team]);
+    setTeams(prev => {
+      if (prev.some(t => t._id === team._id)) return prev;
+      return [...prev, team];
+    });
   }, []);
 
   const updateTeam = useCallback((updatedTeam: Team) => {

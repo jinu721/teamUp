@@ -42,7 +42,11 @@ export const useChat = (roomId: string | null) => {
             if (pageNum === 1) {
                 setMessages(response.data);
             } else {
-                setMessages(prev => [...response.data, ...prev]);
+                setMessages(prev => {
+                    const existingIds = new Set(prev.map(m => m._id));
+                    const newMessages = response.data.filter((m: Message) => !existingIds.has(m._id));
+                    return [...newMessages, ...prev];
+                });
             }
 
             setHasMore(response.pagination?.hasMore || false);

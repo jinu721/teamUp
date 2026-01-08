@@ -51,7 +51,10 @@ export function useWorkshopProjects(workshopId: string | undefined): UseWorkshop
   }, [fetchProjects]);
 
   const addProject = useCallback((project: WorkshopProject) => {
-    setProjects(prev => [...prev, project]);
+    setProjects(prev => {
+      if (prev.some(p => p._id === project._id)) return prev;
+      return [...prev, project];
+    });
   }, []);
 
   const updateProject = useCallback((updatedProject: WorkshopProject) => {

@@ -24,7 +24,7 @@ interface UseCommunityPostsReturn {
 
 export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCommunityPostsReturn {
   const { filters = {}, sort = SortOrder.NEW, limit = 20 } = options;
-  
+
   const [posts, setPosts] = useState<CommunityPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -32,7 +32,7 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
   const [hasMore, setHasMore] = useState(true);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
-  
+
   const filtersRef = useRef(filters);
   const sortRef = useRef(sort);
 
@@ -62,7 +62,7 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
         setPosts(prev => {
           // Deduplicate posts
           const existingIds = new Set(prev.map(p => p._id));
-          const newPosts = response.data.filter(p => !existingIds.has(p._id));
+          const newPosts = response.data.filter((p: CommunityPost) => !existingIds.has(p._id));
           return [...prev, ...newPosts];
         });
       }
@@ -114,7 +114,10 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
   useSocketEvent('community:post:created', (post: CommunityPost) => {
     // Add new post at the beginning if sorting by new
     if (sortRef.current === SortOrder.NEW) {
-      setPosts(prev => [post, ...prev]);
+      setPosts(prev => {
+        if (prev.some(p => p._id === post._id)) return prev;
+        return [post, ...prev];
+      });
       setTotal(prev => prev + 1);
     }
   });
@@ -128,22 +131,22 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
     setTotal(prev => Math.max(0, prev - 1));
   });
 
-  useSocketEvent('community:post:voted', (data: { 
-    postId: string; 
-    upvoteCount: number; 
-    downvoteCount: number; 
-    voteScore: number 
+  useSocketEvent('community:post:voted', (data: {
+    postId: string;
+    upvoteCount: number;
+    downvoteCount: number;
+    voteScore: number
   }) => {
-    setPosts(prev => prev.map(p => 
-      p._id === data.postId 
+    setPosts(prev => prev.map(p =>
+      p._id === data.postId
         ? { ...p, upvoteCount: data.upvoteCount, downvoteCount: data.downvoteCount, voteScore: data.voteScore }
         : p
     ));
   });
 
   useSocketEvent('community:post:commented', (data: { postId: string; comment: any }) => {
-    setPosts(prev => prev.map(p => 
-      p._id === data.postId 
+    setPosts(prev => prev.map(p =>
+      p._id === data.postId
         ? { ...p, comments: [...p.comments, data.comment] }
         : p
     ));

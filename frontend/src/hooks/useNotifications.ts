@@ -44,7 +44,7 @@ export function useNotifications(limit: number = 50): UseNotificationsReturn {
   const markAsRead = useCallback(async (id: string) => {
     try {
       await api.markNotificationAsRead(id);
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n._id === id ? { ...n, isRead: true } : n)
       );
     } catch (err) {
@@ -72,11 +72,14 @@ export function useNotifications(limit: number = 50): UseNotificationsReturn {
 
   // Socket event handlers
   useSocketEvent('notification:new', (notification: Notification) => {
-    setNotifications(prev => [notification, ...prev].slice(0, limit));
+    setNotifications(prev => {
+      if (prev.some(n => n._id === notification._id)) return prev;
+      return [notification, ...prev].slice(0, limit);
+    });
   });
 
   useSocketEvent('notification:read', (data: { notificationId: string }) => {
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => n._id === data.notificationId ? { ...n, isRead: true } : n)
     );
   });

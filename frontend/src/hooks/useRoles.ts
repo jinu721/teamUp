@@ -44,11 +44,14 @@ export function useRoles(workshopId: string | undefined): UseRolesReturn {
   }, [fetchRoles]);
 
   const addRole = useCallback((role: Role) => {
-    setRoles(prev => [...prev, role]);
+    setRoles(prev => {
+      if (prev.some(r => r._id === role._id)) return prev;
+      return [...prev, role];
+    });
   }, []);
 
   const updateRole = useCallback((updatedRole: Role) => {
-    setRoles(prev => prev.map(r => 
+    setRoles(prev => prev.map(r =>
       r._id === updatedRole._id ? updatedRole : r
     ));
   }, []);
@@ -59,8 +62,8 @@ export function useRoles(workshopId: string | undefined): UseRolesReturn {
 
   // Socket event handlers
   useSocketEvent('role:created', (role: Role) => {
-    const roleWorkshopId = typeof role.workshop === 'string' 
-      ? role.workshop 
+    const roleWorkshopId = typeof role.workshop === 'string'
+      ? role.workshop
       : role.workshop._id;
     if (roleWorkshopId === workshopId) {
       addRole(role);
@@ -68,8 +71,8 @@ export function useRoles(workshopId: string | undefined): UseRolesReturn {
   });
 
   useSocketEvent('role:updated', (role: Role) => {
-    const roleWorkshopId = typeof role.workshop === 'string' 
-      ? role.workshop 
+    const roleWorkshopId = typeof role.workshop === 'string'
+      ? role.workshop
       : role.workshop._id;
     if (roleWorkshopId === workshopId) {
       updateRole(role);

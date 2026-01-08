@@ -50,7 +50,10 @@ export function useWorkshopTasks(
   }, [fetchTasks]);
 
   const addTask = useCallback((task: WorkshopTask) => {
-    setTasks(prev => [...prev, task]);
+    setTasks(prev => {
+      if (prev.some(t => t._id === task._id)) return prev;
+      return [...prev, task];
+    });
   }, []);
 
   const updateTask = useCallback((updatedTask: WorkshopTask) => {

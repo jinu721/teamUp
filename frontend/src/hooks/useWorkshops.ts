@@ -40,11 +40,14 @@ export function useWorkshops(): UseWorkshopsReturn {
   }, [fetchWorkshops]);
 
   const addWorkshop = useCallback((workshop: Workshop) => {
-    setWorkshops(prev => [workshop, ...prev]);
+    setWorkshops(prev => {
+      if (prev.some(w => w._id === workshop._id)) return prev;
+      return [workshop, ...prev];
+    });
   }, []);
 
   const updateWorkshop = useCallback((updatedWorkshop: Workshop) => {
-    setWorkshops(prev => prev.map(w => 
+    setWorkshops(prev => prev.map(w =>
       w._id === updatedWorkshop._id ? updatedWorkshop : w
     ));
   }, []);
