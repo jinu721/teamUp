@@ -77,6 +77,7 @@ export class WorkshopController {
     try {
       const { search, category, tags, sort, page = 1, limit = 20 } = req.query;
       const skip = (Number(page) - 1) * Number(limit);
+      const currentUserId = (req as any).user?.id;
 
       const result = await this.workshopService.getPublicWorkshops({
         search: search as string,
@@ -85,7 +86,7 @@ export class WorkshopController {
         limit: Number(limit),
         skip,
         sort: sort as string
-      });
+      }, currentUserId);
 
       res.json({
         success: true,

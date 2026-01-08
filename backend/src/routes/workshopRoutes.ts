@@ -3,7 +3,7 @@ import { WorkshopController } from '../controllers/WorkshopController';
 import { WorkshopProjectController } from '../controllers/WorkshopProjectController';
 import { WorkshopTaskController } from '../controllers/WorkshopTaskController';
 import { TeamController } from '../controllers/TeamController';
-import { authenticate } from '../middlewares/auth';
+import { authenticate, optionalAuthenticate } from '../middlewares/auth';
 import { requireWorkshopMembership, requirePermission } from '../middlewares/permission';
 
 const router = Router();
@@ -20,7 +20,7 @@ export const teamController = new TeamController();
 
 router.post('/', authenticate, workshopController.createWorkshop);
 router.get('/my-workshops', authenticate, workshopController.getUserWorkshops);
-router.get('/public', workshopController.getPublicWorkshops);
+router.get('/public', optionalAuthenticate, workshopController.getPublicWorkshops);
 router.post('/:workshopId/upvote', authenticate, workshopController.upvoteWorkshop);
 router.post('/:workshopId/downvote', authenticate, workshopController.downvoteWorkshop);
 router.get('/:workshopId/permissions/check', authenticate, workshopController.checkPermission);

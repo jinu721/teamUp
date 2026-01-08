@@ -107,6 +107,11 @@ export interface Workshop {
   downvoteCount?: number;
   voteScore?: number;
   memberCount?: number;
+  currentUserMembership?: {
+    state: MembershipState;
+    source: MembershipSource;
+    joinedAt?: Date;
+  };
 }
 
 // ==================== MEMBERSHIP INTERFACES ====================

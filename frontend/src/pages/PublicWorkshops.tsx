@@ -2,10 +2,9 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
     SortOrder,
     ProjectCategory,
-    PROJECT_CATEGORY_LABELS,
-    WorkshopVisibility
+    PROJECT_CATEGORY_LABELS
 } from '@/types';
-import { Workshop } from '@/types/workshop';
+import { Workshop, WorkshopVisibility, MembershipState } from '@/types/workshop';
 import api from '@/services/api';
 // import socketService from '@/services/socket'; // Socket service needs update for workshops
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -124,8 +123,24 @@ const PublicWorkshops: React.FC = () => {
 
     const handleJoinRequest = async (workshopId: string) => {
         try {
-            await api.requestToJoinWorkshop(workshopId);
-            toast({ title: 'Request sent', description: 'Your join request has been sent' });
+            const response = await api.requestToJoinWorkshop(workshopId);
+            toast({ title: 'Request sent', description: response.data.state === MembershipState.ACTIVE ? 'You have joined the workshop' : 'Your join request has been sent' });
+
+            // Update local state to reflect requested status
+            if (response.success && response.data) {
+                setWorkshops(prev => prev.map(w =>
+                    w._id === workshopId
+                        ? {
+                            ...w,
+                            currentUserMembership: {
+                                state: response.data.state,
+                                source: response.data.source,
+                                joinedAt: response.data.joinedAt
+                            }
+                        }
+                        : w
+                ));
+            }
         } catch (error: any) {
             toast({ title: 'Error', description: error.response?.data?.message || 'Failed to join', variant: 'destructive' });
         }
@@ -258,8 +273,23 @@ const PublicWorkshops: React.FC = () => {
                                             </Button>
                                         </div>
                                         {(workshop as any).owner?._id !== user?._id && (
-                                            <Button size="sm" onClick={() => handleJoinRequest(workshop._id)} className="h-8">
-                                                <UserPlus className="mr-1 h-3.5 w-3.5" /><span className="hidden sm:inline">Join</span>
+                                            <Button
+                                                size="sm"
+                                                onClick={() => handleJoinRequest(workshop._id)}
+                                                className="h-8"
+                                                variant={workshop.currentUserMembership?.state === MembershipState.ACTIVE ? "outline" : "default"}
+                                                disabled={workshop.currentUserMembership?.state === MembershipState.PENDING || workshop.currentUserMembership?.state === MembershipState.ACTIVE}
+                                            >
+                                                {workshop.currentUserMembership?.state === MembershipState.PENDING ? (
+                                                    'Requested'
+                                                ) : workshop.currentUserMembership?.state === MembershipState.ACTIVE ? (
+                                                    'Joined'
+                                                ) : (
+                                                    <>
+                                                        <UserPlus className="mr-1 h-3.5 w-3.5" />
+                                                        <span className="hidden sm:inline">Join</span>
+                                                    </>
+                                                )}
                                             </Button>
                                         )}
                                     </CardFooter>

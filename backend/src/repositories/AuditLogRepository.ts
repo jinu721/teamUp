@@ -16,15 +16,15 @@ export class AuditLogRepository {
     details?: Record<string, unknown>;
   }): Promise<IAuditLog> {
     const auditLog = new AuditLog({
-      workshop: new Types.ObjectId(data.workshopId),
+      workshop: Types.ObjectId.isValid(data.workshopId) ? new Types.ObjectId(data.workshopId) : undefined,
       action: data.action,
-      actor: new Types.ObjectId(data.actorId),
-      target: data.targetId ? new Types.ObjectId(data.targetId) : undefined,
+      actor: Types.ObjectId.isValid(data.actorId) ? new Types.ObjectId(data.actorId) : undefined,
+      target: (data.targetId && Types.ObjectId.isValid(data.targetId)) ? new Types.ObjectId(data.targetId) : undefined,
       targetType: data.targetType,
       details: data.details || {},
       timestamp: new Date()
     });
-    
+
     return await auditLog.save();
   }
 
@@ -40,8 +40,8 @@ export class AuditLogRepository {
     filters?: AuditLogFilters,
     pagination?: Pagination
   ): Promise<{ logs: IAuditLog[]; total: number }> {
-    const query: Record<string, unknown> = { 
-      workshop: new Types.ObjectId(workshopId) 
+    const query: Record<string, unknown> = {
+      workshop: new Types.ObjectId(workshopId)
     };
 
     if (filters?.action) {
@@ -177,12 +177,12 @@ export class AuditLogRepository {
     startDate.setDate(startDate.getDate() - days);
 
     const result = await AuditLog.aggregate([
-      { 
-        $match: { 
+      {
+        $match: {
           workshop: new Types.ObjectId(workshopId),
           actor: new Types.ObjectId(userId),
           timestamp: { $gte: startDate }
-        } 
+        }
       },
       { $group: { _id: '$action', count: { $sum: 1 } } },
       { $sort: { count: -1 } }

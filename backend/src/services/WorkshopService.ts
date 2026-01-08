@@ -352,9 +352,9 @@ export class WorkshopService {
     if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) throw new AuthorizationError('No permission');
     const updated = await this.membershipRepository.updateState(membershipId, MembershipState.ACTIVE, actorId);
     if (updated.user) {
-      this.permissionService.invalidateUserCache(updated.user.toString(), workshopId);
-      await this.chatService.syncUserToWorkshopRooms(updated.user.toString(), workshopId);
-      await this.auditService.logJoinRequestApproved(workshopId, actorId, updated.user.toString());
+      this.permissionService.invalidateUserCache(getIdString(updated.user), workshopId);
+      await this.chatService.syncUserToWorkshopRooms(getIdString(updated.user), workshopId);
+      await this.auditService.logJoinRequestApproved(workshopId, actorId, getIdString(updated.user));
     }
     if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:approved', updated);
     return updated;
@@ -363,7 +363,7 @@ export class WorkshopService {
   async rejectJoinRequest(workshopId: string, actorId: string, membershipId: string, reason?: string): Promise<IMembership> {
     if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) throw new AuthorizationError('No permission');
     const updated = await this.membershipRepository.updateState(membershipId, MembershipState.REMOVED, actorId);
-    if (updated.user) await this.auditService.logJoinRequestRejected(workshopId, actorId, updated.user.toString(), reason);
+    if (updated.user) await this.auditService.logJoinRequestRejected(workshopId, actorId, getIdString(updated.user), reason);
     if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:rejected', { membershipId });
     return updated;
   }
@@ -416,10 +416,31 @@ export class WorkshopService {
     return await this.membershipRepository.findPendingByWorkshop(workshopId);
   }
 
-  async getPublicWorkshops(options?: any): Promise<{ workshops: IWorkshop[]; total: number }> {
+  async getPublicWorkshops(options?: any, currentUserId?: string): Promise<{ workshops: any[]; total: number }> {
     const workshops = await this.workshopRepository.findPublic(options);
     const total = await this.workshopRepository.countPublic(options);
-    return { workshops, total };
+
+    const enrichedWorkshops = await Promise.all(workshops.map(async (workshop) => {
+      const workshopObj = workshop.toObject();
+
+      if (currentUserId) {
+        const membership = await this.membershipRepository.findByWorkshopAndUser(workshop._id.toString(), currentUserId);
+        if (membership) {
+          (workshopObj as any).currentUserMembership = {
+            state: membership.state,
+            source: membership.source,
+            joinedAt: membership.joinedAt
+          };
+        }
+      }
+
+      const memberCount = await this.membershipRepository.countByWorkshop(workshop._id.toString(), MembershipState.ACTIVE);
+      (workshopObj as any).memberCount = memberCount;
+
+      return workshopObj;
+    }));
+
+    return { workshops: enrichedWorkshops, total };
   }
 
   async upvoteWorkshop(_userId: string, workshopId: string): Promise<IWorkshop> {

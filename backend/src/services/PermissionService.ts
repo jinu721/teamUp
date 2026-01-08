@@ -100,6 +100,14 @@ export class PermissionService {
     resource: string,
     context?: PermissionContext
   ): Promise<PermissionResult> {
+    // Validate IDs format immediately
+    if (!Types.ObjectId.isValid(workshopId) || (userId && !Types.ObjectId.isValid(userId))) {
+      return {
+        granted: false,
+        reason: 'Invalid ID format provided'
+      };
+    }
+
     // Check cache first
     const cacheKey = this.getCacheKey(userId, workshopId, action, resource, context);
     const cached = this.cache.get(cacheKey);
@@ -123,6 +131,17 @@ export class PermissionService {
 
     // Project Manager has full access to their project
     if (context?.projectId) {
+      // Validate ObjectId format before querying
+      if (!Types.ObjectId.isValid(context.projectId)) {
+        // Invalid projectId, skip this check
+        const result: PermissionResult = {
+          granted: false,
+          reason: 'Invalid project ID format'
+        };
+        this.cache.set(cacheKey, { result, timestamp: Date.now() });
+        return result;
+      }
+
       const project = await this.projectRepository.findById(context.projectId);
       if (project && getIdString(project.projectManager) === userId) {
         const result: PermissionResult = {
@@ -145,6 +164,18 @@ export class PermissionService {
           this.cache.set(cacheKey, { result, timestamp: Date.now() });
           return result;
         }
+      }
+    }
+
+    // Team validation
+    if (context?.teamId) {
+      if (!Types.ObjectId.isValid(context.teamId)) {
+        const result: PermissionResult = {
+          granted: false,
+          reason: 'Invalid team ID format'
+        };
+        this.cache.set(cacheKey, { result, timestamp: Date.now() });
+        return result;
       }
     }
 
@@ -216,8 +247,6 @@ export class PermissionService {
           scopeIds = [context.projectId];
         } else {
           // If checking project permission but no specific project in context, skip this layer
-          // or we could check ALL projects the user belongs to, but that's inefficient.
-          // Usually, specific actions on projects should provide the projectId.
           continue;
         }
       } else if (scope === PermissionScope.TEAM) {

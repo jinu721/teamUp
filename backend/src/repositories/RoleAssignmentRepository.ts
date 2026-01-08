@@ -19,12 +19,12 @@ export class RoleAssignmentRepository {
 
   async create(assignmentData: CreateRoleAssignmentDTO): Promise<IRoleAssignment> {
     const assignment = new RoleAssignment({
-      workshop: new Types.ObjectId(assignmentData.workshopId),
-      role: new Types.ObjectId(assignmentData.roleId),
-      user: new Types.ObjectId(assignmentData.userId),
+      workshop: Types.ObjectId.isValid(assignmentData.workshopId) ? new Types.ObjectId(assignmentData.workshopId) : undefined,
+      role: Types.ObjectId.isValid(assignmentData.roleId) ? new Types.ObjectId(assignmentData.roleId) : undefined,
+      user: Types.ObjectId.isValid(assignmentData.userId) ? new Types.ObjectId(assignmentData.userId) : undefined,
       scope: assignmentData.scope,
-      scopeId: assignmentData.scopeId ? new Types.ObjectId(assignmentData.scopeId) : undefined,
-      assignedBy: new Types.ObjectId(assignmentData.assignedBy)
+      scopeId: (assignmentData.scopeId && Types.ObjectId.isValid(assignmentData.scopeId)) ? new Types.ObjectId(assignmentData.scopeId) : undefined,
+      assignedBy: Types.ObjectId.isValid(assignmentData.assignedBy) ? new Types.ObjectId(assignmentData.assignedBy) : undefined
     });
     const saved = await assignment.save();
     return await this.findById(saved._id.toString()) as IRoleAssignment;

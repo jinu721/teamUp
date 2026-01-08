@@ -3,7 +3,7 @@ import { WorkshopProjectRepository } from '../repositories/WorkshopProjectReposi
 import { MembershipRepository } from '../repositories/MembershipRepository';
 import { TeamRepository } from '../repositories/TeamRepository';
 import { NotificationRepository } from '../repositories/NotificationRepository';
-import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, NotificationType, AuditAction } from '../types';
+import { IWorkshopTask, IMembership, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, NotificationType, AuditAction } from '../types';
 import { NotFoundError, AuthorizationError, ValidationError } from '../utils/errors';
 import { SocketService } from './SocketService';
 import { AuditService } from './AuditService';
@@ -160,6 +160,34 @@ export class WorkshopTaskService {
       }
     }
 
+    // Notify users mentioned in description
+    if (data.description) {
+      const mentions = await this.extractMentions(workshopId, data.description);
+      for (const mentionedId of mentions) {
+        if (!notifyUsers.has(mentionedId) && mentionedId !== userId) {
+          await this.notificationRepo.create({
+            user: mentionedId as any,
+            type: NotificationType.COMMENT,
+            title: 'Mentioned in Task',
+            message: `${(membership.user as any)?.name || 'Someone'} mentioned you in the description of task: ${task.title}`,
+            relatedProject: projectId as any,
+            relatedWorkshop: project.workshop,
+            relatedTask: task._id,
+            isRead: false
+          } as any);
+
+          if (this.socketService) {
+            this.socketService.emitToUser(mentionedId, 'notification:new', {
+              type: NotificationType.COMMENT,
+              title: 'New Mention',
+              message: `You were mentioned in a task description`,
+              relatedTask: task._id.toString()
+            });
+          }
+        }
+      }
+    }
+
     // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(projectId, 'workshop:task:created', task);
@@ -309,7 +337,81 @@ export class WorkshopTaskService {
       throw new AuthorizationError('Insufficient permissions to update this task');
     }
 
+    // Capture old assignees for comparison
+    const oldPrimaryOwner = task.primaryOwner?.toString();
+    const oldContributors = new Set(task.contributors?.map(c => typeof c === 'string' ? c : (c as any)._id?.toString() || c.toString()) || []);
+
     const updatedTask = await this.taskRepo.update(taskId, updates, userId);
+
+    // Notify new assignees if they changed
+    const notifyUsers = new Set<string>();
+
+    // Check if primary owner changed
+    if (updates.primaryOwner && updates.primaryOwner !== oldPrimaryOwner) {
+      notifyUsers.add(updates.primaryOwner);
+    }
+
+    // Check for new contributors
+    if (updates.contributors) {
+      updates.contributors.forEach(uid => {
+        if (!oldContributors.has(uid)) {
+          notifyUsers.add(uid);
+        }
+      });
+    }
+
+    // Send notifications to new owners/contributors
+    for (const notifyId of notifyUsers) {
+      if (notifyId !== userId) {
+        await this.notificationRepo.create({
+          user: notifyId as any,
+          type: NotificationType.TASK_ASSIGNED,
+          title: 'Task Assignment Updated',
+          message: `You have been assigned to task: ${updatedTask.title} ${updates.primaryOwner === notifyId ? 'as Primary Owner' : ''}`,
+          relatedProject: project._id,
+          relatedWorkshop: project.workshop,
+          relatedTask: updatedTask._id,
+          isRead: false
+        } as any);
+
+        if (this.socketService) {
+          this.socketService.emitToUser(notifyId, 'notification:new', {
+            type: NotificationType.TASK_ASSIGNED,
+            title: 'Task Assigned',
+            message: `You have been assigned to: ${updatedTask.title}`,
+            relatedTask: updatedTask._id.toString()
+          });
+        }
+      }
+    }
+
+    // Notify users mentioned in updated description
+    if (updates.description && updates.description !== task.description) {
+      const mentions = await this.extractMentions(workshopId, updates.description);
+      for (const mentionedId of mentions) {
+        if (!notifyUsers.has(mentionedId) && mentionedId !== userId) {
+          await this.notificationRepo.create({
+            user: mentionedId as any,
+            type: NotificationType.COMMENT,
+            title: 'Mentioned in Task',
+            message: `${(membership.user as any)?.name || 'Someone'} mentioned you in the updated description of task: ${updatedTask.title}`,
+            relatedProject: project._id,
+            relatedWorkshop: project.workshop,
+            relatedTask: updatedTask._id,
+            isRead: false
+          } as any);
+
+          if (this.socketService) {
+            this.socketService.emitToUser(mentionedId, 'notification:new', {
+              type: NotificationType.COMMENT,
+              title: 'New Mention',
+              message: `You were mentioned in a task description`,
+              relatedTask: updatedTask._id.toString()
+            });
+          }
+        }
+      }
+    }
 
     // Log task update
     await this.auditService.log({
@@ -633,7 +735,43 @@ export class WorkshopTaskService {
 
     const updatedTask = await this.taskRepo.addComment(taskId, userId, content, mentions);
 
-    // Emit real-time event
+    // Get commenter info for notification
+    const commenter = await this.membershipRepo.findActive(workshopId, userId);
+    const commenterName = (commenter?.user as any)?.name || 'Someone';
+
+    // Notify mentioned users
+    if (mentions.length > 0) {
+      for (const mentionedId of mentions) {
+        // Don't notify yourself
+        if (mentionedId === userId) continue;
+
+        // Verify mentioned user is still a member (optional but good)
+        const isMember = await this.membershipRepo.isActiveMember(workshopId, mentionedId);
+        if (!isMember) continue;
+
+        await this.notificationRepo.create({
+          user: mentionedId as any,
+          type: NotificationType.COMMENT,
+          title: 'Mentioned in Comment',
+          message: `${commenterName} mentioned you in a comment on task: ${task.title}`,
+          relatedProject: project._id,
+          relatedWorkshop: project.workshop,
+          relatedTask: task._id,
+          isRead: false
+        } as any);
+
+        if (this.socketService) {
+          this.socketService.emitToUser(mentionedId, 'notification:new', {
+            type: NotificationType.COMMENT,
+            title: 'New Mention',
+            message: `${commenterName} mentioned you in a comment`,
+            relatedTask: task._id.toString()
+          });
+        }
+      }
+    }
+
+    // Emit real-time comment event to project
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:commented', {
@@ -677,5 +815,33 @@ export class WorkshopTaskService {
     }
 
     return updatedTask;
+  }
+  /**
+   * Helper to extract user IDs from mentions in text
+   */
+  private async extractMentions(workshopId: string, text: string): Promise<string[]> {
+    const mentions: string[] = [];
+    const mentionMatches = text.match(/@(\w+)/g);
+
+    if (mentionMatches) {
+      const activeMembers = await this.membershipRepo.getActiveMembers(workshopId);
+      for (const match of mentionMatches) {
+        const name = match.substring(1);
+        const member = activeMembers.find((m: IMembership) => {
+          const userObj = m.user as any;
+          const mName = userObj?.name || '';
+          return mName.toLowerCase().includes(name.toLowerCase());
+        });
+        if (member) {
+          const userObj = member.user as any;
+          const userId = userObj?._id || userObj;
+          if (userId) {
+            mentions.push(userId.toString());
+          }
+        }
+      }
+    }
+
+    return [...new Set(mentions)];
   }
 }

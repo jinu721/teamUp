@@ -45,6 +45,7 @@ export class MembershipRepository {
   }
 
   async findByWorkshop(workshopId: string, state?: MembershipState): Promise<IMembership[]> {
+    if (!Types.ObjectId.isValid(workshopId)) return [];
     const query: any = { workshop: new Types.ObjectId(workshopId) };
     if (state) {
       query.state = state;
@@ -58,6 +59,7 @@ export class MembershipRepository {
   }
 
   async findByUser(userId: string, state?: MembershipState): Promise<IMembership[]> {
+    if (!Types.ObjectId.isValid(userId)) return [];
     const query: any = { user: new Types.ObjectId(userId) };
     if (state) {
       query.state = state;
@@ -71,6 +73,7 @@ export class MembershipRepository {
   }
 
   async findByWorkshopAndUser(workshopId: string, userId: string): Promise<IMembership | null> {
+    if (!Types.ObjectId.isValid(workshopId) || !Types.ObjectId.isValid(userId)) return null;
     return await Membership.findOne({
       workshop: new Types.ObjectId(workshopId),
       user: new Types.ObjectId(userId)
@@ -82,6 +85,7 @@ export class MembershipRepository {
   }
 
   async findActive(workshopId: string, userId: string): Promise<IMembership | null> {
+    if (!Types.ObjectId.isValid(workshopId) || !Types.ObjectId.isValid(userId)) return null;
     return await Membership.findOne({
       workshop: new Types.ObjectId(workshopId),
       user: new Types.ObjectId(userId),
@@ -94,6 +98,7 @@ export class MembershipRepository {
   }
 
   async findPendingByWorkshop(workshopId: string): Promise<IMembership[]> {
+    if (!Types.ObjectId.isValid(workshopId)) return [];
     return await Membership.find({
       workshop: new Types.ObjectId(workshopId),
       state: MembershipState.PENDING
@@ -114,7 +119,7 @@ export class MembershipRepository {
       updateData.joinedAt = new Date();
     } else if (newState === MembershipState.REMOVED) {
       updateData.removedAt = new Date();
-      if (actorId) {
+      if (actorId && Types.ObjectId.isValid(actorId)) {
         updateData.removedBy = new Types.ObjectId(actorId);
       }
     }
@@ -137,6 +142,7 @@ export class MembershipRepository {
   }
 
   async isActiveMember(workshopId: string, userId: string): Promise<boolean> {
+    if (!Types.ObjectId.isValid(workshopId) || !Types.ObjectId.isValid(userId)) return false;
     const membership = await Membership.findOne({
       workshop: new Types.ObjectId(workshopId),
       user: new Types.ObjectId(userId),
@@ -146,6 +152,7 @@ export class MembershipRepository {
   }
 
   async countByWorkshop(workshopId: string, state?: MembershipState): Promise<number> {
+    if (!Types.ObjectId.isValid(workshopId)) return 0;
     const query: any = { workshop: new Types.ObjectId(workshopId) };
     if (state) {
       query.state = state;
@@ -154,6 +161,7 @@ export class MembershipRepository {
   }
 
   async countByUser(userId: string, state?: MembershipState): Promise<number> {
+    if (!Types.ObjectId.isValid(userId)) return 0;
     const query: any = { user: new Types.ObjectId(userId) };
     if (state) {
       query.state = state;
@@ -162,10 +170,12 @@ export class MembershipRepository {
   }
 
   async deleteByWorkshop(workshopId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(workshopId)) return;
     await Membership.deleteMany({ workshop: new Types.ObjectId(workshopId) });
   }
 
   async deleteByUser(workshopId: string, userId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(workshopId) || !Types.ObjectId.isValid(userId)) return;
     await Membership.deleteMany({
       workshop: new Types.ObjectId(workshopId),
       user: new Types.ObjectId(userId)
@@ -177,6 +187,7 @@ export class MembershipRepository {
   }
 
   async getPendingInvitations(workshopId: string): Promise<IMembership[]> {
+    if (!Types.ObjectId.isValid(workshopId)) return [];
     return await Membership.find({
       workshop: new Types.ObjectId(workshopId),
       state: MembershipState.PENDING,
@@ -188,6 +199,7 @@ export class MembershipRepository {
   }
 
   async getPendingJoinRequests(workshopId: string): Promise<IMembership[]> {
+    if (!Types.ObjectId.isValid(workshopId)) return [];
     return await Membership.find({
       workshop: new Types.ObjectId(workshopId),
       state: MembershipState.PENDING,
@@ -196,7 +208,9 @@ export class MembershipRepository {
       .populate(this.populateUser)
       .sort({ createdAt: -1 });
   }
+
   async delete(membershipId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(membershipId)) return;
     await Membership.findByIdAndDelete(membershipId);
   }
 }

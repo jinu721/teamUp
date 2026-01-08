@@ -120,6 +120,10 @@ export const errorHandler = (
   else if (err.name === 'MongoServerError' && (err as any).code === 11000) {
     error = handleMongooseDuplicateKeyError(err);
   }
+  // Handle BSON Errors (invalid ObjectId format)
+  else if (err.name === 'BSONError' || err.message?.includes('24 character hex string')) {
+    error = new ValidationError('Invalid ID format provided');
+  }
   // Handle JWT Errors
   else if (err.name === 'JsonWebTokenError') {
     error = handleJWTError();

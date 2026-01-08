@@ -65,6 +65,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { format, formatDistanceToNow } from 'date-fns';
 import { Progress } from '@/components/ui/progress';
+import { cn } from '@/lib/utils';
 
 const TaskDetail: React.FC = () => {
     const { workshopId, projectId, taskId } = useParams<{
@@ -93,6 +94,12 @@ const TaskDetail: React.FC = () => {
     // Form states
     const [editData, setEditData] = useState<UpdateWorkshopTaskData>({});
     const [submitting, setSubmitting] = useState(false);
+
+    // Mention States
+    const [mentionSearch, setMentionSearch] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [suggestionIndex, setSuggestionIndex] = useState(0);
+    const [cursorPos, setCursorPos] = useState(0);
 
     // Permissions
     const isOwner = workshop && user && (
@@ -187,23 +194,65 @@ const TaskDetail: React.FC = () => {
         }
     };
 
+    const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const value = e.target.value;
+        const selectionStart = e.target.selectionStart;
+        setNewComment(value);
+        setCursorPos(selectionStart);
+
+        // Detect if typing a mention
+        const textBeforeCursor = value.substring(0, selectionStart);
+        const lastAtIndex = textBeforeCursor.lastIndexOf('@');
+
+        if (lastAtIndex !== -1) {
+            const afterAt = textBeforeCursor.substring(lastAtIndex + 1);
+            // Check if there's a space or newline between @ and cursor
+            if (!afterAt.includes(' ') && !afterAt.includes('\n')) {
+                setMentionSearch(afterAt);
+                setShowSuggestions(true);
+                setSuggestionIndex(0);
+                return;
+            }
+        }
+        setShowSuggestions(false);
+    };
+
+    const handleSelectMention = (member: any) => {
+        const textBeforeAt = newComment.substring(0, newComment.lastIndexOf('@', cursorPos - 1));
+        const textAfterCursor = newComment.substring(cursorPos);
+        const userName = typeof member.user === 'string' ? '' : member.user.name;
+        const updatedComment = `${textBeforeAt}@${userName} ${textAfterCursor}`;
+
+        setNewComment(updatedComment);
+        setShowSuggestions(false);
+        // Put focus back and cursor after the name
+        setTimeout(() => {
+            const textarea = document.getElementById('comment-textarea') as HTMLTextAreaElement;
+            if (textarea) {
+                textarea.focus();
+                const newPos = textBeforeAt.length + userName.length + 2; // @ + name + space
+                textarea.setSelectionRange(newPos, newPos);
+            }
+        }, 0);
+    };
+
+    const filteredSuggestions = activeMembers?.filter(m => {
+        const name = typeof m.user === 'string' ? '' : m.user.name;
+        return name.toLowerCase().includes(mentionSearch.toLowerCase());
+    }) || [];
+
     const handleAddComment = async () => {
         if (!newComment.trim() || !workshopId || !projectId || !taskId) return;
         setSubmitting(true);
         try {
-            // Parse mentions
+            // Parse mentions - more robust parsing
             const mentions: string[] = [];
-            const mentionMatches = newComment.match(/@(\w+)/g);
-            if (mentionMatches && activeMembers) {
-                mentionMatches.forEach(match => {
-                    const name = match.substring(1); // remove @
-                    const member = activeMembers.find(m => {
-                        const mName = typeof m.user === 'string' ? '' : m.user.name;
-                        // Simple case-insensitive match on full name or first name
-                        return mName.toLowerCase().includes(name.toLowerCase());
-                    });
-                    if (member) {
-                        const userId = typeof member.user === 'string' ? member.user : member.user._id;
+
+            if (activeMembers) {
+                activeMembers.forEach(member => {
+                    const name = typeof member.user === 'string' ? '' : member.user.name;
+                    const userId = typeof member.user === 'string' ? member.user : member.user._id;
+                    if (newComment.includes(`@${name}`)) {
                         mentions.push(userId);
                     }
                 });
@@ -539,15 +588,66 @@ const TaskDetail: React.FC = () => {
                                         <AvatarFallback>{user?.name?.[0]}</AvatarFallback>
                                     </Avatar>
                                     <div className="flex-1 relative">
+                                        {showSuggestions && filteredSuggestions.length > 0 && (
+                                            <Card className="absolute bottom-full left-0 mb-2 w-64 z-50 border shadow-xl bg-white overflow-hidden">
+                                                <div className="p-2 border-b bg-slate-50 text-[10px] font-bold text-slate-500 uppercase flex items-center gap-2">
+                                                    <Users className="h-3 w-3" /> Mention Workshop Member
+                                                </div>
+                                                <ScrollArea className="max-h-[200px]">
+                                                    <div className="p-1">
+                                                        {filteredSuggestions.map((m, idx) => (
+                                                            <div
+                                                                key={m._id}
+                                                                onClick={() => handleSelectMention(m)}
+                                                                className={cn(
+                                                                    "flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-all",
+                                                                    idx === suggestionIndex ? "bg-blue-600 text-white" : "hover:bg-slate-100"
+                                                                )}
+                                                            >
+                                                                <Avatar className="h-6 w-6">
+                                                                    <AvatarImage src={(m.user as any).profilePhoto} />
+                                                                    <AvatarFallback className={idx === suggestionIndex ? "bg-blue-400 text-white" : "bg-slate-200"}>
+                                                                        {(m.user as any).name[0]}
+                                                                    </AvatarFallback>
+                                                                </Avatar>
+                                                                <div className="flex flex-col min-w-0">
+                                                                    <span className="text-xs font-semibold truncate">{(m.user as any).name}</span>
+                                                                    <span className={cn("text-[9px] truncate", idx === suggestionIndex ? "text-blue-100" : "text-slate-500")}>
+                                                                        {(m.user as any).email}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </ScrollArea>
+                                            </Card>
+                                        )}
                                         <Textarea
+                                            id="comment-textarea"
                                             placeholder="Add a comment... (use @ to mention)"
-                                            className="min-h-[80px] bg-white shadow-sm resize-none pr-12 pt-3"
+                                            className="min-h-[80px] bg-white shadow-sm resize-none pr-12 pt-3 focus:ring-blue-500 border-slate-200 transition-all"
                                             value={newComment}
-                                            onChange={(e) => setNewComment(e.target.value)}
+                                            onChange={handleCommentChange}
+                                            onKeyDown={(e) => {
+                                                if (showSuggestions && filteredSuggestions.length > 0) {
+                                                    if (e.key === 'ArrowDown') {
+                                                        e.preventDefault();
+                                                        setSuggestionIndex(prev => (prev + 1) % filteredSuggestions.length);
+                                                    } else if (e.key === 'ArrowUp') {
+                                                        e.preventDefault();
+                                                        setSuggestionIndex(prev => (prev - 1 + filteredSuggestions.length) % filteredSuggestions.length);
+                                                    } else if (e.key === 'Enter') {
+                                                        e.preventDefault();
+                                                        handleSelectMention(filteredSuggestions[suggestionIndex]);
+                                                    } else if (e.key === 'Escape') {
+                                                        setShowSuggestions(false);
+                                                    }
+                                                }
+                                            }}
                                         />
                                         <Button
                                             size="icon"
-                                            className="absolute bottom-3 right-3 h-8 w-8 rounded-full transition-all"
+                                            className="absolute bottom-3 right-3 h-8 w-8 rounded-full shadow-lg hover:shadow-xl transition-all active:scale-90 bg-blue-600 hover:bg-blue-700"
                                             onClick={handleAddComment}
                                             disabled={!newComment.trim() || submitting}
                                         >
