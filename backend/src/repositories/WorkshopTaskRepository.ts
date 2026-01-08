@@ -12,10 +12,14 @@ export interface TasksByStatus {
 
 export class WorkshopTaskRepository {
   private readonly populateAssignedTeams = { path: 'assignedTeams', select: 'name description' };
-  private readonly populateAssignedIndividuals = { path: 'assignedIndividuals', select: 'name email profilePhoto' };
-  private readonly populateCreatedBy = { path: 'createdBy', select: 'name email profilePhoto' };
+  private readonly populatePeople = [
+    { path: 'primaryOwner', select: 'name email profilePhoto' },
+    { path: 'assignedIndividuals', select: 'name email profilePhoto' },
+    { path: 'contributors', select: 'name email profilePhoto' },
+    { path: 'watchers', select: 'name email profilePhoto' },
+    { path: 'createdBy', select: 'name email profilePhoto' }
+  ];
   private readonly populateProject = { path: 'project', select: 'name workshop' };
-  private readonly populatePrimaryOwner = { path: 'primaryOwner', select: 'name email profilePhoto' };
   private readonly populateHierarchy = [
     { path: 'parentTask', select: 'title status' },
     { path: 'childTasks', select: 'title status' },
@@ -71,10 +75,8 @@ export class WorkshopTaskRepository {
   async findById(id: string): Promise<IWorkshopTask | null> {
     return await WorkshopTask.findById(id)
       .populate(this.populateAssignedTeams)
-      .populate(this.populateAssignedIndividuals)
-      .populate(this.populateCreatedBy)
+      .populate(this.populatePeople)
       .populate(this.populateProject)
-      .populate(this.populatePrimaryOwner)
       .populate(this.populateHierarchy)
       .populate(this.populateCollab);
   }
@@ -82,9 +84,7 @@ export class WorkshopTaskRepository {
   async findByProject(projectId: string): Promise<IWorkshopTask[]> {
     return await WorkshopTask.find({ project: new Types.ObjectId(projectId) })
       .populate(this.populateAssignedTeams)
-      .populate(this.populateAssignedIndividuals)
-      .populate(this.populateCreatedBy)
-      .populate(this.populatePrimaryOwner)
+      .populate(this.populatePeople)
       .sort({ createdAt: -1 });
   }
 
@@ -165,10 +165,8 @@ export class WorkshopTaskRepository {
       { new: true, runValidators: true }
     )
       .populate(this.populateAssignedTeams)
-      .populate(this.populateAssignedIndividuals)
-      .populate(this.populateCreatedBy)
+      .populate(this.populatePeople)
       .populate(this.populateProject)
-      .populate(this.populatePrimaryOwner)
       .populate(this.populateHierarchy)
       .populate(this.populateCollab);
 
@@ -278,8 +276,7 @@ export class WorkshopTaskRepository {
       ]
     })
       .populate(this.populateAssignedTeams)
-      .populate(this.populateAssignedIndividuals)
-      .populate(this.populateCreatedBy)
+      .populate(this.populatePeople)
       .populate(this.populateProject)
       .sort({ updatedAt: -1 });
   }
@@ -289,8 +286,7 @@ export class WorkshopTaskRepository {
       assignedTeams: new Types.ObjectId(teamId)
     })
       .populate(this.populateAssignedTeams)
-      .populate(this.populateAssignedIndividuals)
-      .populate(this.populateCreatedBy)
+      .populate(this.populatePeople)
       .populate(this.populateProject)
       .sort({ updatedAt: -1 });
   }

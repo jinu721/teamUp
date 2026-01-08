@@ -169,6 +169,7 @@ const TaskDetail: React.FC = () => {
                 startDate: task.startDate ? new Date(task.startDate).toISOString().split('T')[0] : '',
                 dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '',
                 primaryOwner: typeof task.primaryOwner === 'object' ? (task.primaryOwner as any)?._id : task.primaryOwner,
+                assignedIndividuals: task.assignedIndividuals?.map((u: any) => typeof u === 'object' ? u._id : u) || [],
                 contributors: task.contributors?.map((c: any) => typeof c === 'object' ? c._id : c) || [],
                 watchers: task.watchers?.map((w: any) => typeof w === 'object' ? w._id : w) || [],
                 blockedBy: task.blockedBy?.map((b: any) => typeof b === 'object' ? b._id : b) || [],
@@ -777,18 +778,40 @@ const TaskDetail: React.FC = () => {
                             <CardContent className="space-y-6">
                                 {/* Primary Owner */}
                                 <div className="space-y-2">
-                                    <Label className="text-[10px] text-indigo-500 flex items-center gap-1">
+                                    <Label className="text-[10px] text-indigo-500 flex items-center gap-1 uppercase font-bold">
                                         <Shield className="h-3 w-3" />
                                         Primary Responsible
                                     </Label>
-                                    <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-indigo-100 shadow-sm">
-                                        <Avatar className="h-7 w-7">
+                                    <div className="flex items-center gap-3 p-2 bg-white rounded-lg border border-indigo-100 shadow-sm hover:border-indigo-200 transition-colors group">
+                                        <Avatar className="h-7 w-7 ring-2 ring-indigo-50 group-hover:ring-indigo-100">
                                             <AvatarImage src={task.primaryOwner?.profilePhoto} />
                                             <AvatarFallback className="text-[10px] bg-indigo-100 text-indigo-700">
                                                 {task.primaryOwner?.name?.[0] || '?'}
                                             </AvatarFallback>
                                         </Avatar>
-                                        <span className="text-sm font-semibold">{task.primaryOwner?.name || 'Unassigned'}</span>
+                                        <span className="text-sm font-semibold truncate text-indigo-900">{task.primaryOwner?.name || 'Unassigned'}</span>
+                                    </div>
+                                </div>
+
+                                {/* Assigned Individuals */}
+                                <div className="space-y-2">
+                                    <Label className="text-[10px] text-slate-500 uppercase font-bold">Assigned People</Label>
+                                    <div className="flex flex-wrap gap-2">
+                                        {task.assignedIndividuals?.length > 0 ? (
+                                            task.assignedIndividuals.map((u: any) => (
+                                                <div key={u._id} className="group relative">
+                                                    <Avatar className="h-7 w-7 ring-2 ring-white hover:ring-blue-100 transition-all">
+                                                        <AvatarImage src={u.profilePhoto} />
+                                                        <AvatarFallback className="text-[10px]">{u?.name?.[0] || '?'}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-slate-900 text-white text-[10px] rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
+                                                        {u.name}
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-[10px] text-muted-foreground italic pl-1">No individual assigned</div>
+                                        )}
                                     </div>
                                 </div>
 
@@ -1022,6 +1045,39 @@ const TaskDetail: React.FC = () => {
                                             </SelectContent>
                                         </Select>
                                         <p className="text-[10px] text-slate-400">The person mainly responsible for completing this task.</p>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="text-xs font-bold uppercase text-slate-500">Assigned People</Label>
+                                        <div className="border rounded-xl p-4 bg-slate-50/50">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h4 className="text-xs font-bold text-slate-700">Individual Assignees</h4>
+                                                <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold">
+                                                    {(editData.assignedIndividuals?.length || 0)}
+                                                </span>
+                                            </div>
+                                            <ScrollArea className="h-[150px] pr-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {activeMembers.map(m => (
+                                                        <div
+                                                            key={m.user._id}
+                                                            onClick={() => toggleArrayItem('assignedIndividuals', m.user._id)}
+                                                            className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.assignedIndividuals?.includes(m.user._id)
+                                                                ? 'bg-indigo-50 border-indigo-100 text-indigo-700'
+                                                                : 'hover:bg-slate-100'
+                                                                }`}
+                                                        >
+                                                            {editData.assignedIndividuals?.includes(m.user._id) ? <CheckCircle2 className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}
+                                                            <Avatar className="h-6 w-6">
+                                                                <AvatarImage src={m.user.profilePhoto} />
+                                                                <AvatarFallback>{m.user.name[0]}</AvatarFallback>
+                                                            </Avatar>
+                                                            <span className="text-xs font-medium truncate">{m.user.name}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
+                                        </div>
                                     </div>
 
                                     <div className="space-y-3">
