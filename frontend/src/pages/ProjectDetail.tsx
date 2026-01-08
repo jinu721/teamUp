@@ -560,6 +560,68 @@ const ProjectDetail: React.FC = () => {
                                 />
                             </div>
                         </div>
+
+                        <div className="md:col-span-2 space-y-4 pt-4 border-t">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase text-slate-500">Add Contributors</Label>
+                                    <ScrollArea className="h-[120px] border rounded-md p-2 bg-slate-50/50">
+                                        <div className="space-y-1">
+                                            {activeMembers.map(m => {
+                                                const u = typeof m.user === 'string' ? null : m.user;
+                                                if (!u) return null;
+                                                const isSelected = newTaskData.contributors?.includes(u._id);
+                                                return (
+                                                    <div
+                                                        key={u._id}
+                                                        onClick={() => {
+                                                            const current = newTaskData.contributors || [];
+                                                            const updated = current.includes(u._id)
+                                                                ? current.filter(id => id !== u._id)
+                                                                : [...current, u._id];
+                                                            setNewTaskData({ ...newTaskData, contributors: updated });
+                                                        }}
+                                                        className={`flex items-center gap-2 p-1.5 rounded cursor-pointer text-xs transition-colors ${isSelected ? 'bg-blue-100 text-blue-700' : 'hover:bg-slate-100'}`}
+                                                    >
+                                                        {isSelected ? <CheckSquare className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
+                                                        <span>{u.name}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label className="text-xs font-bold uppercase text-slate-500">Add Assignees</Label>
+                                    <ScrollArea className="h-[120px] border rounded-md p-2 bg-slate-50/50">
+                                        <div className="space-y-1">
+                                            {activeMembers.map(m => {
+                                                const u = typeof m.user === 'string' ? null : m.user;
+                                                if (!u) return null;
+                                                const isSelected = newTaskData.assignedIndividuals?.includes(u._id);
+                                                return (
+                                                    <div
+                                                        key={u._id}
+                                                        onClick={() => {
+                                                            const current = newTaskData.assignedIndividuals || [];
+                                                            const updated = current.includes(u._id)
+                                                                ? current.filter(id => id !== u._id)
+                                                                : [...current, u._id];
+                                                            setNewTaskData({ ...newTaskData, assignedIndividuals: updated });
+                                                        }}
+                                                        className={`flex items-center gap-2 p-1.5 rounded cursor-pointer text-xs transition-colors ${isSelected ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-100'}`}
+                                                    >
+                                                        {isSelected ? <CheckSquare className="h-3.5 w-3.5" /> : <Plus className="h-3.5 w-3.5 text-slate-400" />}
+                                                        <span>{u.name}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </ScrollArea>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setShowNewTaskDialog(false)}>Cancel</Button>

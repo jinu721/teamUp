@@ -426,8 +426,15 @@ const TaskDetail: React.FC = () => {
                                 </Button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <Button variant="outline" size="icon">
-                                            <MoreVertical className="h-4 w-4" />
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300 hover:border-indigo-400 hover:text-indigo-500 transition-colors"
+                                            onClick={() => {
+                                                handleEdit();
+                                            }}
+                                        >
+                                            <Plus className="h-3 w-3" />
                                         </Button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end">
@@ -812,6 +819,16 @@ const TaskDetail: React.FC = () => {
                                         ) : (
                                             <div className="text-[10px] text-muted-foreground italic pl-1">No individual assigned</div>
                                         )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300 hover:border-indigo-400 hover:text-indigo-500 transition-colors"
+                                            onClick={() => {
+                                                handleEdit();
+                                            }}
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                        </Button>
                                     </div>
                                 </div>
 
@@ -829,7 +846,15 @@ const TaskDetail: React.FC = () => {
                                         ) : (
                                             <div className="text-xs text-muted-foreground py-1 px-3 bg-slate-100 rounded-full">None</div>
                                         )}
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300 hover:border-blue-400 hover:text-blue-500 transition-colors"
+                                            onClick={() => {
+                                                handleEdit();
+                                                // Ideally we'd set the tab here, but for now we'll just open the dialog
+                                            }}
+                                        >
                                             <Plus className="h-3 w-3" />
                                         </Button>
                                     </div>
@@ -852,6 +877,16 @@ const TaskDetail: React.FC = () => {
                                         ) : (
                                             <div className="text-xs text-muted-foreground italic pl-1">No team assigned</div>
                                         )}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300 hover:border-indigo-400 hover:text-indigo-500 transition-colors mt-2"
+                                            onClick={() => {
+                                                handleEdit();
+                                            }}
+                                        >
+                                            <Plus className="h-3 w-3" />
+                                        </Button>
                                     </div>
                                 </div>
                             </CardContent>
@@ -1142,6 +1177,36 @@ const TaskDetail: React.FC = () => {
                                                     </div>
                                                 </ScrollArea>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <Label className="text-xs font-bold uppercase text-slate-500">Assigned Teams</Label>
+                                        <div className="border rounded-xl p-4 bg-slate-50/50">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <h4 className="text-xs font-bold text-slate-700">Project Teams</h4>
+                                                <span className="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded-full font-bold">
+                                                    {(editData.assignedTeams?.length || 0)}
+                                                </span>
+                                            </div>
+                                            <ScrollArea className="h-[120px] pr-4">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                    {teams?.map(t => (
+                                                        <div
+                                                            key={t._id}
+                                                            onClick={() => toggleArrayItem('assignedTeams', t._id)}
+                                                            className={`flex items-center gap-2 p-2 rounded-lg cursor-pointer transition-colors ${editData.assignedTeams?.includes(t._id)
+                                                                ? 'bg-slate-200 border-slate-300 text-slate-900 font-bold'
+                                                                : 'hover:bg-slate-100 border border-transparent'
+                                                                }`}
+                                                        >
+                                                            {editData.assignedTeams?.includes(t._id) ? <CheckSquare className="h-4 w-4" /> : <Plus className="h-4 w-4 text-slate-400" />}
+                                                            <Users className="h-4 w-4 text-slate-400" />
+                                                            <span className="text-xs font-medium truncate">{t.name}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </ScrollArea>
                                         </div>
                                     </div>
                                 </div>
