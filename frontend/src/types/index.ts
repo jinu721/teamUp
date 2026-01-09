@@ -124,6 +124,30 @@ export interface CreateTaskData {
 
 // ==================== FILTERS ====================
 
+export interface PostFilters {
+  category?: ProjectCategory | string;
+  commitmentType?: CommitmentType | string;
+  skills?: string[];
+  search?: string;
+  author?: string;
+}
+
+export interface CommunityPost {
+  _id: string;
+  title: string;
+  description: string;
+  category: ProjectCategory;
+  commitmentType: CommitmentType;
+  requiredSkills: string[];
+  owner: User;
+  votes: { userId: string; voteType: 'upvote' | 'downvote'; createdAt: Date }[];
+  upvoteCount: number;
+  downvoteCount: number;
+  voteScore: number;
+  comments: any[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 // ==================== HELPER TYPES ====================
 
