@@ -75,6 +75,8 @@ export interface IUser extends Document {
   updatedAt: Date;
   isVerified?: boolean;
   verificationToken?: string;
+  googleId?: string;
+  githubId?: string;
 }
 
 export interface ICommunityProject extends Document {

@@ -6,6 +6,7 @@ import { useSocketErrorHandler } from '@/hooks/useSocket';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import VerifyEmail from '@/pages/VerifyEmail';
+import SocialCallback from '@/pages/SocialCallback';
 import Dashboard from '@/pages/Dashboard';
 import PublicWorkshops from '@/pages/PublicWorkshops';
 import Notifications from '@/pages/Notifications';
@@ -80,6 +81,10 @@ function AppRoutes() {
             <VerifyEmail />
           </PublicRoute>
         }
+      />
+      <Route
+        path="/social-callback"
+        element={<SocialCallback />}
       />
       <Route
         path="/dashboard"
