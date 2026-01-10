@@ -73,6 +73,8 @@ export interface IUser extends Document {
   lastActive: Date;
   createdAt: Date;
   updatedAt: Date;
+  isVerified?: boolean;
+  verificationToken?: string;
 }
 
 export interface ICommunityProject extends Document {

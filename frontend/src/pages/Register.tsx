@@ -15,6 +15,7 @@ const Register: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const { register } = useAuth();
   const navigate = useNavigate();
 
@@ -42,13 +43,36 @@ const Register: React.FC = () => {
 
     try {
       await register(name, email, password);
-      navigate('/dashboard');
+      // Show success state
+      setSuccess(true);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
   };
+
+  if (success) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
+        <div className="w-full max-w-md animate-fade-in">
+          <Card className="shadow-soft-lg border-0 text-center p-6">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 mx-auto mb-4">
+              <Check className="h-8 w-8" />
+            </div>
+            <h2 className="text-2xl font-bold mb-2">Check your email</h2>
+            <p className="text-muted-foreground mb-6">
+              We've sent a verification link to <span className="font-medium text-foreground">{email}</span>.
+              Please click the link to verify your account and continue.
+            </p>
+            <Button variant="outline" onClick={() => navigate('/login')} className="w-full">
+              Back to Login
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   const PasswordCheck = ({ valid, text }: { valid: boolean; text: string }) => (
     <div className={cn(
@@ -71,7 +95,7 @@ const Register: React.FC = () => {
           <h1 className="text-2xl font-bold tracking-tight">TeamUp</h1>
           <p className="text-sm text-muted-foreground">Collaborate. Create. Succeed.</p>
         </div>
-        
+
         <Card className="shadow-soft-lg border-0">
           <CardHeader className="space-y-1 pb-4">
             <CardTitle className="text-2xl font-bold text-center">Create an account</CardTitle>
@@ -145,7 +169,7 @@ const Register: React.FC = () => {
                   autoComplete="new-password"
                 />
               </div>
-              
+
               {/* Password requirements */}
               {(password.length > 0 || confirmPassword.length > 0) && (
                 <div className="space-y-1.5 p-3 rounded-lg bg-muted/50 animate-fade-in">
@@ -153,7 +177,7 @@ const Register: React.FC = () => {
                   <PasswordCheck valid={passwordChecks.match} text="Passwords match" />
                 </div>
               )}
-              
+
               {error && (
                 <div className="rounded-lg bg-destructive/10 border border-destructive/20 p-3 text-sm text-destructive animate-fade-in">
                   {error}
@@ -174,7 +198,7 @@ const Register: React.FC = () => {
             </CardFooter>
           </form>
         </Card>
-        
+
         {/* Footer */}
         <p className="mt-8 text-center text-xs text-muted-foreground">
           By creating an account, you agree to our{' '}

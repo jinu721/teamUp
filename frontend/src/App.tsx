@@ -5,6 +5,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { useSocketErrorHandler } from '@/hooks/useSocket';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import VerifyEmail from '@/pages/VerifyEmail';
 import Dashboard from '@/pages/Dashboard';
 import PublicWorkshops from '@/pages/PublicWorkshops';
 import Notifications from '@/pages/Notifications';
@@ -69,6 +70,14 @@ function AppRoutes() {
         element={
           <PublicRoute>
             <Register />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <PublicRoute>
+            <VerifyEmail />
           </PublicRoute>
         }
       />

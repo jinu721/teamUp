@@ -24,7 +24,26 @@ export class AuthController {
 
       const result = await this.authService.register(name, email, password);
 
-      res.status(201).json({
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  verifyEmail = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { token } = req.params;
+
+      if (!token) {
+        throw new ValidationError('Token is required');
+      }
+
+      const result = await this.authService.verifyEmail(token);
+
+      res.status(200).json({
         success: true,
         data: result
       });

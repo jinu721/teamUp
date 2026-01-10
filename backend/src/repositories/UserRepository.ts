@@ -24,6 +24,10 @@ export class UserRepository {
     return await User.findOne({ email }).select('-password');
   }
 
+  async findByVerificationToken(token: string): Promise<IUser | null> {
+    return await User.findOne({ verificationToken: token });
+  }
+
   async update(id: string, updates: Partial<IUser>): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       id,
@@ -35,19 +39,19 @@ export class UserRepository {
   async updatePresence(id: string, isOnline: boolean): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       id,
-      { 
-        $set: { 
-          isOnline, 
-          lastActive: new Date() 
-        } 
+      {
+        $set: {
+          isOnline,
+          lastActive: new Date()
+        }
       },
       { new: true }
     ).select('-password');
   }
 
   async findMultipleByIds(ids: string[]): Promise<IUser[]> {
-    return await User.find({ 
-      _id: { $in: ids.map(id => new Types.ObjectId(id)) } 
+    return await User.find({
+      _id: { $in: ids.map(id => new Types.ObjectId(id)) }
     }).select('-password');
   }
 

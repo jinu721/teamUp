@@ -42,7 +42,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password);
     const { user: userData, token: authToken } = response.data;
-    
+
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('token', authToken);
@@ -50,13 +50,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const register = async (name: string, email: string, password: string) => {
-    const response = await api.register(name, email, password);
-    const { user: userData, token: authToken } = response.data;
-    
-    setUser(userData);
-    setToken(authToken);
-    localStorage.setItem('token', authToken);
-    socketService.connect(authToken);
+    await api.register(name, email, password);
   };
 
   const logout = () => {

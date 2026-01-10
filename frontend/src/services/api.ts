@@ -69,8 +69,13 @@ class ApiService {
 
   // ==================== AUTH ====================
 
-  async register(name: string, email: string, password: string): Promise<ApiResponse<{ token: string; user: User }>> {
+  async register(name: string, email: string, password: string): Promise<ApiResponse<{ message: string }>> {
     const response = await this.api.post('/auth/register', { name, email, password });
+    return response.data;
+  }
+
+  async verifyEmail(token: string): Promise<ApiResponse<{ token: string; user: User }>> {
+    const response = await this.api.get(`/auth/verify-email/${token}`);
     return response.data;
   }
 
