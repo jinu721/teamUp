@@ -303,6 +303,10 @@ class SocketService {
     return this.socket?.connected || false;
   }
 
+  getSocketId(): string | undefined {
+    return this.socket?.id;
+  }
+
   getSocket(): Socket | null {
     return this.socket;
   }

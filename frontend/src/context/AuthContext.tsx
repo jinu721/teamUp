@@ -41,11 +41,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const login = async (email: string, password: string) => {
     const response = await api.login(email, password);
-    const { user: userData, token: authToken } = response.data;
+    const { user: userData, token: authToken, refreshToken } = response.data;
 
     setUser(userData);
     setToken(authToken);
     localStorage.setItem('token', authToken);
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
     socketService.connect(authToken);
   };
 
@@ -57,6 +60,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     socketService.disconnect();
   };
 

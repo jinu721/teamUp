@@ -1,5 +1,5 @@
 import React from 'react';
-import { WorkshopTask, TaskType, TASK_TYPE_LABELS } from '@/types/workshop';
+import { WorkshopTask, TaskType } from '@/types/workshop';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -8,10 +8,6 @@ import {
   Lightbulb,
   Sparkles,
   MessageSquare,
-  Users,
-  User as UserIcon,
-  Link as LinkIcon,
-  AlertTriangle,
   ArrowUp,
   Calendar,
   Shield,
@@ -90,7 +86,7 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
             </div>
           )}
 
-          {task.estimatedHours > 0 && (
+          {((task.estimatedHours as any) || 0) > 0 && (
             <div className="flex items-center gap-1 text-slate-500">
               <Clock className="h-3 w-3" />
               <span>{task.estimatedHours}h</span>

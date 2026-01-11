@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { TaskType, TASK_TYPE_LABELS, UpdateWorkshopTaskData, TaskComment, TaskAttachment } from '@/types/workshop';
+import { TaskType, TASK_TYPE_LABELS, UpdateWorkshopTaskData } from '@/types/workshop';
 import api from '@/services/api';
 import { useWorkshop } from '@/hooks/useWorkshops';
 import { useWorkshopProject } from '@/hooks/useWorkshopProjects';
@@ -14,7 +14,7 @@ import { useTeams } from '@/hooks/useTeams';
 import { useWorkshopTasks } from '@/hooks/useWorkshopTasks';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,7 +22,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -32,13 +32,10 @@ import {
     DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import {
-    ArrowLeft,
-    MoreVertical,
     Edit,
     Trash2,
     CheckSquare,
     Clock,
-    History,
     User as UserIcon,
     Users,
     Bug,
@@ -59,8 +56,6 @@ import {
     FileText,
     Download,
     ExternalLink,
-    Check,
-    Search
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -77,7 +72,7 @@ const TaskDetail: React.FC = () => {
     const { user } = useAuth();
     const { workshop } = useWorkshop(workshopId);
     const { project } = useWorkshopProject(workshopId, projectId);
-    const { task, loading: taskLoading, setTask, refresh: refreshTask } = useWorkshopTask(workshopId, projectId, taskId);
+    const { task, loading: taskLoading, setTask } = useWorkshopTask(workshopId, projectId, taskId);
     const { activities, loading: activitiesLoading } = useTaskActivity(workshopId, projectId, taskId);
     const { activeMembers } = useMemberships(workshopId);
     const { teams } = useTeams(workshopId);
@@ -89,7 +84,6 @@ const TaskDetail: React.FC = () => {
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [activeTab, setActiveTab] = useState('discussion');
     const [newComment, setNewComment] = useState('');
-    const [attachmentLoading, setAttachmentLoading] = useState(false);
 
     // Form states
     const [editData, setEditData] = useState<UpdateWorkshopTaskData>({});

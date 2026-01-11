@@ -393,6 +393,8 @@ export interface CreateWorkshopTaskData {
   primaryOwner?: string;
   contributors?: string[];
   watchers?: string[];
+  assignedIndividuals?: string[];
+  assignedTeams?: string[];
   estimatedHours?: number;
   startDate?: string;
   dueDate?: string;
@@ -411,6 +413,8 @@ export interface UpdateWorkshopTaskData {
   primaryOwner?: string;
   contributors?: string[];
   watchers?: string[];
+  assignedIndividuals?: string[];
+  assignedTeams?: string[];
   blockedBy?: string[];
   blocking?: string[];
   estimatedHours?: number;

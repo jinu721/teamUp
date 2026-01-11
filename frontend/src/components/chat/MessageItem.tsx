@@ -10,8 +10,6 @@ import {
     Edit2,
     Trash2,
     Volume2,
-    Image as ImageIcon,
-    Check,
     X,
     Reply
 } from 'lucide-react';
@@ -22,7 +20,6 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 
 interface MessageItemProps {

@@ -1,10 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
 import { ChatWindow } from '@/components/chat/ChatWindow';
-import { Inbox, MessageSquare } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { MessageSquare } from 'lucide-react';
 
 const ChatPage: React.FC = () => {
     const { workshopId, roomId } = useParams<{ workshopId: string; roomId: string }>();

@@ -71,6 +71,25 @@ export class AuthController {
     }
   };
 
+  refreshToken = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { refreshToken } = req.body;
+
+      if (!refreshToken) {
+        throw new ValidationError('Refresh token is required');
+      }
+
+      const result = await this.authService.refreshToken(refreshToken);
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getProfile = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user!.id;

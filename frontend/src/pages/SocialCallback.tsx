@@ -5,22 +5,22 @@ import { Loader2 } from 'lucide-react';
 const SocialCallback: React.FC = () => {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token');
+    const refreshToken = searchParams.get('refreshToken');
     const navigate = useNavigate();
 
     useEffect(() => {
         if (token) {
             localStorage.setItem('token', token);
+            if (refreshToken) {
+                localStorage.setItem('refreshToken', refreshToken);
+            }
             // We need to force a reload or notify auth context.
             // A hard reload is simplest to guarantee state sync.
-            // Or navigate to dashboard and let it pick up? 
-            // AuthContext reads localStorage on mount. 
-            // If checking "if (storedToken)" inside effect is only once on mount...
-            // A reload is safer.
             window.location.href = '/dashboard';
         } else {
             navigate('/login');
         }
-    }, [token, navigate]);
+    }, [token, refreshToken, navigate]);
 
     return (
         <div className="flex h-screen items-center justify-center">

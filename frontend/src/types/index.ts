@@ -128,6 +128,7 @@ export interface PostFilters {
   category?: ProjectCategory | string;
   commitmentType?: CommitmentType | string;
   skills?: string[];
+  tags?: string[];
   search?: string;
   author?: string;
 }
@@ -147,6 +148,22 @@ export interface CommunityPost {
   comments: any[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Comment {
+  _id: string;
+  user: User;
+  content: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface JoinRequest {
+  _id: string;
+  user: User;
+  message?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
 }
 
 // ==================== HELPER TYPES ====================

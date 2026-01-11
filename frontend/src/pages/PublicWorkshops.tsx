@@ -4,7 +4,7 @@ import {
     ProjectCategory,
     PROJECT_CATEGORY_LABELS
 } from '@/types';
-import { Workshop, WorkshopVisibility, MembershipState } from '@/types/workshop';
+import { Workshop, MembershipState } from '@/types/workshop';
 import api from '@/services/api';
 // import socketService from '@/services/socket'; // Socket service needs update for workshops
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -25,8 +25,7 @@ import {
     TrendingUp,
     Clock,
     Flame,
-    Globe,
-    Lock
+    Globe
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';

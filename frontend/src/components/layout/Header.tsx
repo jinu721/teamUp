@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { LogOut, Settings, User, Menu, Bell } from 'lucide-react';
+import { LogOut, Settings, User, Menu } from 'lucide-react';
 import { NotificationPopover } from '../notifications/NotificationPopover';
 
 interface HeaderProps {

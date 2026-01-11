@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Inbox, Check, Trash2, ExternalLink } from 'lucide-react';
+import { Bell, Inbox, Check, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
     Popover,
@@ -7,7 +7,6 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Notification, NotificationType } from '@/types';
 import api from '@/services/api';
@@ -19,12 +18,10 @@ import { formatDistanceToNow } from 'date-fns';
 export const NotificationPopover: React.FC = () => {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     const fetchNotifications = async () => {
         try {
-            setLoading(true);
             const response = await api.getNotifications(10);
             setNotifications(response.data);
 
@@ -32,8 +29,6 @@ export const NotificationPopover: React.FC = () => {
             setUnreadCount(countResponse.data.count);
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
-        } finally {
-            setLoading(false);
         }
     };
 

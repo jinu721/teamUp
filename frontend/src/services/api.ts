@@ -56,11 +56,33 @@ class ApiService {
     // Response interceptor - handle 401 errors
     this.api.interceptors.response.use(
       (response) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
-          localStorage.removeItem('user');
-          window.location.href = '/login';
+      async (error: AxiosError) => {
+        const originalRequest = error.config as any;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
+
+          try {
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (!refreshToken) {
+              throw new Error('No refresh token');
+            }
+
+            const response = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
+            const { token } = response.data.data;
+
+            localStorage.setItem('token', token);
+
+            // Retry original request with new token
+            originalRequest.headers.Authorization = `Bearer ${token}`;
+            return this.api(originalRequest);
+          } catch (refreshError) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('refreshToken');
+            window.location.href = '/login';
+            return Promise.reject(refreshError);
+          }
         }
         return Promise.reject(error);
       }
@@ -74,12 +96,12 @@ class ApiService {
     return response.data;
   }
 
-  async verifyEmail(token: string): Promise<ApiResponse<{ token: string; user: User }>> {
+  async verifyEmail(token: string): Promise<ApiResponse<{ token: string; refreshToken: string; user: User }>> {
     const response = await this.api.get(`/auth/verify-email/${token}`);
     return response.data;
   }
 
-  async login(email: string, password: string): Promise<ApiResponse<{ token: string; user: User }>> {
+  async login(email: string, password: string): Promise<ApiResponse<{ token: string; refreshToken: string; user: User }>> {
     const response = await this.api.post('/auth/login', { email, password });
     return response.data;
   }
@@ -353,6 +375,45 @@ class ApiService {
     if (sort) combinedFilters.sort = sort;
 
     return this.getPublicWorkshops(combinedFilters, page, limit);
+  }
+
+  async upvotePost(postId: string): Promise<ApiResponse<any>> {
+    return this.upvoteWorkshop(postId);
+  }
+
+  async downvotePost(postId: string): Promise<ApiResponse<any>> {
+    return this.downvoteWorkshop(postId);
+  }
+
+  async requestToJoin(postId: string): Promise<ApiResponse<any>> {
+    return this.requestToJoinWorkshop(postId);
+  }
+
+  async deleteCommunityPost(postId: string): Promise<ApiResponse<void>> {
+    return this.deleteWorkshop(postId);
+  }
+
+  async addComment(_postId: string, _content: string): Promise<ApiResponse<any>> {
+    console.warn('addComment is partially implemented (maps to task comment log for now)');
+    // Placeholder - in a real app, workshops would have their own comments
+    return { success: false, data: null, message: 'Not implemented' } as any;
+  }
+
+  async updateComment(_postId: string, _commentId: string, _content: string): Promise<ApiResponse<any>> {
+    return { success: false, data: null, message: 'Not implemented' } as any;
+  }
+
+  async deleteComment(_postId: string, _commentId: string): Promise<ApiResponse<void>> {
+    return { success: false, data: null, message: 'Not implemented' } as any;
+  }
+
+  async getJoinRequests(workshopId: string): Promise<ApiResponse<any[]>> {
+    const response = await this.api.get(`/workshops/${workshopId}/pending-requests`);
+    return response.data;
+  }
+
+  async respondToJoinRequest(workshopId: string, membershipId: string, status: 'approved' | 'rejected'): Promise<ApiResponse<any>> {
+    return this.respondToWorkshopJoinRequest(workshopId, membershipId, status);
   }
 
   // ==================== WORKSHOP PROJECTS ====================

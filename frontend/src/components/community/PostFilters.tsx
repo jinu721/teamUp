@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  PostFilters as PostFiltersType, 
-  ProjectCategory, 
+import {
+  PostFilters as PostFiltersType,
+  ProjectCategory,
   CommitmentType,
   SortOrder,
-  PROJECT_CATEGORY_LABELS, 
-  COMMITMENT_TYPE_LABELS 
+  PROJECT_CATEGORY_LABELS,
+  COMMITMENT_TYPE_LABELS
 } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,8 +26,8 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
   onFiltersChange,
   onSortChange
 }) => {
-  const hasActiveFilters = filters.category || filters.commitmentType || 
-    (filters.skills && filters.skills.length > 0) || 
+  const hasActiveFilters = filters.category || filters.commitmentType ||
+    (filters.skills && filters.skills.length > 0) ||
     (filters.tags && filters.tags.length > 0);
 
   const clearFilters = () => {
@@ -47,11 +47,11 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
         <PostSortSelect value={sortOrder} onChange={onSortChange} />
 
         {/* Category Filter */}
-        <Select 
-          value={filters.category || 'all'} 
-          onValueChange={(v: string) => onFiltersChange({ 
-            ...filters, 
-            category: v === 'all' ? undefined : v as ProjectCategory 
+        <Select
+          value={filters.category || 'all'}
+          onValueChange={(v: string) => onFiltersChange({
+            ...filters,
+            category: v === 'all' ? undefined : v as ProjectCategory
           })}
         >
           <SelectTrigger className="w-[160px]">
@@ -67,11 +67,11 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
         </Select>
 
         {/* Commitment Type Filter */}
-        <Select 
-          value={filters.commitmentType || 'all'} 
-          onValueChange={(v: string) => onFiltersChange({ 
-            ...filters, 
-            commitmentType: v === 'all' ? undefined : v as CommitmentType 
+        <Select
+          value={filters.commitmentType || 'all'}
+          onValueChange={(v: string) => onFiltersChange({
+            ...filters,
+            commitmentType: v === 'all' ? undefined : v as CommitmentType
           })}
         >
           <SelectTrigger className="w-[160px]">
@@ -98,31 +98,31 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
         <div className="flex flex-wrap gap-2">
           {filters.category && (
             <Badge variant="secondary" className="gap-1">
-              {PROJECT_CATEGORY_LABELS[filters.category]}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => removeFilter('category')} 
+              {(PROJECT_CATEGORY_LABELS as any)[filters.category]}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => removeFilter('category')}
               />
             </Badge>
           )}
           {filters.commitmentType && (
             <Badge variant="secondary" className="gap-1">
-              {COMMITMENT_TYPE_LABELS[filters.commitmentType]}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
-                onClick={() => removeFilter('commitmentType')} 
+              {(COMMITMENT_TYPE_LABELS as any)[filters.commitmentType]}
+              <X
+                className="h-3 w-3 cursor-pointer"
+                onClick={() => removeFilter('commitmentType')}
               />
             </Badge>
           )}
           {filters.skills?.map(skill => (
             <Badge key={skill} variant="outline" className="gap-1">
               {skill}
-              <X 
-                className="h-3 w-3 cursor-pointer" 
+              <X
+                className="h-3 w-3 cursor-pointer"
                 onClick={() => onFiltersChange({
                   ...filters,
                   skills: filters.skills?.filter(s => s !== skill)
-                })} 
+                })}
               />
             </Badge>
           ))}

@@ -3,7 +3,7 @@ import passport from 'passport';
 import { AuthController } from '../controllers/AuthController';
 import { authenticate } from '../middlewares/auth';
 import { configurePassport } from '../config/passport';
-import { generateToken } from '../config/jwt';
+import { generateToken, generateRefreshToken } from '../config/jwt';
 
 const router = Router();
 const authController = new AuthController();
@@ -14,6 +14,7 @@ configurePassport();
 router.post('/register', authController.register as any);
 router.get('/verify-email/:token', authController.verifyEmail as any);
 router.post('/login', authController.login as any);
+router.post('/refresh-token', authController.refreshToken as any);
 router.get('/me', authenticate as any, authController.getProfile as any);
 
 // Google Auth
@@ -24,8 +25,9 @@ router.get('/google/callback',
     (req, res) => {
         const user = req.user as any;
         const token = generateToken({ id: user._id.toString(), email: user.email });
+        const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
         // Redirect to frontend
-        res.redirect(`http://localhost:3000/social-callback?token=${token}`);
+        res.redirect(`http://localhost:3000/social-callback?token=${token}&refreshToken=${refreshToken}`);
     }
 );
 
@@ -37,7 +39,8 @@ router.get('/github/callback',
     (req, res) => {
         const user = req.user as any;
         const token = generateToken({ id: user._id.toString(), email: user.email });
-        res.redirect(`http://localhost:3000/social-callback?token=${token}`);
+        const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+        res.redirect(`http://localhost:3000/social-callback?token=${token}&refreshToken=${refreshToken}`);
     }
 );
 

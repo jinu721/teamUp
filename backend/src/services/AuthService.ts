@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { UserRepository } from '../repositories/UserRepository';
-import { generateToken } from '../config/jwt';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '../config/jwt';
 import { AuthenticationError, ValidationError } from '../utils/errorHandler';
 import { sendEmail } from '../utils/emailService';
 
@@ -47,7 +47,7 @@ export class AuthService {
     return { message: 'Registration successful. Please check your email to verify your account.' };
   }
 
-  async verifyEmail(token: string): Promise<{ user: any; token: string }> {
+  async verifyEmail(token: string): Promise<{ user: any; token: string; refreshToken: string }> {
     const user = await this.userRepository.findByVerificationToken(token);
 
     if (!user) {
@@ -61,15 +61,16 @@ export class AuthService {
     await this.userRepository.updatePresence(user._id.toString(), true);
 
     const authToken = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     const userResponse = JSON.parse(JSON.stringify(user));
     delete userResponse.password;
     delete userResponse.verificationToken;
 
-    return { user: userResponse, token: authToken };
+    return { user: userResponse, token: authToken, refreshToken };
   }
 
-  async login(email: string, password: string): Promise<{ user: any; token: string }> {
+  async login(email: string, password: string): Promise<{ user: any; token: string; refreshToken: string }> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
       throw new AuthenticationError('Invalid email or password');
@@ -87,11 +88,28 @@ export class AuthService {
     await this.userRepository.updatePresence(user._id.toString(), true);
 
     const token = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     const userResponse = JSON.parse(JSON.stringify(user));
     delete userResponse.password;
 
-    return { user: userResponse, token };
+    return { user: userResponse, token, refreshToken };
+  }
+
+  async refreshToken(token: string): Promise<{ token: string }> {
+    try {
+      const decoded = verifyRefreshToken(token);
+      const user = await this.userRepository.findById(decoded.id);
+
+      if (!user) {
+        throw new AuthenticationError('User not found');
+      }
+
+      const newToken = generateToken({ id: user._id.toString(), email: user.email });
+      return { token: newToken };
+    } catch (error) {
+      throw new AuthenticationError('Invalid or expired refresh token');
+    }
   }
 
   async getProfile(userId: string): Promise<any> {
