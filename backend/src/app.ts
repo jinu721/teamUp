@@ -17,8 +17,11 @@ import auditRoutes from './routes/auditRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import chatRoutes from './routes/chatRoutes';
 import activityRoutes from './routes/activityRoutes';
+import passport from 'passport';
 
 const app: Application = express();
+
+app.use(passport.initialize());
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',

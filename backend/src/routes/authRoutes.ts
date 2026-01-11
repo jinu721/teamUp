@@ -26,8 +26,8 @@ router.get('/google/callback',
         const user = req.user as any;
         const token = generateToken({ id: user._id.toString(), email: user.email });
         const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
-        // Redirect to frontend
-        res.redirect(`http://localhost:3000/social-callback?token=${token}&refreshToken=${refreshToken}`);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
     }
 );
 
@@ -40,7 +40,8 @@ router.get('/github/callback',
         const user = req.user as any;
         const token = generateToken({ id: user._id.toString(), email: user.email });
         const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
-        res.redirect(`http://localhost:3000/social-callback?token=${token}&refreshToken=${refreshToken}`);
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
     }
 );
 

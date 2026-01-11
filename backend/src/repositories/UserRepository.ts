@@ -28,6 +28,14 @@ export class UserRepository {
     return await User.findOne({ verificationToken: token });
   }
 
+  async findByGoogleId(googleId: string): Promise<IUser | null> {
+    return await User.findOne({ googleId });
+  }
+
+  async findByGithubId(githubId: string): Promise<IUser | null> {
+    return await User.findOne({ githubId });
+  }
+
   async update(id: string, updates: Partial<IUser>): Promise<IUser | null> {
     return await User.findByIdAndUpdate(
       id,

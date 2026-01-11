@@ -33,7 +33,8 @@ export class AuthService {
       verificationToken
     } as any);
 
-    const verificationLink = `http://localhost:3000/verify-email?token=${verificationToken}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
 
     const emailHtml = `
       <h1>Welcome to Team Up!</h1>
@@ -117,6 +118,50 @@ export class AuthService {
     if (!user) {
       throw new AuthenticationError('User not found');
     }
+    return user;
+  }
+
+  async socialLogin(profile: any, type: 'google' | 'github'): Promise<any> {
+    const idField = type === 'google' ? 'googleId' : 'githubId';
+    let user = type === 'google'
+      ? await this.userRepository.findByGoogleId(profile.id)
+      : await this.userRepository.findByGithubId(profile.id);
+
+    if (user) {
+      return user;
+    }
+
+    // Check by email
+    const email = profile.emails?.[0]?.value;
+    if (email) {
+      user = await this.userRepository.findByEmail(email);
+      if (user) {
+        // Link account
+        (user as any)[idField] = profile.id;
+        if (!user.isVerified) user.isVerified = true;
+        await user.save();
+        return user;
+      }
+    }
+
+    // Create new user
+    const dummyPassword = crypto.randomBytes(32).toString('hex');
+    const hashedPassword = await bcrypt.hash(dummyPassword, 10);
+
+    const userData: any = {
+      name: profile.displayName || profile.username || 'User',
+      email: email || `${profile.id}@${type}.com`,
+      password: hashedPassword,
+      isVerified: true,
+      profilePhoto: profile.photos?.[0]?.value || '',
+      skills: [],
+      interests: [],
+      isOnline: true,
+      lastActive: new Date()
+    };
+    userData[idField] = profile.id;
+
+    user = await this.userRepository.create(userData);
     return user;
   }
 }
