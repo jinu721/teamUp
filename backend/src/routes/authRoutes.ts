@@ -11,10 +11,10 @@ const authController = new AuthController();
 // Initialize Passport Strategies
 configurePassport();
 
-router.post('/register', authController.register);
-router.get('/verify-email/:token', authController.verifyEmail);
-router.post('/login', authController.login);
-router.get('/me', authenticate, authController.getProfile);
+router.post('/register', authController.register as any);
+router.get('/verify-email/:token', authController.verifyEmail as any);
+router.post('/login', authController.login as any);
+router.get('/me', authenticate as any, authController.getProfile as any);
 
 // Google Auth
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));

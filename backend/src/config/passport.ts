@@ -2,7 +2,6 @@ import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
 import { User } from '../models/User';
-import { generateToken } from './jwt';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 
@@ -12,6 +11,7 @@ import bcrypt from 'bcryptjs';
 export const configurePassport = () => {
     // GOOGLE STRATEGY
     if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+        console.log('Initializing Google Strategy...');
         passport.use(
             new GoogleStrategy(
                 {
@@ -19,13 +19,13 @@ export const configurePassport = () => {
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
                     callbackURL: '/api/auth/google/callback',
                 },
-                async (accessToken, refreshToken, profile, done) => {
+                async (_accessToken, _refreshToken, profile, done) => {
                     try {
                         // Check if user exists by Google ID
                         let user = await User.findOne({ googleId: profile.id });
 
                         if (user) {
-                            return done(null, user);
+                            return done(null, user as any);
                         }
 
                         // Check if user exists by email
@@ -39,7 +39,7 @@ export const configurePassport = () => {
                                 // trust Google and verify them? Yes, usually safe.
                                 if (!user.isVerified) user.isVerified = true;
                                 await user.save();
-                                return done(null, user);
+                                return done(null, user as any);
                             }
                         }
 
@@ -56,17 +56,20 @@ export const configurePassport = () => {
                             profilePhoto: profile.photos?.[0]?.value || '',
                         });
 
-                        return done(null, user);
+                        return done(null, user as any);
                     } catch (error) {
                         return done(error as Error, undefined);
                     }
                 }
             )
         );
+    } else {
+        console.warn('Google Client ID/Secret missing. Google Auth disabled.');
     }
 
     // GITHUB STRATEGY
     if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
+        console.log('Initializing GitHub Strategy...');
         passport.use(
             new GitHubStrategy(
                 {
@@ -75,12 +78,12 @@ export const configurePassport = () => {
                     callbackURL: '/api/auth/github/callback',
                     scope: ['user:email'],
                 },
-                async (accessToken: string, refreshToken: string, profile: any, done: Function) => {
+                async (_accessToken: string, _refreshToken: string, profile: any, done: Function) => {
                     try {
                         let user = await User.findOne({ githubId: profile.id });
 
                         if (user) {
-                            return done(null, user);
+                            return done(null, user as any);
                         }
 
                         const email = profile.emails?.[0]?.value;
@@ -91,7 +94,7 @@ export const configurePassport = () => {
                                 user.githubId = profile.id;
                                 if (!user.isVerified) user.isVerified = true;
                                 await user.save();
-                                return done(null, user);
+                                return done(null, user as any);
                             }
                         }
 
@@ -107,12 +110,14 @@ export const configurePassport = () => {
                             profilePhoto: profile.photos?.[0]?.value || '',
                         });
 
-                        return done(null, user);
+                        return done(null, user as any);
                     } catch (error) {
                         return done(error, undefined);
                     }
                 }
             )
         );
+    } else {
+        console.warn('GitHub Client ID/Secret missing. GitHub Auth disabled.');
     }
 };

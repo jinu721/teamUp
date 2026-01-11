@@ -4,12 +4,16 @@ import { Types, Document } from 'mongoose';
 // Re-export all workshop types
 export * from './workshop';
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
+declare global {
+  namespace Express {
+    interface User {
+      id: string;
+      email: string;
+    }
+  }
 }
+
+export type AuthRequest = Request;
 
 export interface SocketUser {
   userId: string;

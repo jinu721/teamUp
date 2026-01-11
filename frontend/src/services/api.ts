@@ -339,6 +339,22 @@ class ApiService {
     return response.data;
   }
 
+  // ==================== COMMUNITY POSTS (Legacy/Alias) ====================
+
+  async getCommunityPosts(
+    filters?: any,
+    sort?: string,
+    page?: number,
+    limit?: number
+  ): Promise<any> {
+    // Map to public workshops
+    // Merge sort into filters if provided
+    const combinedFilters = { ...filters };
+    if (sort) combinedFilters.sort = sort;
+
+    return this.getPublicWorkshops(combinedFilters, page, limit);
+  }
+
   // ==================== WORKSHOP PROJECTS ====================
 
   async getWorkshopProjects(workshopId: string): Promise<ApiResponse<WorkshopProject[]>> {

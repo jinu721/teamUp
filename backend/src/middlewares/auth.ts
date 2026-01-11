@@ -1,12 +1,11 @@
-import { Response, NextFunction } from 'express';
+import { Response, NextFunction, Request } from 'express';
 import { verifyToken } from '../config/jwt';
-import { AuthRequest } from '../types';
 import { AuthenticationError } from '../utils/errors';
 
-export const authenticate = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+export const authenticate = (req: Request, _res: Response, next: NextFunction): void => {
   try {
-    const authHeader = req.headers.authorization;
-    
+    const authHeader = req.headers['authorization'];
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return next(new AuthenticationError('No token provided'));
     }
@@ -18,7 +17,7 @@ export const authenticate = (req: AuthRequest, _res: Response, next: NextFunctio
 
     const decoded = verifyToken(token);
 
-    req.user = {
+    (req as any).user = {
       id: decoded.id,
       email: decoded.email
     };
@@ -33,19 +32,19 @@ export const authenticate = (req: AuthRequest, _res: Response, next: NextFunctio
  * Optional authentication - doesn't fail if no token provided
  * Sets req.user if valid token exists, otherwise continues without user
  */
-export const optionalAuthenticate = (req: AuthRequest, _res: Response, next: NextFunction): void => {
+export const optionalAuthenticate = (req: Request, _res: Response, next: NextFunction): void => {
   try {
-    const authHeader = req.headers.authorization;
-    
+    const authHeader = req.headers['authorization'];
+
     if (authHeader && authHeader.startsWith('Bearer ')) {
       const token = authHeader.split(' ')[1];
       const decoded = verifyToken(token);
-      req.user = {
+      (req as any).user = {
         id: decoded.id,
         email: decoded.email
       };
     }
-    
+
     next();
   } catch (error) {
     // Token invalid but continue anyway (optional auth)
