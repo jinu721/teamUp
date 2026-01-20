@@ -27,7 +27,7 @@ import morgan from 'morgan';
 const app: Application = express();
 const server = http.createServer(app);
 
-const PORT = 5000;
+const PORT = process.env.PORT || 5001;
 
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',

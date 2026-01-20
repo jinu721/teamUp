@@ -9,6 +9,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (data: Partial<User>) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;
 }
@@ -64,6 +65,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     socketService.disconnect();
   };
 
+  const updateProfile = async (data: Partial<User>) => {
+    const response = await api.updateProfile(data);
+    setUser(response.data);
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -72,6 +78,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         login,
         register,
         logout,
+        updateProfile,
         isAuthenticated: !!user,
         loading
       }}

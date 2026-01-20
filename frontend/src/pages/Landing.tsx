@@ -22,11 +22,10 @@ import { cn } from '@/lib/utils';
 export default function Landing() {
     return (
         <div className="min-h-screen bg-background selection:bg-primary/10">
-            {/* Navigation */}
             <nav className="fixed top-0 w-full z-50 border-b bg-background/80 backdrop-blur-md">
                 <div className="container mx-auto px-4 h-16 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-2 group">
-                        <span className="text-2xl font-black tracking-tighter italic">TEAM<span className="text-primary not-italic">UP</span></span>
+                        <span className="text-2xl font-black tracking-tighter">TEAMUP</span>
                     </Link>
                     <div className="hidden md:flex items-center gap-8">
                         <a href="#features" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Features</a>
@@ -38,7 +37,7 @@ export default function Landing() {
                             <Button variant="ghost" size="sm" className="font-medium">Sign In</Button>
                         </Link>
                         <Link to="/register">
-                            <Button size="sm" className="font-medium px-5 rounded-full shadow-lg shadow-primary/20">Get Started</Button>
+                            <Button size="sm" className="font-medium px-5 rounded-full">Get Started</Button>
                         </Link>
                     </div>
                 </div>
@@ -54,10 +53,6 @@ export default function Landing() {
 
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto text-center space-y-8">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 text-primary text-xs font-bold uppercase tracking-widest animate-in fade-in slide-in-from-bottom-4 duration-500">
-                            <Sparkles className="h-3.5 w-3.5" />
-                            Revolutionizing Team Collaboration
-                        </div>
                         <h1 className="text-5xl lg:text-8xl font-black tracking-tight leading-[0.9] text-foreground animate-in fade-in slide-in-from-bottom-8 duration-700 delay-100">
                             Build Your Next <br />
                             Great Idea Together.

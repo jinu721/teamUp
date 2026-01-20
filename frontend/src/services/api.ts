@@ -96,8 +96,13 @@ class ApiService {
     return response.data;
   }
 
-  async verifyEmail(token: string): Promise<ApiResponse<{ token: string; refreshToken: string; user: User }>> {
-    const response = await this.api.get(`/auth/verify-email/${token}`);
+  async verifyOTP(email: string, otp: string): Promise<ApiResponse<{ token: string; refreshToken: string; user: User }>> {
+    const response = await this.api.post('/auth/verify-otp', { email, otp });
+    return response.data;
+  }
+
+  async resendOTP(email: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await this.api.post('/auth/resend-otp', { email });
     return response.data;
   }
 

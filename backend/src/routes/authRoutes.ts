@@ -2,7 +2,7 @@ import { Router } from 'express';
 import passport from 'passport';
 import { AuthController } from '../controllers/AuthController';
 import { authenticate } from '../middlewares/auth';
-import { configurePassport } from '../config/passport';
+import { configurePassport, isStrategyEnabled } from '../config/passport';
 import { generateToken, generateRefreshToken } from '../config/jwt';
 
 const router = Router();
@@ -12,37 +12,59 @@ const authController = new AuthController();
 configurePassport();
 
 router.post('/register', authController.register as any);
-router.get('/verify-email/:token', authController.verifyEmail as any);
+router.post('/verify-otp', authController.verifyOTP as any);
+router.post('/resend-otp', authController.resendOTP as any);
 router.post('/login', authController.login as any);
 router.post('/refresh-token', authController.refreshToken as any);
 router.get('/me', authenticate as any, authController.getProfile as any);
+router.put('/profile', authenticate as any, authController.updateProfile as any);
 
 // Google Auth
-router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-router.get('/google/callback',
-    passport.authenticate('google', { session: false, failureRedirect: '/login' }),
-    (req, res) => {
-        const user = req.user as any;
-        const token = generateToken({ id: user._id.toString(), email: user.email });
-        const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
+router.get('/google', (req, res, next) => {
+    if (!isStrategyEnabled('google')) {
+        return res.status(400).json({
+            success: false,
+            message: 'Google authentication is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the backend .env file.'
+        });
     }
-);
+    return passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+});
+
+router.get('/google/callback', (req, res, next) => {
+    if (!isStrategyEnabled('google')) {
+        return res.redirect((process.env.FRONTEND_URL || 'http://localhost:3000') + '/login?error=google_not_configured');
+    }
+    return passport.authenticate('google', { session: false, failureRedirect: '/login' })(req, res, next);
+}, (req, res) => {
+    const user = req.user as any;
+    const token = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
+});
 
 // GitHub Auth
-router.get('/github', passport.authenticate('github', { scope: ['user:email'] }));
-
-router.get('/github/callback',
-    passport.authenticate('github', { session: false, failureRedirect: '/login' }),
-    (req, res) => {
-        const user = req.user as any;
-        const token = generateToken({ id: user._id.toString(), email: user.email });
-        const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-        res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
+router.get('/github', (req, res, next) => {
+    if (!isStrategyEnabled('github')) {
+        return res.status(400).json({
+            success: false,
+            message: 'GitHub authentication is not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the backend .env file.'
+        });
     }
-);
+    return passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+});
+
+router.get('/github/callback', (req, res, next) => {
+    if (!isStrategyEnabled('github')) {
+        return res.redirect((process.env.FRONTEND_URL || 'http://localhost:3000') + '/login?error=github_not_configured');
+    }
+    return passport.authenticate('github', { session: false, failureRedirect: '/login' })(req, res, next);
+}, (req, res) => {
+    const user = req.user as any;
+    const token = generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
+});
 
 export default router;

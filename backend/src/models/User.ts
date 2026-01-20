@@ -47,9 +47,6 @@ const userSchema = new Schema<IUser>(
       type: Boolean,
       default: false
     },
-    verificationToken: {
-      type: String
-    },
     googleId: { type: String, unique: true, sparse: true },
     githubId: { type: String, unique: true, sparse: true }
   },
@@ -58,7 +55,6 @@ const userSchema = new Schema<IUser>(
   }
 );
 
-userSchema.index({ email: 1 });
 userSchema.index({ isOnline: 1 });
 
 export const User = mongoose.model<IUser>('User', userSchema);

@@ -1,15 +1,18 @@
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { UserRepository } from '../repositories/UserRepository';
+import { PendingUserRepository } from '../repositories/PendingUserRepository';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '../config/jwt';
 import { AuthenticationError, ValidationError } from '../utils/errorHandler';
 import { sendEmail } from '../utils/emailService';
 
 export class AuthService {
   private userRepository: UserRepository;
+  private pendingUserRepository: PendingUserRepository;
 
   constructor() {
     this.userRepository = new UserRepository();
+    this.pendingUserRepository = new PendingUserRepository();
   }
 
   async register(name: string, email: string, password: string): Promise<{ message: string }> {
@@ -18,57 +21,112 @@ export class AuthService {
       throw new ValidationError('Email already registered');
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    const existingPending = await this.pendingUserRepository.findByEmail(email);
+    if (existingPending) {
+      // Update existing pending user with new password and OTP to allow retry
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    await this.userRepository.create({
+      existingPending.name = name;
+      existingPending.password = hashedPassword;
+      existingPending.otp = otp;
+      existingPending.otpExpires = otpExpires;
+      await existingPending.save();
+
+      await this.sendVerificationOTP(email, otp);
+      return { message: 'Verification code re-sent. Please check your email.' };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    await this.pendingUserRepository.create({
       name,
       email,
       password: hashedPassword,
-      skills: [],
-      interests: [],
-      isOnline: false,
-      lastActive: new Date(),
-      isVerified: false,
-      verificationToken
+      otp,
+      otpExpires
     } as any);
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-    const verificationLink = `${frontendUrl}/verify-email?token=${verificationToken}`;
+    await this.sendVerificationOTP(email, otp);
 
-    const emailHtml = `
-      <h1>Welcome to Team Up!</h1>
-      <p>Please verify your email address by clicking the link below:</p>
-      <a href="${verificationLink}">${verificationLink}</a>
-      <p>If you didn't request this, please ignore this email.</p>
-    `;
-
-    await sendEmail(email, 'Verify your email - Team Up', emailHtml);
-
-    return { message: 'Registration successful. Please check your email to verify your account.' };
+    return { message: 'Registration successful. Please check your email for the verification code.' };
   }
 
-  async verifyEmail(token: string): Promise<{ user: any; token: string; refreshToken: string }> {
-    const user = await this.userRepository.findByVerificationToken(token);
+  private async sendVerificationOTP(email: string, otp: string) {
+    const emailHtml = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+        <h1 style="color: #333 text-align: center;">Welcome to Team Up!</h1>
+        <p>Your verification code is:</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff; background: #f0f7ff; padding: 10px 20px; border-radius: 5px; border: 1px dashed #007bff;">${otp}</span>
+        </div>
+        <p style="text-align: center; color: #666;">This code will expire in 10 minutes.</p>
+        <p style="color: #777; font-size: 12px; margin-top: 30px; text-align: center;">If you didn't request this, please ignore this email.</p>
+      </div>
+    `;
 
-    if (!user) {
-      throw new ValidationError('Invalid or expired verification token');
+    await sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
+  }
+
+
+
+  async verifyOTP(email: string, otp: string): Promise<{ user: any; token: string; refreshToken: string }> {
+    const pendingUser = await this.pendingUserRepository.findByEmail(email);
+
+    if (!pendingUser) {
+      throw new ValidationError('Registration not found or expired');
     }
 
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    await user.save();
+    if (pendingUser.otp !== otp) {
+      throw new ValidationError('Invalid verification code');
+    }
 
-    await this.userRepository.updatePresence(user._id.toString(), true);
+    if (new Date() > pendingUser.otpExpires) {
+      throw new ValidationError('Verification code has expired');
+    }
 
-    const authToken = generateToken({ id: user._id.toString(), email: user.email });
-    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    // Move to User collection
+    const newUser = await this.userRepository.create({
+      name: pendingUser.name,
+      email: pendingUser.email,
+      password: pendingUser.password,
+      isVerified: true,
+      skills: [],
+      interests: [],
+      isOnline: true,
+      lastActive: new Date(),
+    } as any);
 
-    const userResponse = JSON.parse(JSON.stringify(user));
+    // Delete from PendingUser
+    await this.pendingUserRepository.deleteById(pendingUser._id.toString());
+
+    const authToken = generateToken({ id: newUser._id.toString(), email: newUser.email });
+    const refreshToken = generateRefreshToken({ id: newUser._id.toString(), email: newUser.email });
+
+    const userResponse = JSON.parse(JSON.stringify(newUser));
     delete userResponse.password;
-    delete userResponse.verificationToken;
 
     return { user: userResponse, token: authToken, refreshToken };
+  }
+
+  async resendOTP(email: string): Promise<{ message: string }> {
+    const pendingUser = await this.pendingUserRepository.findByEmail(email);
+    if (!pendingUser) {
+      throw new ValidationError('Registration not found or expired. Please register again.');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    pendingUser.otp = otp;
+    pendingUser.otpExpires = otpExpires;
+    await pendingUser.save();
+
+    await this.sendVerificationOTP(email, otp);
+    return { message: 'New verification code sent to your email.' };
   }
 
   async login(email: string, password: string): Promise<{ user: any; token: string; refreshToken: string }> {
@@ -162,6 +220,24 @@ export class AuthService {
     userData[idField] = profile.id;
 
     user = await this.userRepository.create(userData);
+    return user;
+  }
+
+  async updateProfile(userId: string, data: any): Promise<any> {
+    const allowedFields = ['name', 'profilePhoto', 'skills', 'interests'];
+    const updates: any = {};
+
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        updates[field] = data[field];
+      }
+    });
+
+    const user = await this.userRepository.update(userId, updates);
+    if (!user) {
+      throw new AuthenticationError('User not found');
+    }
+
     return user;
   }
 }

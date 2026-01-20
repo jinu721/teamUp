@@ -138,3 +138,13 @@ export interface INotification extends Document {
   isRead: boolean;
   createdAt: Date;
 }
+
+export interface IPendingUser extends Document {
+  _id: Types.ObjectId;
+  name: string;
+  email: string;
+  password: string;
+  otp: string;
+  otpExpires: Date;
+  createdAt: Date;
+}
