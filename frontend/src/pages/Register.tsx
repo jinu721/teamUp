@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Sparkles, Check, X, Eye, EyeOff, Mail, ArrowRight } from 'lucide-react';
+import { Loader2, Check, X, Eye, EyeOff, Mail, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const Register: React.FC = () => {
