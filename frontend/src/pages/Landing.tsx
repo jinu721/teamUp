@@ -14,7 +14,8 @@ import {
     CheckCircle2,
     Terminal,
     Search,
-    Layout
+    Layout,
+    Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -275,6 +276,65 @@ export default function Landing() {
                                 </p>
                             </div>
                         ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Community Section (Refined) */}
+            <section id="community" className="py-24 bg-background relative overflow-hidden">
+                <div className="container mx-auto px-6 lg:px-12">
+                    <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-medium tracking-wider uppercase border">
+                            <Users className="h-3 w-3" /> Community
+                        </div>
+                        <h2 className="text-3xl lg:text-5xl font-bold tracking-tight text-foreground">
+                            Join the Conversation
+                        </h2>
+                        <p className="text-lg text-muted-foreground leading-relaxed">
+                            Connect with developers across the globe. Explore public workshops, share your progress, and collaborate in real-time.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-8 mb-16">
+                        {[
+                            {
+                                icon: <Globe className="h-6 w-6" />,
+                                title: "Public Workshops",
+                                desc: "Browse and join open workshops. Find projects that match your skills."
+                            },
+                            {
+                                icon: <MessageSquare className="h-6 w-6" />,
+                                title: "Live Chat Channels",
+                                desc: "Instant communication with your team and the broader community."
+                            },
+                            {
+                                icon: <CheckCircle2 className="h-6 w-6" />,
+                                title: "Collaborative Feed",
+                                desc: "Stay updated with the latest contributions and project milestones."
+                            }
+                        ].map((item, i) => (
+                            <div key={i} className="flex flex-col items-center text-center p-6 rounded-2xl border bg-card hover:bg-muted/30 hover:border-primary/20 transition-all duration-300 group">
+                                <div className="mb-4 p-4 rounded-full bg-muted group-hover:bg-primary/10 group-hover:text-primary transition-colors text-foreground">
+                                    {item.icon}
+                                </div>
+                                <h3 className="text-lg font-bold mb-2">{item.title}</h3>
+                                <p className="text-sm text-muted-foreground">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="relative rounded-3xl border bg-muted/30 overflow-hidden">
+                        <div className="absolute top-0 w-full h-px bg-gradient-to-r from-transparent via-border to-transparent"></div>
+                        <div className="p-8 md:p-12 text-center">
+                            <h3 className="text-2xl font-bold mb-6">Ready to find your team?</h3>
+                            <div className="max-w-md mx-auto">
+                                <Link to="/community">
+                                    <Button size="lg" className="w-full sm:w-auto rounded-full px-8 font-semibold h-12 shadow-lg hover:scale-105 transition-transform">
+                                        Explore Public Workshops
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </section>

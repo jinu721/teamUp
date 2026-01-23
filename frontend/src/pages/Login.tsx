@@ -35,10 +35,6 @@ const Login: React.FC = () => {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="w-full max-w-md animate-fade-in">
 
-        <div className="mb-8 flex flex-col items-center">
-          <h1 className="text-2xl font-bold tracking-tight">TeamUp</h1>
-          <p className="text-sm text-muted-foreground">Collaborate. Create. Succeed.</p>
-        </div>
 
         <Card className="shadow-soft-lg border-0">
           <CardHeader className="space-y-1 pb-4">

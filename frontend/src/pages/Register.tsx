@@ -90,14 +90,6 @@ const Register: React.FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="w-full max-w-md animate-fade-in">
-        {/* Logo */}
-        <div className="mb-8 flex flex-col items-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-soft-lg mb-4">
-            <Sparkles className="h-6 w-6" />
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight">TeamUp</h1>
-          <p className="text-sm text-muted-foreground">Collaborate. Create. Succeed.</p>
-        </div>
 
         <Card className="shadow-soft-lg border-0">
           <CardHeader className="space-y-1 pb-4">
