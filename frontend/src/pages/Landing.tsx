@@ -14,7 +14,6 @@ import {
     CheckCircle2,
     Terminal,
     Search,
-    Sparkles,
     Layout
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
