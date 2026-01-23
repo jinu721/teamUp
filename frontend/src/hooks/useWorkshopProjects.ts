@@ -20,9 +20,6 @@ const normalizeProject = (project: WorkshopProject): WorkshopProject => ({
   maintainers: project.maintainers || []
 });
 
-/**
- * Hook for fetching workshop projects with real-time updates
- */
 export function useWorkshopProjects(workshopId: string | undefined): UseWorkshopProjectsReturn {
   const [projects, setProjects] = useState<WorkshopProject[]>([]);
   const [loading, setLoading] = useState(true);
@@ -67,7 +64,6 @@ export function useWorkshopProjects(workshopId: string | undefined): UseWorkshop
     setProjects(prev => prev.filter(p => p._id !== projectId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('workshop:project:created', (project: WorkshopProject) => {
     const projectWorkshopId = typeof project.workshop === 'string'
       ? project.workshop
@@ -92,7 +88,6 @@ export function useWorkshopProjects(workshopId: string | undefined): UseWorkshop
     }
   });
 
-  // Assignment events
   const handleProjectUpdate = (project: WorkshopProject) => {
     const projectWorkshopId = typeof project.workshop === 'string'
       ? project.workshop
@@ -129,9 +124,6 @@ interface UseWorkshopProjectReturn {
   setProject: (project: WorkshopProject | null) => void;
 }
 
-/**
- * Hook for fetching a single workshop project with real-time updates
- */
 export function useWorkshopProject(
   workshopId: string | undefined,
   projectId: string | undefined
@@ -162,7 +154,6 @@ export function useWorkshopProject(
     fetchProject();
   }, [fetchProject]);
 
-  // Socket event handlers for this specific project
   const handleSpecificUpdate = (updatedProject: WorkshopProject) => {
     if (updatedProject._id === projectId) {
       setProject(normalizeProject(updatedProject));

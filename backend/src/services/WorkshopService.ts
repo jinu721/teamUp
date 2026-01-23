@@ -6,11 +6,11 @@ import {
   MembershipState,
   MembershipSource,
   AuditAction,
-  // WorkshopVisibility,
+
   PermissionScope,
   PermissionType
 } from '../types/workshop';
-// import { AuthRequest } from '../types/index';
+
 import { WorkshopRepository } from '../repositories/WorkshopRepository';
 import { MembershipRepository } from '../repositories/MembershipRepository';
 import { TeamRepository } from '../repositories/TeamRepository';
@@ -27,9 +27,6 @@ import { Types } from 'mongoose';
 import { Membership } from '../models/Membership';
 import { User } from '../models/User';
 
-/**
- * Helper to extract ID from a potentially populated reference
- */
 function getIdString(ref: any): string {
   if (ref && typeof ref === 'object' && '_id' in ref) {
     return ref._id.toString();
@@ -37,10 +34,6 @@ function getIdString(ref: any): string {
   return ref?.toString() || '';
 }
 
-/**
- * Workshop Service
- * Handles all workshop-related business logic
- */
 export class WorkshopService {
   private workshopRepository: WorkshopRepository;
   private membershipRepository: MembershipRepository;
@@ -67,21 +60,14 @@ export class WorkshopService {
     this.chatService = new ChatService();
   }
 
-  /**
-   * Set socket service for real-time updates
-   */
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
     this.chatService.setSocketService(socketService);
   }
 
-  /**
-   * Create a new workshop
-   */
   async createWorkshop(ownerId: string, data: CreateWorkshopDTO): Promise<IWorkshop> {
     const workshop = await this.workshopRepository.create(ownerId, data);
 
-    // Create owner's membership (automatically active)
     await this.membershipRepository.create({
       workshopId: workshop._id.toString(),
       userId: ownerId,
@@ -89,10 +75,8 @@ export class WorkshopService {
       state: MembershipState.ACTIVE
     });
 
-    // Sync to chat rooms (owner should be in general chat if it exists)
     await this.chatService.syncUserToWorkshopRooms(ownerId, workshop._id.toString());
 
-    // Initialize default roles for the workshop
     await this.createDefaultRoles(workshop._id.toString());
 
     await this.auditService.logWorkshopCreated(
@@ -104,9 +88,6 @@ export class WorkshopService {
     return await this.workshopRepository.findById(workshop._id.toString()) || workshop;
   }
 
-  /**
-   * Initialize default roles for a new workshop
-   */
   private async createDefaultRoles(workshopId: string): Promise<void> {
     const defaultRoles = [
       {
@@ -157,18 +138,12 @@ export class WorkshopService {
     }
   }
 
-  /**
-   * Get workshop by ID
-   */
   async getWorkshop(workshopId: string): Promise<IWorkshop> {
     const workshop = await this.workshopRepository.findById(workshopId);
     if (!workshop) throw new NotFoundError('Workshop');
     return workshop;
   }
 
-  /**
-   * Get workshops for a user
-   */
   async getUserWorkshops(userId: string): Promise<IWorkshop[]> {
     const ownedOrManaged = await this.workshopRepository.findByUser(userId);
     const memberships = await this.membershipRepository.findByUser(userId, MembershipState.ACTIVE);
@@ -274,11 +249,10 @@ export class WorkshopService {
       });
     }
 
-    // Assign role if provided
     if (roleId) {
       const role = await this.roleRepository.findById(roleId);
       if (role) {
-        // Only assign if role belongs to this workshop
+
         if (role.workshop.toString() === workshopId) {
           await this.roleAssignmentRepository.create({
             workshopId,
@@ -318,13 +292,13 @@ export class WorkshopService {
 
     let membership: IMembership;
     if (existing) {
-      // Reuse existing pending/removed membership
+
       membership = await this.membershipRepository.updateState(
         existing._id.toString(),
         state,
         state === MembershipState.ACTIVE ? userId : undefined
       );
-      // Update source to reflect it's now a join request if it was an invitation
+
       if (existing.source === MembershipSource.INVITATION && !autoApprove) {
         await Membership.findByIdAndUpdate(existing._id, { $set: { source: MembershipSource.JOIN_REQUEST } });
         membership.source = MembershipSource.JOIN_REQUEST;

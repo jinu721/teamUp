@@ -7,11 +7,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Bell, 
-  CheckCircle, 
-  MessageCircle, 
-  UserPlus, 
+import {
+  Bell,
+  CheckCircle,
+  MessageCircle,
+  UserPlus,
   FileText,
   Users,
   Check,
@@ -86,13 +86,12 @@ const Notifications: React.FC = () => {
   useEffect(() => {
     loadNotifications();
 
-    // Listen for new notifications
     const handleNewNotification = (notification: Notification) => {
       setNotifications(prev => [notification, ...prev]);
     };
 
     const handleNotificationRead = (data: { notificationId: string }) => {
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n._id === data.notificationId ? { ...n, isRead: true } : n)
       );
     };
@@ -115,7 +114,7 @@ const Notifications: React.FC = () => {
   const handleMarkAsRead = async (id: string) => {
     try {
       await api.markNotificationAsRead(id);
-      setNotifications(prev => 
+      setNotifications(prev =>
         prev.map(n => n._id === id ? { ...n, isRead: true } : n)
       );
     } catch (error) {
@@ -158,12 +157,11 @@ const Notifications: React.FC = () => {
   };
 
   const handleNotificationClick = (notification: Notification) => {
-    // Mark as read
+
     if (!notification.isRead) {
       handleMarkAsRead(notification._id);
     }
 
-    // Navigate based on type
     if (notification.relatedProject) {
       navigate(`/projects/${notification.relatedProject._id || notification.relatedProject}`);
     } else if (notification.type === NotificationType.JOIN_REQUEST) {
@@ -191,7 +189,7 @@ const Notifications: React.FC = () => {
   return (
     <AppLayout>
       <div className="page-container max-w-3xl mx-auto">
-        {/* Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="section-header mb-0">
             <h1 className="section-title flex items-center gap-2">
@@ -211,7 +209,6 @@ const Notifications: React.FC = () => {
           )}
         </div>
 
-        {/* Notifications List */}
         {notifications.length === 0 ? (
           <Card className="shadow-soft">
             <CardContent className="flex flex-col items-center justify-center py-16">
@@ -231,8 +228,8 @@ const Notifications: React.FC = () => {
               const colorClass = getNotificationColor(notification.type);
 
               return (
-                <Card 
-                  key={notification._id} 
+                <Card
+                  key={notification._id}
                   className={cn(
                     "shadow-soft transition-all cursor-pointer hover:shadow-soft-lg",
                     !notification.isRead && "border-l-4 border-l-primary"

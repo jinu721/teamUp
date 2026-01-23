@@ -96,7 +96,6 @@ const activityHistorySchema = new Schema<IActivityHistory>(
     }
 );
 
-// Indexes for efficient queries
 activityHistorySchema.index({ workshop: 1, createdAt: -1 });
 activityHistorySchema.index({ user: 1, createdAt: -1 });
 activityHistorySchema.index({ entityType: 1, entityId: 1, createdAt: -1 });

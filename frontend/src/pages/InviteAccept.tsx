@@ -27,7 +27,7 @@ const InviteAccept: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
-  
+
   const [invite, setInvite] = useState<InviteDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
@@ -66,8 +66,7 @@ const InviteAccept: React.FC = () => {
         title: 'Welcome to the team!',
         description: response.message || 'You have successfully joined the project',
       });
-      
-      // Redirect to project after a short delay
+
       setTimeout(() => {
         navigate(`/projects/${invite?.project._id}`);
       }, 2000);
@@ -159,7 +158,7 @@ const InviteAccept: React.FC = () => {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Project Info */}
+
           <div className="bg-muted/50 rounded-lg p-4 space-y-2">
             <h3 className="font-semibold text-lg">{invite?.project.title}</h3>
             <p className="text-sm text-muted-foreground line-clamp-3">
@@ -170,7 +169,6 @@ const InviteAccept: React.FC = () => {
             </p>
           </div>
 
-          {/* Action based on auth state */}
           {!isAuthenticated ? (
             <div className="space-y-3">
               <p className="text-sm text-center text-muted-foreground">
@@ -191,7 +189,7 @@ const InviteAccept: React.FC = () => {
             <div className="space-y-3">
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
                 <p className="text-sm text-yellow-800">
-                  This invitation was sent to <span className="font-medium">{invite?.email}</span>, 
+                  This invitation was sent to <span className="font-medium">{invite?.email}</span>,
                   but you're logged in as <span className="font-medium">{user?.email}</span>.
                 </p>
               </div>

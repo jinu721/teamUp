@@ -35,7 +35,7 @@ export const ProjectAssignmentPanel: React.FC<ProjectAssignmentPanelProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Project Manager */}
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-sm flex items-center gap-2">
@@ -78,7 +78,6 @@ export const ProjectAssignmentPanel: React.FC<ProjectAssignmentPanelProps> = ({
         </CardContent>
       </Card>
 
-      {/* Maintainers */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -127,7 +126,6 @@ export const ProjectAssignmentPanel: React.FC<ProjectAssignmentPanelProps> = ({
         </CardContent>
       </Card>
 
-      {/* Assigned Teams */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -181,7 +179,6 @@ export const ProjectAssignmentPanel: React.FC<ProjectAssignmentPanelProps> = ({
         </CardContent>
       </Card>
 
-      {/* Assigned Individuals */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">

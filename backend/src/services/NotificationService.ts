@@ -3,10 +3,6 @@ import { INotification, NotificationType } from '../types';
 import { SocketService } from './SocketService';
 import { NotFoundError } from '../utils/errors';
 
-/**
- * Notification Service
- * Handles all notification business logic with real-time delivery
- */
 export class NotificationService {
   private notificationRepo: NotificationRepository;
   private socketService: SocketService | null = null;
@@ -19,9 +15,6 @@ export class NotificationService {
     this.socketService = socketService;
   }
 
-  /**
-   * Create and deliver a notification
-   */
   async createNotification(data: {
     userId: string;
     type: NotificationType;
@@ -42,7 +35,6 @@ export class NotificationService {
       isRead: false
     } as any);
 
-    // Deliver via WebSocket for real-time updates
     if (this.socketService) {
       this.socketService.emitToUser(data.userId, 'notification:new', notification);
     }
@@ -50,11 +42,8 @@ export class NotificationService {
     return notification;
   }
 
-  /**
-   * Notify about a new comment on a post
-   */
   async notifyComment(postOwnerId: string, commenterId: string, postTitle: string): Promise<void> {
-    if (postOwnerId === commenterId) return; // Don't notify self
+    if (postOwnerId === commenterId) return;
 
     await this.createNotification({
       userId: postOwnerId,
@@ -65,9 +54,6 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Notify about a join request
-   */
   async notifyJoinRequest(postOwnerId: string, requesterId: string, postTitle: string): Promise<void> {
     await this.createNotification({
       userId: postOwnerId,
@@ -78,9 +64,6 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Notify about join request response
-   */
   async notifyJoinRequestResponse(
     requesterId: string,
     postTitle: string,
@@ -99,9 +82,6 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Notify about project invitation
-   */
   async notifyProjectInvite(userId: string, projectTitle: string, projectId: string, inviterId: string): Promise<void> {
     await this.createNotification({
       userId,
@@ -113,9 +93,6 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Notify about task assignment
-   */
   async notifyTaskAssignment(userId: string, taskTitle: string, taskId: string, projectId: string): Promise<void> {
     await this.createNotification({
       userId,
@@ -127,30 +104,20 @@ export class NotificationService {
     });
   }
 
-  /**
-   * Get user notifications with pagination
-   */
   async getUserNotifications(userId: string, limit: number = 50): Promise<INotification[]> {
     return await this.notificationRepo.findByUserId(userId, limit);
   }
 
-  /**
-   * Get unread notifications
-   */
   async getUnreadNotifications(userId: string): Promise<INotification[]> {
     return await this.notificationRepo.findUnreadByUserId(userId);
   }
 
-  /**
-   * Mark a notification as read
-   */
   async markAsRead(notificationId: string, userId: string): Promise<INotification> {
     const notification = await this.notificationRepo.markAsRead(notificationId);
     if (!notification) {
       throw new NotFoundError('Notification');
     }
 
-    // Emit update for real-time sync
     if (this.socketService) {
       this.socketService.emitToUser(userId, 'notification:read', { notificationId });
     }
@@ -158,28 +125,18 @@ export class NotificationService {
     return notification;
   }
 
-  /**
-   * Mark all notifications as read
-   */
   async markAllAsRead(userId: string): Promise<void> {
     await this.notificationRepo.markAllAsRead(userId);
 
-    // Emit update for real-time sync
     if (this.socketService) {
       this.socketService.emitToUser(userId, 'notification:allRead', {});
     }
   }
 
-  /**
-   * Get unread count
-   */
   async getUnreadCount(userId: string): Promise<number> {
     return await this.notificationRepo.getUnreadCount(userId);
   }
 
-  /**
-   * Delete a notification
-   */
   async deleteNotification(notificationId: string, userId: string): Promise<void> {
     await this.notificationRepo.delete(notificationId);
 

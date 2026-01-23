@@ -8,9 +8,9 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({ 
-  size = 'md', 
-  className 
+export const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
+  size = 'md',
+  className
 }) => {
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -95,9 +95,9 @@ export const PostCardSkeleton: React.FC<CardSkeletonProps> = ({ count = 1 }) => 
   );
 };
 
-export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({ 
-  rows = 5, 
-  cols = 4 
+export const TableSkeleton: React.FC<{ rows?: number; cols?: number }> = ({
+  rows = 5,
+  cols = 4
 }) => {
   return (
     <div className="space-y-3">
@@ -121,8 +121,8 @@ interface PageLoadingProps {
   message?: string;
 }
 
-export const PageLoading: React.FC<PageLoadingProps> = ({ 
-  message = 'Loading...' 
+export const PageLoading: React.FC<PageLoadingProps> = ({
+  message = 'Loading...'
 }) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -137,9 +137,9 @@ interface ButtonLoadingProps {
   children: React.ReactNode;
 }
 
-export const ButtonLoading: React.FC<ButtonLoadingProps> = ({ 
-  loading, 
-  children 
+export const ButtonLoading: React.FC<ButtonLoadingProps> = ({
+  loading,
+  children
 }) => {
   if (loading) {
     return (

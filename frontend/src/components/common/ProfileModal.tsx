@@ -127,7 +127,7 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ open, onOpenChange }
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
-                    {/* Avatar Section */}
+
                     <div className="flex flex-col items-center space-y-3">
                         <div className="relative group">
                             <Avatar className="h-24 w-24 ring-2 ring-primary/20 transition-all group-hover:ring-primary/40">
@@ -166,7 +166,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ open, onOpenChange }
                             />
                         </div>
 
-                        {/* Skills */}
                         <div className="space-y-2">
                             <Label>Skills</Label>
                             <div className="flex gap-2">
@@ -193,7 +192,6 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ open, onOpenChange }
                             </div>
                         </div>
 
-                        {/* Interests */}
                         <div className="space-y-2">
                             <Label>Interests</Label>
                             <div className="flex gap-2">

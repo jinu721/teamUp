@@ -41,7 +41,7 @@ const WorkshopAuditLog: React.FC = () => {
   return (
     <AppLayout>
       <div className="page-container space-y-6">
-        {/* Header */}
+
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(`/workshops/${workshopId}`)}>
             <ArrowLeft className="h-5 w-5" />
@@ -57,7 +57,6 @@ const WorkshopAuditLog: React.FC = () => {
           </div>
         </div>
 
-        {/* Audit Log Viewer */}
         <AuditLogViewer
           logs={logs}
           loading={loading}

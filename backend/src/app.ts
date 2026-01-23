@@ -46,7 +46,6 @@ app.use('/api/workshop-tasks', taskRouter);
 app.use('/api/users', userTaskRouter);
 app.use('/api/teams', teamTaskRouter);
 
-// Chat and Activity routes
 app.use('/api/chat', chatRoutes);
 app.use('/api', activityRoutes);
 

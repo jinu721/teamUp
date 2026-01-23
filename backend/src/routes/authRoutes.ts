@@ -8,7 +8,6 @@ import { generateToken, generateRefreshToken } from '../config/jwt';
 const router = Router();
 const authController = new AuthController();
 
-// Initialize Passport Strategies
 configurePassport();
 
 router.post('/register', authController.register as any);
@@ -19,7 +18,6 @@ router.post('/refresh-token', authController.refreshToken as any);
 router.get('/me', authenticate as any, authController.getProfile as any);
 router.put('/profile', authenticate as any, authController.updateProfile as any);
 
-// Google Auth
 router.get('/google', (req, res, next) => {
     if (!isStrategyEnabled('google')) {
         return res.status(400).json({
@@ -43,7 +41,6 @@ router.get('/google/callback', (req, res, next) => {
     res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
 });
 
-// GitHub Auth
 router.get('/github', (req, res, next) => {
     if (!isStrategyEnabled('github')) {
         return res.status(400).json({

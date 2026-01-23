@@ -14,9 +14,6 @@ interface UseAuditLogsReturn {
   setFilters: (filters: AuditLogFilters) => void;
 }
 
-/**
- * Hook for fetching workshop audit logs with pagination and filtering
- */
 export function useAuditLogs(
   workshopId: string | undefined,
   initialFilters?: AuditLogFilters,
@@ -39,13 +36,13 @@ export function useAuditLogs(
       setLoading(true);
       setError(null);
       const response = await api.getWorkshopAuditLogs(workshopId, filters, pageNum, pageSize);
-      
+
       if (append) {
         setLogs(prev => [...prev, ...response.data]);
       } else {
         setLogs(response.data);
       }
-      
+
       setTotalPages(response.pagination?.totalPages || 1);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to load audit logs');

@@ -3,12 +3,12 @@ import { Team } from '@/types/workshop';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger 
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { MoreVertical, UserMinus, Shield, Plus } from 'lucide-react';
 
@@ -70,8 +70,8 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
             const unassignedRoles = availableRoles.filter(r => !memberRoles.includes(r));
 
             return (
-              <div 
-                key={user._id} 
+              <div
+                key={user._id}
                 className="flex items-center justify-between p-3 rounded-lg border bg-card"
               >
                 <div className="flex items-center gap-3">
@@ -88,7 +88,7 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  {/* Member roles */}
+
                   <div className="flex flex-wrap gap-1">
                     {memberRoles.map((roleName) => (
                       <Badge key={roleName} variant="secondary" className="text-xs">
@@ -120,7 +120,7 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
                               Assign Role
                             </div>
                             {unassignedRoles.map((roleName) => (
-                              <DropdownMenuItem 
+                              <DropdownMenuItem
                                 key={roleName}
                                 onClick={() => onAssignRole?.(user._id, roleName)}
                               >
@@ -131,7 +131,7 @@ export const TeamMemberList: React.FC<TeamMemberListProps> = ({
                             <DropdownMenuSeparator />
                           </>
                         )}
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => onRemoveMember?.(user._id)}
                           className="text-destructive focus:text-destructive"
                         >

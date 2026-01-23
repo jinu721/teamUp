@@ -20,12 +20,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card shadow-soft">
-      {/* Logo header */}
+
       <div className="flex h-16 items-center justify-between border-b px-4 lg:px-6">
         <Link to="/dashboard" className="flex items-center gap-2 group">
           <span className="text-xl font-bold tracking-tight">TeamUp</span>
         </Link>
-        {/* Mobile close button */}
+
         <Button
           variant="ghost"
           size="icon"
@@ -37,7 +37,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         </Button>
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 lg:p-4">
         <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           Menu
@@ -65,7 +64,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ onClose }) => {
         })}
       </nav>
 
-      {/* Footer */}
       <div className="border-t p-4">
         <div className="rounded-lg bg-muted/50 p-3">
           <p className="text-xs font-medium text-muted-foreground">

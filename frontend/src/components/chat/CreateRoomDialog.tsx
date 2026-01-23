@@ -47,7 +47,7 @@ export const CreateRoomDialog: React.FC<CreateRoomDialogProps> = ({
             toast({ title: 'Success', description: 'Chat room created successfully' });
             onSuccess(response.data);
             onOpenChange(false);
-            // Reset form
+
             setName('');
             setDescription('');
             setRoomType('workshop');

@@ -9,10 +9,6 @@ import { SocketService } from './SocketService';
 import { AuditService } from './AuditService';
 import { PermissionService } from './PermissionService';
 
-/**
- * Workshop Task Service
- * Handles all workshop-aware task management business logic
- */
 export class WorkshopTaskService {
   private taskRepo: WorkshopTaskRepository;
   private projectRepo: WorkshopProjectRepository;
@@ -37,15 +33,12 @@ export class WorkshopTaskService {
     this.socketService = socketService;
   }
 
-  /**
-   * Create a new task in a project
-   */
   async createTask(
     projectId: string,
     userId: string,
     data: CreateWorkshopTaskDTO
   ): Promise<IWorkshopTask> {
-    // Get project and verify it exists
+
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
       throw new NotFoundError('Project');
@@ -53,14 +46,12 @@ export class WorkshopTaskService {
 
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'create', 'task');
       throw new AuthorizationError('You must be a workshop member to create tasks');
     }
 
-    // Check permission to create tasks
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -73,12 +64,10 @@ export class WorkshopTaskService {
       throw new AuthorizationError('Insufficient permissions to create tasks');
     }
 
-    // Validate required fields
     if (!data.title || data.title.trim().length < 3) {
       throw new ValidationError('Task title must be at least 3 characters');
     }
 
-    // Validate parent task if provided
     if (data.parentTask) {
       const parent = await this.taskRepo.findById(data.parentTask);
       if (!parent || parent.project?.toString() !== projectId) {
@@ -86,7 +75,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Validate assigned teams are in the workshop
     if (data.assignedTeams?.length) {
       for (const teamId of data.assignedTeams) {
         const team = await this.teamRepo.findById(teamId);
@@ -96,7 +84,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Validate assigned individuals are workshop members
     const allUsersToValidate = [
       ...(data.assignedIndividuals || []),
       ...(data.contributors || []),
@@ -115,7 +102,6 @@ export class WorkshopTaskService {
 
     const task = await this.taskRepo.create(workshopId, projectId, data, userId);
 
-    // Log task creation
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_CREATED,
@@ -131,7 +117,6 @@ export class WorkshopTaskService {
       }
     });
 
-    // Notify primary owner and assignees
     const notifyUsers = new Set<string>();
     if (data.primaryOwner) notifyUsers.add(data.primaryOwner);
     data.assignedIndividuals?.forEach(id => notifyUsers.add(id));
@@ -160,7 +145,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Notify users mentioned in description
     if (data.description) {
       const mentions = await this.extractMentions(workshopId, data.description);
       for (const mentionedId of mentions) {
@@ -188,7 +172,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(projectId, 'workshop:task:created', task);
     }
@@ -196,9 +179,6 @@ export class WorkshopTaskService {
     return task;
   }
 
-  /**
-   * Get task by ID with permission check
-   */
   async getTaskById(taskId: string, userId: string): Promise<IWorkshopTask> {
     const task = await this.taskRepo.findById(taskId);
     if (!task) {
@@ -208,13 +188,11 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       throw new AuthorizationError('You must be a workshop member to view this task');
     }
 
-    // Check read permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -229,17 +207,11 @@ export class WorkshopTaskService {
     return task;
   }
 
-  /**
-   * Get task activities
-   */
   async getTaskActivities(taskId: string, userId: string): Promise<any[]> {
     const task = await this.getTaskById(taskId, userId);
     return task.activityHistory || [];
   }
 
-  /**
-   * Get all tasks in a project
-   */
   async getProjectTasks(projectId: string, userId: string): Promise<IWorkshopTask[]> {
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
@@ -248,13 +220,11 @@ export class WorkshopTaskService {
 
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       throw new AuthorizationError('You must be a workshop member to view project tasks');
     }
 
-    // Check read permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -269,9 +239,6 @@ export class WorkshopTaskService {
     return await this.taskRepo.findByProject(projectId);
   }
 
-  /**
-   * Get tasks grouped by status for board view
-   */
   async getProjectTaskBoard(projectId: string, userId: string): Promise<TasksByStatus> {
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
@@ -280,13 +247,11 @@ export class WorkshopTaskService {
 
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       throw new AuthorizationError('You must be a workshop member to view project board');
     }
 
-    // Check read permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -301,9 +266,6 @@ export class WorkshopTaskService {
     return await this.taskRepo.findByProjectGroupedByStatus(projectId);
   }
 
-  /**
-   * Update task
-   */
   async updateTask(
     taskId: string,
     userId: string,
@@ -317,14 +279,12 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'update', 'task');
       throw new AuthorizationError('You must be a workshop member to update tasks');
     }
 
-    // Check update permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -337,21 +297,17 @@ export class WorkshopTaskService {
       throw new AuthorizationError('Insufficient permissions to update this task');
     }
 
-    // Capture old assignees for comparison
     const oldPrimaryOwner = task.primaryOwner?.toString();
     const oldContributors = new Set(task.contributors?.map(c => typeof c === 'string' ? c : (c as any)._id?.toString() || c.toString()) || []);
 
     const updatedTask = await this.taskRepo.update(taskId, updates, userId);
 
-    // Notify new assignees if they changed
     const notifyUsers = new Set<string>();
 
-    // Check if primary owner changed
     if (updates.primaryOwner && updates.primaryOwner !== oldPrimaryOwner) {
       notifyUsers.add(updates.primaryOwner);
     }
 
-    // Check for new contributors
     if (updates.contributors) {
       updates.contributors.forEach(uid => {
         if (!oldContributors.has(uid)) {
@@ -360,7 +316,6 @@ export class WorkshopTaskService {
       });
     }
 
-    // Send notifications to new owners/contributors
     for (const notifyId of notifyUsers) {
       if (notifyId !== userId) {
         await this.notificationRepo.create({
@@ -385,7 +340,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Notify users mentioned in updated description
     if (updates.description && updates.description !== task.description) {
       const mentions = await this.extractMentions(workshopId, updates.description);
       for (const mentionedId of mentions) {
@@ -413,7 +367,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Log task update
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_UPDATED,
@@ -423,7 +376,6 @@ export class WorkshopTaskService {
       details: updates as Record<string, unknown>
     });
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
     }
@@ -431,9 +383,6 @@ export class WorkshopTaskService {
     return updatedTask;
   }
 
-  /**
-   * Update task status (for drag-and-drop)
-   */
   async updateTaskStatus(
     taskId: string,
     userId: string,
@@ -447,14 +396,12 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'update', 'task');
       throw new AuthorizationError('You must be a workshop member to update task status');
     }
 
-    // Check update permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -469,7 +416,6 @@ export class WorkshopTaskService {
 
     const updatedTask = await this.taskRepo.updateStatus(taskId, newStatus, userId);
 
-    // Log status change
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_STATUS_CHANGED,
@@ -479,7 +425,6 @@ export class WorkshopTaskService {
       details: { oldStatus: task.status, newStatus }
     });
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:status:changed', updatedTask);
     }
@@ -487,9 +432,6 @@ export class WorkshopTaskService {
     return updatedTask;
   }
 
-  /**
-   * Assign team to task
-   */
   async assignTeamToTask(
     taskId: string,
     userId: string,
@@ -503,14 +445,12 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'assign', 'task');
       throw new AuthorizationError('You must be a workshop member to assign tasks');
     }
 
-    // Check assign permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -523,7 +463,6 @@ export class WorkshopTaskService {
       throw new AuthorizationError('Insufficient permissions to assign tasks');
     }
 
-    // Verify team is in the workshop
     const team = await this.teamRepo.findById(teamId);
     if (!team || team.workshop.toString() !== workshopId) {
       throw new ValidationError('Team is not in this workshop');
@@ -531,7 +470,6 @@ export class WorkshopTaskService {
 
     const updatedTask = await this.taskRepo.assignTeam(taskId, teamId, userId);
 
-    // Log team assignment
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_ASSIGNED,
@@ -541,7 +479,6 @@ export class WorkshopTaskService {
       details: { assignedTeam: teamId, teamName: team.name }
     });
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:team:assigned', updatedTask);
     }
@@ -549,9 +486,6 @@ export class WorkshopTaskService {
     return updatedTask;
   }
 
-  /**
-   * Assign individual to task
-   */
   async assignIndividualToTask(
     taskId: string,
     userId: string,
@@ -565,14 +499,12 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'assign', 'task');
       throw new AuthorizationError('You must be a workshop member to assign tasks');
     }
 
-    // Check assign permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -585,7 +517,6 @@ export class WorkshopTaskService {
       throw new AuthorizationError('Insufficient permissions to assign tasks');
     }
 
-    // Verify assignee is workshop member
     const assigneeMembership = await this.membershipRepo.findActive(workshopId, assigneeId);
     if (!assigneeMembership) {
       throw new ValidationError('Assignee must be a workshop member');
@@ -593,7 +524,6 @@ export class WorkshopTaskService {
 
     const updatedTask = await this.taskRepo.assignIndividual(taskId, assigneeId, userId);
 
-    // Log individual assignment
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_ASSIGNED,
@@ -603,7 +533,6 @@ export class WorkshopTaskService {
       details: { assignedIndividual: assigneeId }
     });
 
-    // Notify assignee if different from assigner
     if (assigneeId !== userId) {
       await this.notificationRepo.create({
         user: assigneeId as any,
@@ -626,7 +555,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:individual:assigned', updatedTask);
     }
@@ -634,9 +562,6 @@ export class WorkshopTaskService {
     return updatedTask;
   }
 
-  /**
-   * Delete task
-   */
   async deleteTask(taskId: string, userId: string): Promise<void> {
     const task = await this.taskRepo.findById(taskId);
     if (!task) {
@@ -646,14 +571,12 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       await this.auditService.logUnauthorizedAccess(workshopId, userId, 'delete', 'task');
       throw new AuthorizationError('You must be a workshop member to delete tasks');
     }
 
-    // Check delete permission
     const hasPermission = await this.permissionService.checkPermission(
       userId,
       workshopId,
@@ -668,7 +591,6 @@ export class WorkshopTaskService {
 
     await this.taskRepo.delete(taskId, userId);
 
-    // Log task deletion
     await this.auditService.log({
       workshopId,
       action: AuditAction.TASK_DELETED,
@@ -678,7 +600,6 @@ export class WorkshopTaskService {
       details: { title: task.title, type: task.type }
     });
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:deleted', {
         taskId,
@@ -687,16 +608,10 @@ export class WorkshopTaskService {
     }
   }
 
-  /**
-   * Get tasks assigned to a user
-   */
   async getUserTasks(userId: string): Promise<IWorkshopTask[]> {
     return await this.taskRepo.findByAssignedUser(userId);
   }
 
-  /**
-   * Get tasks assigned to a team
-   */
   async getTeamTasks(teamId: string, userId: string): Promise<IWorkshopTask[]> {
     const team = await this.teamRepo.findById(teamId);
     if (!team) {
@@ -705,7 +620,6 @@ export class WorkshopTaskService {
 
     const workshopId = team.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) {
       throw new AuthorizationError('You must be a workshop member to view team tasks');
@@ -714,9 +628,6 @@ export class WorkshopTaskService {
     return await this.taskRepo.findByAssignedTeam(teamId);
   }
 
-  /**
-   * Add a comment to a task
-   */
   async addComment(
     taskId: string,
     userId: string,
@@ -729,23 +640,19 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) throw new AuthorizationError('You must be a workshop member to comment');
 
     const updatedTask = await this.taskRepo.addComment(taskId, userId, content, mentions);
 
-    // Get commenter info for notification
     const commenter = await this.membershipRepo.findActive(workshopId, userId);
     const commenterName = (commenter?.user as any)?.name || 'Someone';
 
-    // Notify mentioned users
     if (mentions.length > 0) {
       for (const mentionedId of mentions) {
-        // Don't notify yourself
+
         if (mentionedId === userId) continue;
 
-        // Verify mentioned user is still a member (optional but good)
         const isMember = await this.membershipRepo.isActiveMember(workshopId, mentionedId);
         if (!isMember) continue;
 
@@ -771,7 +678,6 @@ export class WorkshopTaskService {
       }
     }
 
-    // Emit real-time comment event to project
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:commented', {
@@ -784,9 +690,6 @@ export class WorkshopTaskService {
     return updatedTask;
   }
 
-  /**
-   * Add an attachment to a task
-   */
   async addAttachment(
     taskId: string,
     userId: string,
@@ -798,13 +701,11 @@ export class WorkshopTaskService {
     const project = task.project as any;
     const workshopId = project.workshop.toString();
 
-    // Verify user is workshop member
     const membership = await this.membershipRepo.findActive(workshopId, userId);
     if (!membership) throw new AuthorizationError('You must be a workshop member to upload');
 
     const updatedTask = await this.taskRepo.addAttachment(taskId, userId, fileData);
 
-    // Emit real-time event
     if (this.socketService) {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:attachment:added', {
@@ -816,9 +717,7 @@ export class WorkshopTaskService {
 
     return updatedTask;
   }
-  /**
-   * Helper to extract user IDs from mentions in text
-   */
+
   private async extractMentions(workshopId: string, text: string): Promise<string[]> {
     const mentions: string[] = [];
     const mentionMatches = text.match(/@(\w+)/g);

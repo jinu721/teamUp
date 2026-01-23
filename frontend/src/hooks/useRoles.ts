@@ -13,9 +13,6 @@ interface UseRolesReturn {
   removeRole: (roleId: string) => void;
 }
 
-/**
- * Hook for fetching workshop roles with real-time updates
- */
 export function useRoles(workshopId: string | undefined): UseRolesReturn {
   const [roles, setRoles] = useState<Role[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +57,6 @@ export function useRoles(workshopId: string | undefined): UseRolesReturn {
     setRoles(prev => prev.filter(r => r._id !== roleId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('role:created', (role: Role) => {
     const roleWorkshopId = typeof role.workshop === 'string'
       ? role.workshop
@@ -104,9 +100,6 @@ interface UseRoleReturn {
   setRole: (role: Role | null) => void;
 }
 
-/**
- * Hook for fetching a single role
- */
 export function useRole(workshopId: string | undefined, roleId: string | undefined): UseRoleReturn {
   const [role, setRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(true);
@@ -134,7 +127,6 @@ export function useRole(workshopId: string | undefined, roleId: string | undefin
     fetchRole();
   }, [fetchRole]);
 
-  // Socket event handler
   useSocketEvent('role:updated', (updatedRole: Role) => {
     if (updatedRole._id === roleId) {
       setRole(updatedRole);

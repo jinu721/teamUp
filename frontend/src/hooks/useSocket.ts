@@ -4,13 +4,9 @@ import { useToast } from '@/hooks/use-toast';
 
 type EventCallback = (data: any) => void;
 
-/**
- * Hook for subscribing to socket events with automatic cleanup
- */
 export function useSocketEvent(event: string, callback: EventCallback) {
   const callbackRef = useRef(callback);
 
-  // Keep callback ref updated
   useEffect(() => {
     callbackRef.current = callback;
   }, [callback]);
@@ -28,9 +24,6 @@ export function useSocketEvent(event: string, callback: EventCallback) {
   }, [event]);
 }
 
-/**
- * Hook for multiple socket events
- */
 export function useSocketEvents(events: Record<string, EventCallback>) {
   useEffect(() => {
     const handlers: Array<{ event: string; handler: EventCallback }> = [];
@@ -49,9 +42,6 @@ export function useSocketEvents(events: Record<string, EventCallback>) {
   }, []);
 }
 
-/**
- * Hook for joining/leaving project room
- */
 export function useProjectRoom(projectId: string | undefined) {
   useEffect(() => {
     if (projectId) {
@@ -63,9 +53,6 @@ export function useProjectRoom(projectId: string | undefined) {
   }, [projectId]);
 }
 
-/**
- * Hook for joining/leaving workshop room
- */
 export function useWorkshopRoom(workshopId: string | undefined) {
   useEffect(() => {
     if (workshopId) {
@@ -77,9 +64,6 @@ export function useWorkshopRoom(workshopId: string | undefined) {
   }, [workshopId]);
 }
 
-/**
- * Hook for joining/leaving team room
- */
 export function useTeamRoom(teamId: string | undefined) {
   useEffect(() => {
     if (teamId) {
@@ -91,9 +75,6 @@ export function useTeamRoom(teamId: string | undefined) {
   }, [teamId]);
 }
 
-/**
- * Hook for joining/leaving community room
- */
 export function useCommunityRoom() {
   useEffect(() => {
     socketService.joinCommunity();
@@ -103,9 +84,6 @@ export function useCommunityRoom() {
   }, []);
 }
 
-/**
- * Hook for typing indicators
- */
 export function useTypingIndicator(projectId: string) {
   const startTyping = useCallback(() => {
     socketService.startTyping(projectId);
@@ -118,9 +96,6 @@ export function useTypingIndicator(projectId: string) {
   return { startTyping, stopTyping };
 }
 
-/**
- * Hook for easy access to the socket service
- */
 export function useSocket() {
   return socketService;
 }
@@ -132,10 +107,6 @@ export function useSocketStatus() {
   };
 }
 
-/**
- * Hook for socket error handling with toast notifications
- * Shows toast notifications for WebSocket errors and provides retry functionality
- */
 export function useSocketErrorHandler() {
   const { toast } = useToast();
   const [lastError, setLastError] = useState<{ message: string; canRetry: boolean } | null>(null);

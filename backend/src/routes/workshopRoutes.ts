@@ -8,15 +8,10 @@ import { requireWorkshopMembership, requirePermission } from '../middlewares/per
 
 const router = Router();
 
-// Controllers
 export const workshopController = new WorkshopController();
 export const projectController = new WorkshopProjectController();
 export const taskController = new WorkshopTaskController();
 export const teamController = new TeamController();
-
-// ============================================
-// WORKSHOP ROUTES
-// ============================================
 
 router.post('/', authenticate, workshopController.createWorkshop);
 router.get('/my-workshops', authenticate, workshopController.getUserWorkshops);
@@ -28,10 +23,6 @@ router.get('/:workshopId', authenticate, requireWorkshopMembership, workshopCont
 router.put('/:workshopId', authenticate, requirePermission('update', 'workshop'), workshopController.updateWorkshop);
 router.delete('/:workshopId', authenticate, requirePermission('delete', 'workshop'), workshopController.deleteWorkshop);
 
-// ============================================
-// MEMBERSHIP ROUTES
-// ============================================
-
 router.get('/:workshopId/members', authenticate, requireWorkshopMembership, workshopController.getMembers);
 router.get('/:workshopId/pending-requests', authenticate, requirePermission('manage', 'membership'), workshopController.getPendingRequests);
 router.post('/:workshopId/invite', authenticate, requirePermission('invite', 'membership'), workshopController.inviteMember);
@@ -41,16 +32,8 @@ router.post('/:workshopId/reject/:membershipId', authenticate, requirePermission
 router.delete('/:workshopId/members/:userId', authenticate, requirePermission('revoke', 'membership'), workshopController.revokeMembership);
 router.post('/:workshopId/leave', authenticate, requireWorkshopMembership, workshopController.leaveWorkshop);
 
-// ============================================
-// MANAGER ROUTES
-// ============================================
-
 router.post('/:workshopId/managers/:managerId', authenticate, requirePermission('assign_manager', 'workshop'), workshopController.assignManager);
 router.delete('/:workshopId/managers/:managerId', authenticate, requirePermission('remove_manager', 'workshop'), workshopController.removeManager);
-
-// ============================================
-// TEAM ROUTES
-// ============================================
 
 router.get('/:workshopId/teams', authenticate, requireWorkshopMembership, teamController.getWorkshopTeams);
 router.post('/:workshopId/teams', authenticate, requirePermission('create', 'team'), teamController.createTeam);
@@ -61,34 +44,20 @@ router.post('/:workshopId/teams/:teamId/members/:userId', authenticate, requireP
 router.delete('/:workshopId/teams/:teamId/members/:userId', authenticate, requirePermission('manage', 'team'), teamController.removeMember);
 router.get('/:workshopId/teams/:teamId/tasks', authenticate, requireWorkshopMembership, taskController.getTeamTasks);
 
-// ============================================
-// PROJECT ROUTES
-// ============================================
-
 router.get('/:workshopId/projects', authenticate, requireWorkshopMembership, projectController.getProjects);
 router.post('/:workshopId/projects', authenticate, requirePermission('create', 'project'), projectController.createProject);
 router.get('/:workshopId/projects/:projectId', authenticate, requireWorkshopMembership, projectController.getProject);
 router.put('/:workshopId/projects/:projectId', authenticate, requirePermission('update', 'project'), projectController.updateProject);
 router.delete('/:workshopId/projects/:projectId', authenticate, requirePermission('delete', 'project'), projectController.deleteProject);
 
-// ============================================
-// PROJECT ASSIGNMENT & ROLE ROUTES
-// ============================================
-
-// Teams & Individuals
 router.post('/:workshopId/projects/:projectId/teams', authenticate, requirePermission('assign', 'project'), projectController.assignTeam);
 router.delete('/:workshopId/projects/:projectId/teams/:teamId', authenticate, requirePermission('assign', 'project'), projectController.removeTeam);
 router.post('/:workshopId/projects/:projectId/individuals', authenticate, requirePermission('assign', 'project'), projectController.assignIndividual);
 router.delete('/:workshopId/projects/:projectId/individuals/:individualId', authenticate, requirePermission('assign', 'project'), projectController.removeIndividual);
 
-// Project Manager & Maintainers (Hierarchical)
 router.post('/:workshopId/projects/:projectId/manager', authenticate, requirePermission('manage', 'project'), projectController.assignProjectManager);
 router.post('/:workshopId/projects/:projectId/maintainers', authenticate, requirePermission('manage', 'project'), projectController.addMaintainer);
 router.delete('/:workshopId/projects/:projectId/maintainers/:maintainerId', authenticate, requirePermission('manage', 'project'), projectController.removeMaintainer);
-
-// ============================================
-// TASK ROUTES
-// ============================================
 
 router.get('/:workshopId/projects/:projectId/tasks', authenticate, requireWorkshopMembership, taskController.getProjectTasks);
 router.get('/:workshopId/projects/:projectId/tasks/board', authenticate, requireWorkshopMembership, taskController.getProjectTaskBoard);
@@ -99,16 +68,8 @@ router.put('/:workshopId/projects/:projectId/tasks/:taskId/status', authenticate
 router.delete('/:workshopId/projects/:projectId/tasks/:taskId', authenticate, requirePermission('delete', 'task'), taskController.deleteTask);
 router.get('/:workshopId/projects/:projectId/tasks/:taskId/activity', authenticate, requireWorkshopMembership, taskController.getTaskActivities);
 
-// ============================================
-// TASK ASSIGNMENT ROUTES
-// ============================================
-
 router.post('/:workshopId/projects/:projectId/tasks/:taskId/teams', authenticate, requirePermission('assign', 'task'), taskController.assignTeam);
 router.post('/:workshopId/projects/:projectId/tasks/:taskId/individuals', authenticate, requirePermission('assign', 'task'), taskController.assignIndividual);
-
-// ============================================
-// USER TASK ROUTES
-// ============================================
 
 router.get('/:workshopId/my-tasks', authenticate, requireWorkshopMembership, taskController.getMyTasks);
 

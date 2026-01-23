@@ -85,8 +85,8 @@ export class TeamRepository {
   async removeMember(teamId: string, userId: string): Promise<ITeam> {
     const team = await Team.findByIdAndUpdate(
       teamId,
-      { 
-        $pull: { 
+      {
+        $pull: {
           members: new Types.ObjectId(userId),
           'internalRoles.$[].members': new Types.ObjectId(userId)
         }
@@ -114,7 +114,7 @@ export class TeamRepository {
   }
 
   async assignInternalRole(teamId: string, roleName: string, userId: string): Promise<ITeam> {
-    // First, ensure the role exists
+
     await Team.findByIdAndUpdate(
       teamId,
       {
@@ -126,7 +126,6 @@ export class TeamRepository {
       }
     );
 
-    // Then add the user to the role
     const team = await Team.findByIdAndUpdate(
       teamId,
       {

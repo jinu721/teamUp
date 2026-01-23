@@ -14,9 +14,6 @@ interface UseTeamsReturn {
   removeTeam: (teamId: string) => void;
 }
 
-/**
- * Hook for fetching workshop teams with real-time updates
- */
 export function useTeams(workshopId: string | undefined): UseTeamsReturn {
   const [teams, setTeams] = useState<Team[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +58,6 @@ export function useTeams(workshopId: string | undefined): UseTeamsReturn {
     setTeams(prev => prev.filter(t => t._id !== teamId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('workshop:team:created', (team: Team) => {
     const teamWorkshopId = typeof team.workshop === 'string'
       ? team.workshop
@@ -123,9 +119,6 @@ interface UseTeamReturn {
   setTeam: (team: Team | null) => void;
 }
 
-/**
- * Hook for fetching a single team with real-time updates
- */
 export function useTeam(workshopId: string | undefined, teamId: string | undefined): UseTeamReturn {
   const [team, setTeam] = useState<Team | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,7 +146,6 @@ export function useTeam(workshopId: string | undefined, teamId: string | undefin
     fetchTeam();
   }, [fetchTeam]);
 
-  // Join team room for real-time updates
   useEffect(() => {
     if (teamId) {
       socket.joinTeam(teamId);
@@ -163,7 +155,6 @@ export function useTeam(workshopId: string | undefined, teamId: string | undefin
     }
   }, [workshopId, teamId]);
 
-  // Socket event handlers
   useSocketEvent('workshop:team:updated', (updatedTeam: Team) => {
     if (updatedTeam._id === teamId) {
       setTeam(updatedTeam);
@@ -203,9 +194,6 @@ export function useTeam(workshopId: string | undefined, teamId: string | undefin
   };
 }
 
-/**
- * Hook for joining/leaving team room
- */
 export function useTeamRoom(workshopId: string | undefined, teamId: string | undefined) {
   useEffect(() => {
     if (workshopId && teamId) {

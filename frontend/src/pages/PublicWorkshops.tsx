@@ -6,7 +6,7 @@ import {
 } from '@/types';
 import { Workshop, MembershipState } from '@/types/workshop';
 import api from '@/services/api';
-// import socketService from '@/services/socket'; // Socket service needs update for workshops
+
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -75,7 +75,7 @@ const PublicWorkshops: React.FC = () => {
                     return [...prev, ...newWorkshops];
                 });
             }
-            setHasMore(response.data.length === 20); // Simple pagination check
+            setHasMore(response.data.length === 20);
         } catch (error) {
             console.error('Failed to load workshops:', error);
             toast({
@@ -97,24 +97,19 @@ const PublicWorkshops: React.FC = () => {
     const loadMore = () => { if (!loadingMore && hasMore) { setPage(prev => prev + 1); loadWorkshops(false); } };
 
     const handleCreateWorkshop = () => {
-        // Navigate to create workshop page or open modal
-        // For now, assume a route exists
+
         navigate('/workshops?create=true');
     };
 
     const handleVote = async (workshopId: string, type: 'up' | 'down') => {
-        // Optimistic update
+
         const workshop = workshops.find(w => w._id === workshopId);
         if (!workshop) return;
 
-        // Logic for optimistic update is complex without full user vote state in frontend types
-        // So we'll just call API and reload for now, or implement simple state toggle
         try {
             if (type === 'up') await api.upvoteWorkshop(workshopId);
             else await api.downvoteWorkshop(workshopId);
 
-            // Refresh just this item ideally, but for now strict reload or we accept a slight delay
-            // To keep it simple and correct:
             const updated = await api.getWorkshopById(workshopId);
             if (updated.success && updated.data) {
                 setWorkshops(prev => prev.map(w => w._id === workshopId ? updated.data : w));
@@ -129,7 +124,6 @@ const PublicWorkshops: React.FC = () => {
             const response = await api.requestToJoinWorkshop(workshopId);
             toast({ title: 'Request sent', description: response.data.state === MembershipState.ACTIVE ? 'You have joined the workshop' : 'Your join request has been sent' });
 
-            // Update local state to reflect requested status
             if (response.success && response.data) {
                 setWorkshops(prev => prev.map(w =>
                     w._id === workshopId
@@ -174,7 +168,7 @@ const PublicWorkshops: React.FC = () => {
     return (
         <AppLayout>
             <div className="page-container">
-                {/* Header */}
+
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-8">
                     <div className="section-header mb-0">
                         <h1 className="section-title flex items-center gap-2">
@@ -186,7 +180,6 @@ const PublicWorkshops: React.FC = () => {
                     <Button onClick={handleCreateWorkshop}><Sparkles className="mr-2 h-4 w-4" />Create Workshop</Button>
                 </div>
 
-                {/* Filters and Search */}
                 <div className="flex flex-col gap-3 sm:gap-4 mb-6">
                     <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2">
                         <div className="relative flex-1">
@@ -214,7 +207,6 @@ const PublicWorkshops: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Grid */}
                 {workshops.length === 0 ? (
                     <Card className="shadow-soft">
                         <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16">
@@ -231,7 +223,7 @@ const PublicWorkshops: React.FC = () => {
                                     <CardHeader className="pb-3">
                                         <div className="flex items-start gap-3 mb-2">
                                             <Avatar className="h-10 w-10 ring-2 ring-background">
-                                                {/* Assuming populate owner works, if not we handle it safely */}
+
                                                 <AvatarImage src={(workshop as any).owner?.profilePhoto} />
                                                 <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
                                                     {(workshop as any).owner?.name?.substr(0, 2).toUpperCase() || 'OW'}

@@ -8,9 +8,8 @@ interface PermissionCacheEntry {
   timestamp: number;
 }
 
-// Global permission cache with TTL
 const permissionCache = new Map<string, PermissionCacheEntry>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 5 * 60 * 1000;
 
 function getCacheKey(
   workshopId: string,
@@ -52,9 +51,6 @@ interface UsePermissionReturn {
   refetch: () => void;
 }
 
-/**
- * Hook for checking a specific permission with caching
- */
 export function usePermission(
   workshopId: string | undefined,
   action: string,
@@ -98,7 +94,6 @@ export function usePermission(
     checkPermission();
   }, [checkPermission]);
 
-  // Invalidate cache on permission changes
   useSocketEvent('role:assigned', () => {
     if (workshopId) {
       invalidateWorkshopCache(workshopId);
@@ -145,9 +140,6 @@ interface UsePermissionsReturn {
   refetch: () => void;
 }
 
-/**
- * Hook for checking multiple permissions at once
- */
 export function usePermissions(
   workshopId: string | undefined,
   permissionChecks: Array<{ action: string; resource: string }> = [],
@@ -177,13 +169,11 @@ export function usePermissions(
 
       const results: Record<string, boolean> = {};
 
-      // If checks are provided, check them all
       if (checksRef.current.length > 0) {
         await Promise.all(
           checksRef.current.map(async ({ action, resource }) => {
             const cacheKey = getCacheKey(workshopId, action, resource, context);
 
-            // Force bypass cache if forceRefresh is true
             const cached = forceRefresh ? null : getCachedPermission(cacheKey);
 
             if (cached && !forceRefresh) {
@@ -240,7 +230,6 @@ export function usePermissions(
     }
   }, [workshopId, context?.projectId, context?.teamId]);
 
-  // Invalidate cache and refetch on all relevant events
   const handleEvent = useCallback((data?: any) => {
     console.log('🔄 [usePermissions] Permission event received, invalidating cache and refetching...', {
       event: data,
@@ -249,13 +238,11 @@ export function usePermissions(
     });
 
     if (workshopId) {
-      // Aggressively clear the cache
+
       invalidateWorkshopCache(workshopId);
 
-      // Force a complete refresh by incrementing trigger
       setRefreshTrigger(prev => prev + 1);
 
-      // Immediately fetch with force refresh flag
       fetchPermissions(true);
     }
   }, [workshopId, fetchPermissions, permissions]);
@@ -279,9 +266,6 @@ export function usePermissions(
   };
 }
 
-/**
- * Utility to clear all cached permissions (useful on logout)
- */
 export function clearPermissionCache(): void {
   permissionCache.clear();
 }

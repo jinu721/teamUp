@@ -13,9 +13,6 @@ interface UseWorkshopTasksReturn {
   removeTask: (taskId: string) => void;
 }
 
-/**
- * Hook for fetching workshop project tasks with real-time updates
- */
 export function useWorkshopTasks(
   workshopId: string | undefined,
   projectId: string | undefined
@@ -24,7 +21,6 @@ export function useWorkshopTasks(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Join project room for real-time task updates
   useProjectRoom(projectId);
 
   const fetchTasks = useCallback(async () => {
@@ -66,7 +62,6 @@ export function useWorkshopTasks(
     setTasks(prev => prev.filter(t => t._id !== taskId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('workshop:task:created', (task: WorkshopTask) => {
     const taskProjectId = typeof task.project === 'string'
       ? task.project
@@ -100,7 +95,6 @@ export function useWorkshopTasks(
     }
   });
 
-  // Assignment events
   useSocketEvent('workshop:task:team:assigned', (task: WorkshopTask) => {
     const taskProjectId = typeof task.project === 'string'
       ? task.project
@@ -137,7 +131,6 @@ export function useWorkshopTasks(
     }
   });
 
-  // Dependency events
   useSocketEvent('workshop:task:dependency:added', (task: WorkshopTask) => {
     const taskProjectId = typeof task.project === 'string'
       ? task.project
@@ -175,9 +168,6 @@ interface UseWorkshopTaskReturn {
   setTask: (task: WorkshopTask | null) => void;
 }
 
-/**
- * Hook for fetching a single workshop task with real-time updates
- */
 export function useWorkshopTask(
   workshopId: string | undefined,
   projectId: string | undefined,
@@ -187,7 +177,6 @@ export function useWorkshopTask(
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Join project room for real-time task updates
   useProjectRoom(projectId);
 
   const fetchTask = useCallback(async () => {
@@ -212,7 +201,6 @@ export function useWorkshopTask(
     fetchTask();
   }, [fetchTask]);
 
-  // Socket event handlers for this specific task
   useSocketEvent('workshop:task:updated', (updatedTask: WorkshopTask) => {
     if (updatedTask._id === taskId) {
       setTask(updatedTask);
@@ -277,9 +265,6 @@ interface UseTaskActivityReturn {
   refetch: () => void;
 }
 
-/**
- * Hook for fetching task activity history
- */
 export function useTaskActivity(
   workshopId: string | undefined,
   projectId: string | undefined,
@@ -311,7 +296,6 @@ export function useTaskActivity(
     fetchActivities();
   }, [fetchActivities]);
 
-  // Refetch on task updates to get new activity
   useSocketEvent('workshop:task:updated', (updatedTask: WorkshopTask) => {
     if (updatedTask._id === taskId) {
       fetchActivities();

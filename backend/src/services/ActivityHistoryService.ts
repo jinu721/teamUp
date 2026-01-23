@@ -23,9 +23,7 @@ export interface ActivityFilters {
 }
 
 export class ActivityHistoryService {
-    /**
-     * Log an activity
-     */
+
     async logActivity(data: LogActivityData): Promise<IActivityHistory> {
         const activity = await ActivityHistory.create({
             workshop: new Types.ObjectId(data.workshop),
@@ -43,9 +41,6 @@ export class ActivityHistoryService {
         return activity.populate('user');
     }
 
-    /**
-     * Get workshop activity history
-     */
     async getWorkshopActivity(
         workshopId: string,
         filters?: ActivityFilters,
@@ -96,9 +91,6 @@ export class ActivityHistoryService {
         };
     }
 
-    /**
-     * Get user activity history
-     */
     async getUserActivity(
         userId: string,
         filters?: ActivityFilters,
@@ -145,9 +137,6 @@ export class ActivityHistoryService {
         };
     }
 
-    /**
-     * Get entity-specific activity history
-     */
     async getEntityActivity(
         entityType: ActivityEntityType,
         entityId: string,
@@ -177,9 +166,6 @@ export class ActivityHistoryService {
         };
     }
 
-    /**
-     * Get recent activities across all workshops for a user
-     */
     async getRecentActivities(
         userId: string,
         limit: number = 20
@@ -192,9 +178,6 @@ export class ActivityHistoryService {
             .limit(limit);
     }
 
-    /**
-     * Delete old activities (cleanup)
-     */
     async deleteOldActivities(daysOld: number = 90): Promise<number> {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
@@ -206,9 +189,6 @@ export class ActivityHistoryService {
         return result.deletedCount || 0;
     }
 
-    /**
-     * Get activity statistics for a workshop
-     */
     async getWorkshopActivityStats(workshopId: string, days: number = 30): Promise<any> {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);

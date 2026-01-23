@@ -1,9 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IRole, IPermission, PermissionType, PermissionScope } from '../types';
 
-/**
- * Permission sub-schema
- */
 const permissionSchema = new Schema<IPermission>(
   {
     action: {
@@ -29,10 +26,6 @@ const permissionSchema = new Schema<IPermission>(
   { _id: false }
 );
 
-/**
- * Role Schema
- * A named collection of permissions that can be assigned at various levels
- */
 const roleSchema = new Schema<IRole>(
   {
     workshop: {
@@ -65,7 +58,7 @@ const roleSchema = new Schema<IRole>(
     },
     scopeId: {
       type: Schema.Types.ObjectId,
-      // Reference depends on scope (Project or Team)
+
     }
   },
   {
@@ -73,10 +66,8 @@ const roleSchema = new Schema<IRole>(
   }
 );
 
-// Unique compound index - one role name per workshop
 roleSchema.index({ workshop: 1, name: 1 }, { unique: true });
 
-// Indexes for efficient queries
 roleSchema.index({ workshop: 1 });
 roleSchema.index({ scope: 1, scopeId: 1 });
 

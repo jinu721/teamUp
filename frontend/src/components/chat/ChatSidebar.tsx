@@ -32,11 +32,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     const [search, setSearch] = useState('');
     const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-    // Hooks for creation context
-    // JOIN WORKSHOP ROOM
     useWorkshopRoom(workshopId);
 
-    // Hooks for creation context
     const { permissions: permsMap } = usePermissions(workshopId, [
         { action: 'create', resource: 'chat_room' }
     ]);
@@ -65,8 +62,6 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
     useEffect(() => {
         if (!socket || !workshopId) return;
 
-
-
         const handleRoomCreated = (newRoom: ChatRoom) => {
             if (newRoom.workshop === workshopId) {
                 setRooms(prev => {
@@ -85,7 +80,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
         const handleRoomDeleted = ({ roomId }: { roomId: string }) => {
             setRooms(prev => prev.filter(r => r._id !== roomId));
             if (activeRoomId === roomId) {
-                // Handle deletion of active room
+
             }
         };
 

@@ -10,10 +10,6 @@ export class ActivityController {
         this.activityService = new ActivityHistoryService();
     }
 
-    /**
-     * Get workshop activity history
-     * GET /api/workshops/:workshopId/activity
-     */
     getWorkshopActivity = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workshopId } = req.params;
@@ -60,10 +56,6 @@ export class ActivityController {
         }
     };
 
-    /**
-     * Get user activity history
-     * GET /api/users/:userId/activity
-     */
     getUserActivity = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { userId } = req.params;
@@ -106,10 +98,6 @@ export class ActivityController {
         }
     };
 
-    /**
-     * Get entity-specific activity history
-     * GET /api/activity/:entityType/:entityId
-     */
     getEntityActivity = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { entityType, entityId } = req.params;
@@ -139,10 +127,6 @@ export class ActivityController {
         }
     };
 
-    /**
-     * Get recent activities for current user
-     * GET /api/activity/recent
-     */
     getRecentActivities = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const userId = req.user!.id;
@@ -160,10 +144,6 @@ export class ActivityController {
         }
     };
 
-    /**
-     * Get workshop activity statistics
-     * GET /api/workshops/:workshopId/activity/stats
-     */
     getWorkshopActivityStats = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workshopId } = req.params;

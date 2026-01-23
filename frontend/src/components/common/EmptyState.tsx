@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { 
-  Inbox, 
-  FileText, 
-  Users, 
-  Bell, 
+import {
+  Inbox,
+  FileText,
+  Users,
+  Bell,
   MessageSquare,
   FolderOpen,
   Search,
@@ -53,10 +53,8 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   );
 };
 
-// Pre-configured empty states for common use cases
-
-export const EmptyProjects: React.FC<{ onCreateProject?: () => void }> = ({ 
-  onCreateProject 
+export const EmptyProjects: React.FC<{ onCreateProject?: () => void }> = ({
+  onCreateProject
 }) => (
   <EmptyState
     icon={FolderOpen}
@@ -66,8 +64,8 @@ export const EmptyProjects: React.FC<{ onCreateProject?: () => void }> = ({
   />
 );
 
-export const EmptyTasks: React.FC<{ onCreateTask?: () => void }> = ({ 
-  onCreateTask 
+export const EmptyTasks: React.FC<{ onCreateTask?: () => void }> = ({
+  onCreateTask
 }) => (
   <EmptyState
     icon={FileText}
@@ -77,8 +75,8 @@ export const EmptyTasks: React.FC<{ onCreateTask?: () => void }> = ({
   />
 );
 
-export const EmptyPosts: React.FC<{ onCreatePost?: () => void }> = ({ 
-  onCreatePost 
+export const EmptyPosts: React.FC<{ onCreatePost?: () => void }> = ({
+  onCreatePost
 }) => (
   <EmptyState
     icon={Users}
@@ -112,8 +110,8 @@ export const EmptySearchResults: React.FC<{ query?: string }> = ({ query }) => (
   />
 );
 
-export const EmptyTeamMembers: React.FC<{ onInvite?: () => void }> = ({ 
-  onInvite 
+export const EmptyTeamMembers: React.FC<{ onInvite?: () => void }> = ({
+  onInvite
 }) => (
   <EmptyState
     icon={Users}

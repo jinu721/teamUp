@@ -1,17 +1,11 @@
-import { 
-  IAuditLog, 
-  AuditAction, 
-  AuditLogFilters, 
-  Pagination 
+import {
+  IAuditLog,
+  AuditAction,
+  AuditLogFilters,
+  Pagination
 } from '../types';
 import { AuditLogRepository } from '../repositories/AuditLogRepository';
 
-/**
- * Audit Service
- * Handles audit logging for all critical workshop operations
- * 
- * All audit logs are immutable - once created, they cannot be modified or deleted.
- */
 export class AuditService {
   private auditLogRepository: AuditLogRepository;
 
@@ -19,9 +13,6 @@ export class AuditService {
     this.auditLogRepository = new AuditLogRepository();
   }
 
-  /**
-   * Log an audit entry
-   */
   async log(entry: {
     workshopId: string;
     action: AuditAction;
@@ -33,9 +24,6 @@ export class AuditService {
     return await this.auditLogRepository.create(entry);
   }
 
-  /**
-   * Log workshop creation
-   */
   async logWorkshopCreated(
     workshopId: string,
     actorId: string,
@@ -51,9 +39,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log workshop update
-   */
   async logWorkshopUpdated(
     workshopId: string,
     actorId: string,
@@ -69,9 +54,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log manager assignment
-   */
   async logManagerAssigned(
     workshopId: string,
     actorId: string,
@@ -87,9 +69,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log manager removal
-   */
   async logManagerRemoved(
     workshopId: string,
     actorId: string,
@@ -105,9 +84,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log member invitation
-   */
   async logMemberInvited(
     workshopId: string,
     actorId: string,
@@ -123,9 +99,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log member joined
-   */
   async logMemberJoined(
     workshopId: string,
     userId: string,
@@ -141,9 +114,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log member left
-   */
   async logMemberLeft(
     workshopId: string,
     userId: string
@@ -157,9 +127,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log member removed
-   */
   async logMemberRemoved(
     workshopId: string,
     actorId: string,
@@ -176,9 +143,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log join request approved
-   */
   async logJoinRequestApproved(
     workshopId: string,
     actorId: string,
@@ -193,9 +157,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log join request rejected
-   */
   async logJoinRequestRejected(
     workshopId: string,
     actorId: string,
@@ -212,9 +173,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log team creation
-   */
   async logTeamCreated(
     workshopId: string,
     actorId: string,
@@ -231,9 +189,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log team member added
-   */
   async logTeamMemberAdded(
     workshopId: string,
     actorId: string,
@@ -250,9 +205,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log team member removed
-   */
   async logTeamMemberRemoved(
     workshopId: string,
     actorId: string,
@@ -269,9 +221,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log project creation
-   */
   async logProjectCreated(
     workshopId: string,
     actorId: string,
@@ -288,9 +237,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log role creation
-   */
   async logRoleCreated(
     workshopId: string,
     actorId: string,
@@ -307,9 +253,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log role assignment
-   */
   async logRoleAssigned(
     workshopId: string,
     actorId: string,
@@ -327,9 +270,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log role revocation
-   */
   async logRoleRevoked(
     workshopId: string,
     actorId: string,
@@ -347,9 +287,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log task creation
-   */
   async logTaskCreated(
     workshopId: string,
     actorId: string,
@@ -367,9 +304,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log task status change
-   */
   async logTaskStatusChanged(
     workshopId: string,
     actorId: string,
@@ -387,9 +321,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Log unauthorized access attempt
-   */
   async logUnauthorizedAccess(
     workshopId: string,
     actorId: string,
@@ -404,9 +335,6 @@ export class AuditService {
     });
   }
 
-  /**
-   * Get audit logs for a workshop with filters and pagination
-   */
   async getWorkshopAuditLogs(
     workshopId: string,
     filters?: AuditLogFilters,
@@ -415,9 +343,6 @@ export class AuditService {
     return await this.auditLogRepository.findByWorkshop(workshopId, filters, pagination);
   }
 
-  /**
-   * Get audit logs for a specific user's activity
-   */
   async getUserActivityLogs(
     workshopId: string,
     userId: string,
@@ -426,9 +351,6 @@ export class AuditService {
     return await this.auditLogRepository.findByActor(workshopId, userId, pagination);
   }
 
-  /**
-   * Get audit logs for a specific target
-   */
   async getTargetAuditLogs(
     workshopId: string,
     targetId: string,
@@ -438,16 +360,10 @@ export class AuditService {
     return await this.auditLogRepository.findByTarget(workshopId, targetId, targetType, pagination);
   }
 
-  /**
-   * Get recent audit logs
-   */
   async getRecentLogs(workshopId: string, limit: number = 50): Promise<IAuditLog[]> {
     return await this.auditLogRepository.findRecent(workshopId, limit);
   }
 
-  /**
-   * Get activity summary for a user
-   */
   async getUserActivitySummary(
     workshopId: string,
     userId: string,
@@ -456,9 +372,6 @@ export class AuditService {
     return await this.auditLogRepository.getUserActivitySummary(workshopId, userId, days);
   }
 
-  /**
-   * Get audit log statistics by action type
-   */
   async getAuditStats(workshopId: string): Promise<Record<string, number>> {
     return await this.auditLogRepository.countByAction(workshopId);
   }

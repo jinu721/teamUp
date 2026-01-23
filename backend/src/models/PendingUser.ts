@@ -31,7 +31,7 @@ const pendingUserSchema = new Schema<IPendingUser>(
         createdAt: {
             type: Date,
             default: Date.now,
-            index: { expires: '2h' } // Automatically delete after 2 hours
+            index: { expires: '2h' }
         }
     },
     {

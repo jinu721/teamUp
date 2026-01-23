@@ -51,9 +51,6 @@ export class ChatService {
         return id._id ? id._id.toString() : id.toString();
     }
 
-    /**
-     * Create a new chat room
-     */
     async createChatRoom(data: CreateChatRoomData): Promise<IChatRoom> {
         const WorkshopModel = require('../models/Workshop').Workshop;
         const workshop = await WorkshopModel.findById(data.workshopId);
@@ -78,7 +75,6 @@ export class ChatService {
             admins: [new Types.ObjectId(data.createdBy)]
         });
 
-        // Log activity
         await this.activityService.logActivity({
             workshop: data.workshopId,
             user: data.createdBy,
@@ -92,9 +88,6 @@ export class ChatService {
         return chatRoom.populate(['participants', 'createdBy', 'workshop', 'project', 'team']);
     }
 
-    /**
-     * Get chat room by ID
-     */
     async getChatRoom(roomId: string): Promise<IChatRoom> {
         const chatRoom = await ChatRoom.findById(roomId)
             .populate(['participants', 'createdBy', 'lastMessage', 'workshop', 'project', 'team']);
@@ -106,11 +99,8 @@ export class ChatService {
         return chatRoom;
     }
 
-    /**
-     * Get user's chat rooms in a workshop
-     */
     async getUserChatRooms(userId: string, workshopId: string): Promise<IChatRoom[]> {
-        // Auto-sync user to rooms before fetching
+
         await this.syncUserToWorkshopRooms(userId, workshopId);
 
         const WorkshopModel = require('../models/Workshop').Workshop;
@@ -129,9 +119,6 @@ export class ChatService {
         return chatRooms;
     }
 
-    /**
-     * Sync all active workshop members to relevant rooms
-     */
     async syncAllWorkshopMembers(workshopId: string): Promise<void> {
         const MembershipModel = require('../models/Membership').Membership;
         const activeMemberships = await MembershipModel.find({
@@ -144,11 +131,8 @@ export class ChatService {
         }
     }
 
-    /**
-     * Get or create direct message room
-     */
     async getOrCreateDirectRoom(workshopId: string, user1Id: string, user2Id: string): Promise<IChatRoom> {
-        // Check if direct room already exists
+
         const existingRoom = await ChatRoom.findOne({
             roomType: ChatRoomType.DIRECT,
             workshop: new Types.ObjectId(workshopId),
@@ -162,7 +146,6 @@ export class ChatService {
             return existingRoom;
         }
 
-        // Create new direct room
         return this.createChatRoom({
             roomType: ChatRoomType.DIRECT,
             workshopId,
@@ -172,13 +155,9 @@ export class ChatService {
         });
     }
 
-    /**
-     * Update chat room
-     */
     async updateChatRoom(roomId: string, userId: string, data: Partial<{ name: string; description: string }>): Promise<IChatRoom> {
         const chatRoom = await this.getChatRoom(roomId);
 
-        // Check if user is admin
         if (!chatRoom.admins.some(admin => this.getIdString(admin) === userId)) {
             throw new AuthorizationError('Only room admins can update room details');
         }
@@ -190,13 +169,9 @@ export class ChatService {
         return chatRoom.populate(['participants', 'createdBy', 'workshop', 'project', 'team']);
     }
 
-    /**
-     * Delete chat room
-     */
     async deleteChatRoom(roomId: string, userId: string): Promise<void> {
         const chatRoom = await this.getChatRoom(roomId);
 
-        // Check if user is admin or creator
         const isAdmin = chatRoom.admins.some(admin => this.getIdString(admin) === userId);
         const isCreator = this.getIdString(chatRoom.createdBy) === userId;
 
@@ -207,9 +182,6 @@ export class ChatService {
         await this.performRoomDeletion(roomId);
     }
 
-    /**
-     * Delete all rooms associated with an entity (e.g. Project, Team)
-     */
     async deleteRoomsByEntity(entityType: 'project' | 'team', entityId: string): Promise<void> {
         const query = entityType === 'project'
             ? { project: new Types.ObjectId(entityId) }
@@ -221,28 +193,20 @@ export class ChatService {
         }
     }
 
-    /**
-     * Internal implementation of room deletion
-     */
     private async performRoomDeletion(roomId: string): Promise<void> {
-        // Delete all messages first
+
         await Message.deleteMany({ chatRoom: new Types.ObjectId(roomId) });
         await ChatRoom.findByIdAndDelete(roomId);
 
-        // Emit real-time update
         if (this.socketService) {
             this.socketService.emitToChatRoom(roomId, 'chat:room:deleted', { roomId });
         }
     }
 
-    /**
-     * Sync user to all relevant chat rooms in a workshop
-     */
     async syncUserToWorkshopRooms(userId: string, workshopId: string): Promise<void> {
         const uId = new Types.ObjectId(userId);
         const workshopObjectId = new Types.ObjectId(workshopId);
 
-        // 1. Check if user is still an active workshop member
         const MembershipModel = require('../models/Membership').Membership;
         const membership = await MembershipModel.findOne({
             workshop: workshopObjectId,
@@ -254,7 +218,7 @@ export class ChatService {
         const workshop = await WorkshopModel.findById(workshopObjectId);
 
         if (!membership) {
-            // Even if not an active member, if they are the owner, they keep special access
+
             const isOwner = workshop && workshop.owner.toString() === userId;
             if (!isOwner) {
                 await this.syncUserRemovalFromWorkshopRooms(userId, workshopId);
@@ -265,7 +229,7 @@ export class ChatService {
         const isOwner = workshop && workshop.owner.toString() === userId;
 
         if (isOwner) {
-            // Owner is automatically added to all non-direct rooms
+
             await ChatRoom.updateMany(
                 {
                     workshop: workshopObjectId,
@@ -275,14 +239,11 @@ export class ChatService {
             );
         }
 
-        // 2. Handle Workshop (General) rooms - ensure user is in
         await ChatRoom.updateMany(
             { workshop: workshopObjectId, roomType: ChatRoomType.WORKSHOP },
             { $addToSet: { participants: uId } }
         );
 
-        // 3. Re-sync Team and Project rooms
-        // First, remove user from all Team and Project rooms to strictly enforce current state
         await ChatRoom.updateMany(
             {
                 workshop: workshopObjectId,
@@ -291,7 +252,6 @@ export class ChatService {
             { $pull: { participants: uId } }
         );
 
-        // 4. Add user to Team rooms they belong to
         const TeamModel = require('../models/Team').Team;
         const teams = await TeamModel.find({ workshop: workshopObjectId, members: uId });
         if (teams.length > 0) {
@@ -302,7 +262,6 @@ export class ChatService {
             );
         }
 
-        // 5. Add user to Project rooms they are assigned to (direct or via team)
         const ProjectModel = require('../models/WorkshopProject').WorkshopProject;
         const projects = await ProjectModel.find({
             workshop: workshopObjectId,
@@ -321,15 +280,11 @@ export class ChatService {
             );
         }
 
-        // Notify frontend that user's rooms might have changed
         if (this.socketService) {
             this.socketService.emitToUser(userId, 'chat:rooms:sync', { workshopId });
         }
     }
 
-    /**
-     * Remove user from all relevant chat rooms in a workshop (except direct messages)
-     */
     async syncUserRemovalFromWorkshopRooms(userId: string, workshopId: string): Promise<void> {
         const uId = new Types.ObjectId(userId);
         await ChatRoom.updateMany(
@@ -341,17 +296,13 @@ export class ChatService {
         );
     }
 
-    /**
-     * Send a message
-     */
     async sendMessage(roomId: string, senderId: string, data: SendMessageData): Promise<IMessage> {
-        // Verify room exists and user is participant
+
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === senderId)) {
             throw new AuthorizationError('You are not a participant of this chat room');
         }
 
-        // Create message
         const message = await Message.create({
             chatRoom: new Types.ObjectId(roomId),
             sender: new Types.ObjectId(senderId),
@@ -365,13 +316,11 @@ export class ChatService {
             seenBy: [{ user: new Types.ObjectId(senderId), seenAt: new Date() }]
         });
 
-        // Update chat room's last message
         await ChatRoom.findByIdAndUpdate(roomId, {
             lastMessage: message._id,
             lastMessageAt: message.createdAt
         });
 
-        // Log activity
         await this.activityService.logActivity({
             workshop: this.getIdString(chatRoom.workshop),
             user: this.getIdString(senderId),
@@ -385,16 +334,13 @@ export class ChatService {
         return message.populate(['sender', 'replyTo']);
     }
 
-    /**
-     * Get messages with pagination
-     */
     async getMessages(
         roomId: string,
         userId: string,
         page: number = 1,
         limit: number = 50
     ): Promise<{ messages: IMessage[]; total: number; hasMore: boolean }> {
-        // Verify user is participant
+
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === userId)) {
             throw new AuthorizationError('You are not a participant of this chat room');
@@ -418,28 +364,23 @@ export class ChatService {
         ]);
 
         return {
-            messages: messages.reverse(), // Reverse to show oldest first
+            messages: messages.reverse(),
             total,
             hasMore: skip + messages.length < total
         };
     }
 
-    /**
-     * Mark message as seen
-     */
     async markMessageAsSeen(messageId: string, userId: string): Promise<IMessage> {
         const message = await Message.findById(messageId);
         if (!message) {
             throw new NotFoundError('Message');
         }
 
-        // Check if already seen
         const alreadySeen = message.seenBy.some(s => s.user.toString() === userId);
         if (alreadySeen) {
             return message;
         }
 
-        // Add to seenBy
         message.seenBy.push({
             user: new Types.ObjectId(userId),
             seenAt: new Date()
@@ -449,9 +390,6 @@ export class ChatService {
         return message.populate(['sender', 'seenBy.user']);
     }
 
-    /**
-     * Mark all messages in room as seen
-     */
     async markAllMessagesAsSeen(roomId: string, userId: string): Promise<void> {
         await Message.updateMany(
             {
@@ -469,9 +407,6 @@ export class ChatService {
         );
     }
 
-    /**
-     * Edit message
-     */
     async editMessage(messageId: string, userId: string, newContent: string): Promise<IMessage> {
         const message = await Message.findById(messageId);
         if (!message) {
@@ -494,9 +429,6 @@ export class ChatService {
         return message.populate(['sender', 'seenBy.user']);
     }
 
-    /**
-     * Delete message (soft delete)
-     */
     async deleteMessage(messageId: string, userId: string): Promise<void> {
         const message = await Message.findById(messageId).populate('chatRoom');
         if (!message) {
@@ -518,16 +450,12 @@ export class ChatService {
         await message.save();
     }
 
-    /**
-     * Add reaction to message
-     */
     async addReaction(messageId: string, userId: string, emoji: string): Promise<IMessage> {
         const message = await Message.findById(messageId);
         if (!message) {
             throw new NotFoundError('Message');
         }
 
-        // Check if user already reacted with this emoji
         const existingReaction = message.reactions.find(
             r => this.getIdString(r.user) === userId && r.emoji === emoji
         );
@@ -546,9 +474,6 @@ export class ChatService {
         return message.populate(['sender', 'reactions.user']);
     }
 
-    /**
-     * Remove reaction from message
-     */
     async removeReaction(messageId: string, userId: string, emoji: string): Promise<IMessage> {
         const message = await Message.findById(messageId);
         if (!message) {
@@ -563,9 +488,6 @@ export class ChatService {
         return message.populate(['sender', 'reactions.user']);
     }
 
-    /**
-     * Search messages in a room
-     */
     async searchMessages(
         roomId: string,
         userId: string,
@@ -573,7 +495,7 @@ export class ChatService {
         page: number = 1,
         limit: number = 20
     ): Promise<{ messages: IMessage[]; total: number }> {
-        // Verify user is participant
+
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === userId)) {
             throw new AuthorizationError('You are not a participant of this chat room');
@@ -602,9 +524,6 @@ export class ChatService {
         return { messages, total };
     }
 
-    /**
-     * Get unread message count for user in a room
-     */
     async getUnreadCount(roomId: string, userId: string): Promise<number> {
         return Message.countDocuments({
             chatRoom: new Types.ObjectId(roomId),

@@ -3,11 +3,11 @@ import { Notification, NotificationType } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { 
-  Bell, 
-  CheckCircle, 
-  MessageCircle, 
-  UserPlus, 
+import {
+  Bell,
+  CheckCircle,
+  MessageCircle,
+  UserPlus,
   FileText,
   Users,
   Check,

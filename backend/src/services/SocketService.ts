@@ -117,7 +117,6 @@ export class SocketService {
         });
       });
 
-      // Chat room events
       socket.on('chat:join', (roomId: string) => {
         socket.join(`chat:${roomId}`);
         console.log(`User ${userId} joined chat room: ${roomId}`);

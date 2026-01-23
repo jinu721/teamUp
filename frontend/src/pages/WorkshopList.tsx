@@ -82,7 +82,7 @@ const WorkshopList: React.FC = () => {
   return (
     <AppLayout>
       <div className="page-container max-w-7xl mx-auto">
-        {/* Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div className="section-header mb-0">
             <h1 className="section-title flex items-center gap-2">
@@ -175,7 +175,6 @@ const WorkshopList: React.FC = () => {
           </Dialog>
         </div>
 
-        {/* Workshops Grid */}
         {workshops.length === 0 ? (
           <Card className="shadow-soft">
             <CardContent className="flex flex-col items-center justify-center py-12 sm:py-16">

@@ -1,10 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IWorkshopTask, ITaskActivity, TaskType, ITaskComment, ITaskStatusHistory, ITaskAttachment } from '../types';
 
-/**
- * Task Activity sub-schema
- * Records changes made to a task
- */
 const taskActivitySchema = new Schema<ITaskActivity>(
   {
     user: {
@@ -28,9 +24,6 @@ const taskActivitySchema = new Schema<ITaskActivity>(
   { _id: true }
 );
 
-/**
- * Task Comment sub-schema
- */
 const taskCommentSchema = new Schema<ITaskComment>(
   {
     user: {
@@ -55,9 +48,6 @@ const taskCommentSchema = new Schema<ITaskComment>(
   { timestamps: true }
 );
 
-/**
- * Task Status History sub-schema
- */
 const taskStatusHistorySchema = new Schema<ITaskStatusHistory>(
   {
     status: {
@@ -83,9 +73,6 @@ const taskStatusHistorySchema = new Schema<ITaskStatusHistory>(
   }
 );
 
-/**
- * Task Attachment sub-schema
- */
 const taskAttachmentSchema = new Schema<ITaskAttachment>(
   {
     fileName: {
@@ -116,10 +103,6 @@ const taskAttachmentSchema = new Schema<ITaskAttachment>(
   }
 );
 
-/**
- * Workshop Task Schema
- * Enhanced task model for advanced project management
- */
 const workshopTaskSchema = new Schema<IWorkshopTask>(
   {
     workshop: {
@@ -133,7 +116,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       required: false
     },
 
-    // Basic Info
     title: {
       type: String,
       required: [true, 'Task title is required'],
@@ -161,7 +143,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       default: 'todo'
     },
 
-    // Hierarchy & Relationships
     parentTask: {
       type: Schema.Types.ObjectId,
       ref: 'WorkshopTask',
@@ -184,7 +165,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       ref: 'WorkshopTask'
     }],
 
-    // Assignment & Ownership
     primaryOwner: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -207,7 +187,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       ref: 'User'
     }],
 
-    // Priority & Classification
     priority: {
       type: Number,
       min: [1, 'Priority must be at least 1'],
@@ -229,7 +208,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       trim: true
     }],
 
-    // Time Tracking
     estimatedHours: {
       type: Number,
       min: 0
@@ -249,11 +227,9 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       type: Date
     },
 
-    // Workflow & History
     statusHistory: [taskStatusHistorySchema],
     activityHistory: [taskActivitySchema],
 
-    // Collaboration
     comments: [taskCommentSchema],
     attachments: [taskAttachmentSchema],
     linkedResources: {
@@ -271,7 +247,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       }]
     },
 
-    // Automation & Recurrence
     isRecurring: {
       type: Boolean,
       default: false
@@ -292,13 +267,11 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
       default: {}
     },
 
-    // Custom Fields
     customFields: {
       type: Schema.Types.Mixed,
       default: {}
     },
 
-    // Metadata
     createdBy: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -310,7 +283,6 @@ const workshopTaskSchema = new Schema<IWorkshopTask>(
   }
 );
 
-// Indexes for efficient queries
 workshopTaskSchema.index({ workshop: 1 });
 workshopTaskSchema.index({ workshop: 1, status: 1 });
 workshopTaskSchema.index({ project: 1 });

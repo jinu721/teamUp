@@ -2,13 +2,11 @@ import { Router } from 'express';
 import { AuditController } from '../controllers/AuditController';
 import { authenticate } from '../middlewares/auth';
 
-const router = Router({ mergeParams: true }); // Enable access to parent route params
+const router = Router({ mergeParams: true });
 const auditController = new AuditController();
 
-// All routes require authentication
 router.use(authenticate);
 
-// Audit log queries
 router.get('/', auditController.getAuditLogs);
 router.get('/recent', auditController.getRecentLogs);
 router.get('/stats', auditController.getAuditStats);

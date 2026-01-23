@@ -3,10 +3,6 @@ import { TeamService } from '../services/TeamService';
 import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
-/**
- * Team Controller
- * Handles HTTP requests for team management
- */
 export class TeamController {
   private teamService: TeamService;
   private socketService: SocketService | null = null;
@@ -15,18 +11,11 @@ export class TeamController {
     this.teamService = new TeamService();
   }
 
-  /**
-   * Set socket service for real-time updates
-   */
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
     this.teamService.setSocketService(socketService);
   }
 
-  /**
-   * Create a new team
-   * POST /workshops/:workshopId/teams
-   */
   createTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -38,7 +27,6 @@ export class TeamController {
         description
       });
 
-      // Emit real-time update
       if (this.socketService) {
         this.socketService.emitToWorkshop(workshopId, 'team:created', team);
       }
@@ -53,10 +41,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Get all teams in a workshop
-   * GET /workshops/:workshopId/teams
-   */
   getWorkshopTeams = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -73,10 +57,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Get a specific team
-   * GET /workshops/:workshopId/teams/:teamId
-   */
   getTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId } = req.params;
@@ -93,10 +73,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Update a team
-   * PUT /workshops/:workshopId/teams/:teamId
-   */
   updateTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId } = req.params;
@@ -105,7 +81,6 @@ export class TeamController {
 
       const team = await this.teamService.updateTeam(teamId, userId, updates);
 
-      // Emit real-time update
       if (this.socketService) {
         const workshopId = (team as any).workshop?._id || (team as any).workshop;
         this.socketService.emitToWorkshop(workshopId.toString(), 'team:updated', team);
@@ -121,10 +96,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Delete a team
-   * DELETE /workshops/:workshopId/teams/:teamId
-   */
   deleteTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId } = req.params;
@@ -132,7 +103,6 @@ export class TeamController {
 
       await this.teamService.deleteTeam(teamId, userId);
 
-      // Emit real-time update
       if (this.socketService) {
         const { workshopId } = req.params;
         this.socketService.emitToWorkshop(workshopId, 'team:deleted', { teamId });
@@ -147,10 +117,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Add member to team
-   * POST /workshops/:workshopId/teams/:teamId/members/:userId
-   */
   addMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId, userId: memberId } = req.params;
@@ -158,7 +124,6 @@ export class TeamController {
 
       const team = await this.teamService.addMemberToTeam(teamId, actorId, memberId);
 
-      // Emit real-time update
       if (this.socketService) {
         const workshopId = (team as any).workshop?._id || (team as any).workshop;
         this.socketService.emitToWorkshop(workshopId.toString(), 'team:member:added', team);
@@ -175,10 +140,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Remove member from team
-   * DELETE /workshops/:workshopId/teams/:teamId/members/:userId
-   */
   removeMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId, userId: memberId } = req.params;
@@ -186,7 +147,6 @@ export class TeamController {
 
       const team = await this.teamService.removeMemberFromTeam(teamId, actorId, memberId);
 
-      // Emit real-time update
       if (this.socketService) {
         const workshopId = (team as any).workshop?._id || (team as any).workshop;
         this.socketService.emitToWorkshop(workshopId.toString(), 'team:member:removed', team);
@@ -203,10 +163,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Assign internal role to team member
-   * POST /workshops/:workshopId/teams/:teamId/roles/:roleName/members/:userId
-   */
   assignInternalRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId, roleName, userId: memberId } = req.params;
@@ -214,7 +170,6 @@ export class TeamController {
 
       const team = await this.teamService.assignInternalRole(teamId, actorId, memberId, roleName);
 
-      // Emit real-time update
       if (this.socketService) {
         this.socketService.emitToTeam(teamId, 'team:role:assigned', team);
       }
@@ -229,10 +184,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Remove internal role from team member
-   * DELETE /workshops/:workshopId/teams/:teamId/roles/:roleName/members/:userId
-   */
   removeInternalRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId, roleName, userId: memberId } = req.params;
@@ -240,7 +191,6 @@ export class TeamController {
 
       const team = await this.teamService.removeInternalRole(teamId, actorId, memberId, roleName);
 
-      // Emit real-time update
       if (this.socketService) {
         this.socketService.emitToTeam(teamId, 'team:role:removed', team);
       }
@@ -255,10 +205,6 @@ export class TeamController {
     }
   };
 
-  /**
-   * Get user's teams in a workshop
-   * GET /workshops/:workshopId/my-teams
-   */
   getUserTeams = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;

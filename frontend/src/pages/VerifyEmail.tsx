@@ -49,7 +49,6 @@ const VerifyEmail: React.FC = () => {
         newOtp[index] = value.slice(-1);
         setOtp(newOtp);
 
-        // Move to next input
         if (value && index < 5) {
             inputRefs.current[index + 1]?.focus();
         }
@@ -86,7 +85,6 @@ const VerifyEmail: React.FC = () => {
                 description: "Your account has been successfully verified!",
             });
 
-            // Auto redirect after 2 seconds
             setTimeout(() => {
                 window.location.href = '/dashboard';
             }, 2000);
@@ -102,7 +100,6 @@ const VerifyEmail: React.FC = () => {
         }
     };
 
-    // Auto-submit when all fields are filled
     useEffect(() => {
         if (otp.every(digit => digit !== '') && status === 'idle') {
             handleVerify();

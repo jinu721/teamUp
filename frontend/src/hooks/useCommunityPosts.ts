@@ -36,10 +36,8 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
   const filtersRef = useRef(filters);
   const sortRef = useRef(sort);
 
-  // Join community room for real-time updates
   useCommunityRoom();
 
-  // Fetch posts
   const fetchPosts = useCallback(async (pageNum: number, reset: boolean = false) => {
     try {
       if (reset) {
@@ -60,7 +58,7 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
         setPosts(response.data);
       } else {
         setPosts(prev => {
-          // Deduplicate posts
+
           const existingIds = new Set(prev.map(p => p._id));
           const newPosts = response.data.filter((p: CommunityPost) => !existingIds.has(p._id));
           return [...prev, ...newPosts];
@@ -77,7 +75,6 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
     }
   }, [limit]);
 
-  // Initial load and when filters/sort change
   useEffect(() => {
     filtersRef.current = filters;
     sortRef.current = sort;
@@ -85,7 +82,6 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
     fetchPosts(1, true);
   }, [JSON.stringify(filters), sort, fetchPosts]);
 
-  // Load more
   const loadMore = useCallback(() => {
     if (!loadingMore && hasMore) {
       const nextPage = page + 1;
@@ -94,25 +90,21 @@ export function useCommunityPosts(options: UseCommunityPostsOptions = {}): UseCo
     }
   }, [loadingMore, hasMore, page, fetchPosts]);
 
-  // Refetch
   const refetch = useCallback(() => {
     setPage(1);
     fetchPosts(1, true);
   }, [fetchPosts]);
 
-  // Update a single post
   const updatePost = useCallback((updatedPost: CommunityPost) => {
     setPosts(prev => prev.map(p => p._id === updatedPost._id ? updatedPost : p));
   }, []);
 
-  // Remove a post
   const removePost = useCallback((postId: string) => {
     setPosts(prev => prev.filter(p => p._id !== postId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('community:post:created', (post: CommunityPost) => {
-    // Add new post at the beginning if sorting by new
+
     if (sortRef.current === SortOrder.NEW) {
       setPosts(prev => {
         if (prev.some(p => p._id === post._id)) return prev;

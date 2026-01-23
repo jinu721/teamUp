@@ -75,8 +75,6 @@ export const NotificationPopover: React.FC = () => {
             setUnreadCount(prev => Math.max(0, prev - 1));
         }
 
-        // Navigation logic
-        // Navigation logic
         if (notification.type === NotificationType.TASK_ASSIGNED ||
             notification.type === NotificationType.TASK_UPDATED ||
             notification.type === NotificationType.COMMENT) {
@@ -98,12 +96,11 @@ export const NotificationPopover: React.FC = () => {
         }
 
         if (notification.relatedProject) {
-            // Fallback or just project notification
+
             const projectId = typeof notification.relatedProject === 'string'
                 ? notification.relatedProject
                 : notification.relatedProject._id;
 
-            // If we have workshopId we can go to project, otherwise go to notifications page
             if (notification.relatedWorkshop) {
                 const workshopId = typeof notification.relatedWorkshop === 'string'
                     ? notification.relatedWorkshop

@@ -67,7 +67,7 @@ export class EmailService {
     } catch (error) {
       console.error('❌ Failed to send email:', error);
       console.log('📋 Share this link manually:', inviteLink);
-      return true; 
+      return true;
     }
   }
 
@@ -189,7 +189,7 @@ export class EmailService {
     } catch (error) {
       console.error('❌ Failed to send email:', error);
       console.log('📋 Share this link manually:', workshopLink);
-      return true; 
+      return true;
     }
   }
 

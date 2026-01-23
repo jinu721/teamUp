@@ -47,7 +47,6 @@ const ProjectDetail: React.FC = () => {
     const { teams } = useTeams(workshopId);
     const { toast } = useToast();
 
-    // Dialog states
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [showNewTaskDialog, setShowNewTaskDialog] = useState(false);
@@ -56,7 +55,6 @@ const ProjectDetail: React.FC = () => {
     const [showAssignManagerDialog, setShowAssignManagerDialog] = useState(false);
     const [showAssignMaintainerDialog, setShowAssignMaintainerDialog] = useState(false);
 
-    // Form states
     const [editData, setEditData] = useState<UpdateWorkshopProjectData>({});
     const [newTaskData, setNewTaskData] = useState<CreateWorkshopTaskData>({
         title: '',
@@ -75,11 +73,9 @@ const ProjectDetail: React.FC = () => {
     const [selectedUserId, setSelectedUserId] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
-    // Join rooms for real-time updates
     useWorkshopRoom(workshopId);
     useProjectRoom(projectId);
 
-    // Load Permissions reactively
     const { permissions: permsMap } = usePermissions(workshopId, [
         { action: 'update', resource: 'project' },
         { action: 'delete', resource: 'project' },
@@ -94,7 +90,6 @@ const ProjectDetail: React.FC = () => {
         canManage: permsMap['manage:project'] ?? false
     };
 
-    // Computed values
     const isOwner = workshop && user && (
         typeof workshop.owner === 'string'
             ? workshop.owner === user._id
@@ -112,7 +107,6 @@ const ProjectDetail: React.FC = () => {
 
     const canManage = isOwner || isManager || isProjectManager || permissions.canManage || permissions.canUpdate;
 
-    // Handlers
     const handleEdit = () => {
         if (project) {
             setEditData({
@@ -302,7 +296,7 @@ const ProjectDetail: React.FC = () => {
     return (
         <AppLayout>
             <div className="page-container space-y-6">
-                {/* Header */}
+
                 <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                         <Button variant="ghost" size="icon" onClick={() => navigate(`/workshops/${workshopId}`)}>
@@ -345,7 +339,7 @@ const ProjectDetail: React.FC = () => {
                 </div>
 
                 <div className="grid gap-6 lg:grid-cols-4">
-                    {/* Main Content */}
+
                     <div className="lg:col-span-3 space-y-6">
                         <Tabs defaultValue="tasks" className="space-y-4">
                             <TabsList>
@@ -411,7 +405,6 @@ const ProjectDetail: React.FC = () => {
                         </Tabs>
                     </div>
 
-                    {/* Sidebar */}
                     <div className="space-y-6">
                         <ProjectAssignmentPanel
                             project={project}
@@ -428,7 +421,6 @@ const ProjectDetail: React.FC = () => {
                 </div>
             </div>
 
-            {/* Edit Dialog */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -461,7 +453,6 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* New Task Dialog */}
             <Dialog open={showNewTaskDialog} onOpenChange={setShowNewTaskDialog}>
                 <DialogContent className="sm:max-w-xl">
                     <DialogHeader>
@@ -633,7 +624,6 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Assign Team Dialog */}
             <Dialog open={showAssignTeamDialog} onOpenChange={setShowAssignTeamDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -666,9 +656,8 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Assign Individual Dialog */}
             <Dialog open={showAssignIndividualDialog} onOpenChange={setShowAssignIndividualDialog}>
-                {/* ... existing content ... */}
+
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Assign Individual</DialogTitle>
@@ -709,7 +698,6 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Assign Manager Dialog */}
             <Dialog open={showAssignManagerDialog} onOpenChange={setShowAssignManagerDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -746,7 +734,6 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Assign Maintainer Dialog */}
             <Dialog open={showAssignMaintainerDialog} onOpenChange={setShowAssignMaintainerDialog}>
                 <DialogContent>
                     <DialogHeader>
@@ -788,7 +775,6 @@ const ProjectDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

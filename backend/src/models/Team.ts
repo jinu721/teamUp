@@ -1,10 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { ITeam, ITeamRole } from '../types';
 
-/**
- * Team Role sub-schema
- * Internal roles within a team
- */
 const teamRoleSchema = new Schema<ITeamRole>(
   {
     name: {
@@ -24,10 +20,6 @@ const teamRoleSchema = new Schema<ITeamRole>(
   { _id: true }
 );
 
-/**
- * Team Schema
- * A group of users within a workshop that can be assigned to projects
- */
 const teamSchema = new Schema<ITeam>(
   {
     workshop: {
@@ -59,10 +51,8 @@ const teamSchema = new Schema<ITeam>(
   }
 );
 
-// Unique compound index - one team name per workshop
 teamSchema.index({ workshop: 1, name: 1 }, { unique: true });
 
-// Indexes for efficient queries
 teamSchema.index({ workshop: 1 });
 teamSchema.index({ members: 1 });
 

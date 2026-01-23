@@ -7,7 +7,6 @@ import {
   DEFAULT_WORKSHOP_SETTINGS
 } from '../types';
 
-
 const workshopSettingsSchema = new Schema<IWorkshopSettings>(
   {
     allowOpenContribution: {
@@ -26,10 +25,6 @@ const workshopSettingsSchema = new Schema<IWorkshopSettings>(
   { _id: false }
 );
 
-/**
- * Workshop Schema
- * The root entity representing a long-living collaboration hub
- */
 const workshopSchema = new Schema<IWorkshop>(
   {
     name: {
@@ -118,7 +113,6 @@ const workshopSchema = new Schema<IWorkshop>(
   }
 );
 
-// Indexes for efficient queries
 workshopSchema.index({ owner: 1 });
 workshopSchema.index({ managers: 1 });
 workshopSchema.index({ visibility: 1 });

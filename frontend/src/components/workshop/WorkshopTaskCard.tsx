@@ -71,7 +71,7 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
       </CardHeader>
 
       <CardContent className="space-y-4 pb-4">
-        {/* Meta info */}
+
         <div className="flex items-center gap-3 text-[10px]">
           <div className="flex items-center gap-1 font-semibold">
             <ArrowUp className={`h-3 w-3 ${getPriorityColor(task.priority)}`} />
@@ -94,7 +94,6 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
           )}
         </div>
 
-        {/* Labels */}
         {task.labels.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {task.labels.slice(0, 2).map((label, idx) => (
@@ -108,7 +107,6 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
           </div>
         )}
 
-        {/* Footer with People */}
         <div className="flex items-center justify-between pt-2 border-t border-slate-100">
           <div className="flex items-center gap-2">
             <div className="p-1 rounded bg-slate-50 text-slate-400">
@@ -117,7 +115,7 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
           </div>
 
           <div className="flex items-center gap-1.5">
-            {/* Primary Owner */}
+
             {task.primaryOwner && (
               <div className="relative">
                 <Avatar className="h-6 w-6 ring-2 ring-white">
@@ -132,7 +130,6 @@ export const WorkshopTaskCard: React.FC<WorkshopTaskCardProps> = ({ task, onClic
               </div>
             )}
 
-            {/* Other Assignees (max 2) */}
             <div className="flex -space-x-2">
               {task.assignedIndividuals.filter(i => (typeof i === 'string' ? i : i._id) !== (typeof task.primaryOwner === 'string' ? task.primaryOwner : task.primaryOwner?._id)).slice(0, 2).map((individual, idx) => {
                 const user = typeof individual === 'string' ? null : individual;

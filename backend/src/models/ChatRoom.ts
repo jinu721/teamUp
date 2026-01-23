@@ -10,7 +10,7 @@ export enum ChatRoomType {
 export interface IChatRoomSettings {
     allowFileSharing: boolean;
     allowAudioMessages: boolean;
-    maxFileSize: number; // in bytes
+    maxFileSize: number;
 }
 
 export interface IChatRoom extends Document {
@@ -41,7 +41,7 @@ const chatRoomSettingsSchema = new Schema<IChatRoomSettings>({
     },
     maxFileSize: {
         type: Number,
-        default: 10 * 1024 * 1024 // 10MB default
+        default: 10 * 1024 * 1024
     }
 });
 
@@ -108,13 +108,11 @@ const chatRoomSchema = new Schema<IChatRoom>(
     }
 );
 
-// Indexes for efficient queries
 chatRoomSchema.index({ workshop: 1, roomType: 1 });
 chatRoomSchema.index({ participants: 1, lastMessageAt: -1 });
 chatRoomSchema.index({ project: 1 });
 chatRoomSchema.index({ team: 1 });
 
-// Compound index for direct messages
 chatRoomSchema.index({ roomType: 1, participants: 1 });
 
 export const ChatRoom = mongoose.model<IChatRoom>('ChatRoom', chatRoomSchema);

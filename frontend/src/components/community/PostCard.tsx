@@ -1,18 +1,18 @@
 import React, { useState } from 'react';
-import { 
-  CommunityPost, 
-  PROJECT_CATEGORY_LABELS, 
-  COMMITMENT_TYPE_LABELS 
+import {
+  CommunityPost,
+  PROJECT_CATEGORY_LABELS,
+  COMMITMENT_TYPE_LABELS
 } from '@/types';
 import api from '@/services/api';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  ArrowUp, 
-  ArrowDown, 
-  MessageCircle, 
+import {
+  ArrowUp,
+  ArrowDown,
+  MessageCircle,
   UserPlus,
   MoreHorizontal,
   Edit,
@@ -46,7 +46,7 @@ export const PostCard: React.FC<PostCardProps> = ({
 }) => {
   const [voting, setVoting] = useState(false);
   const [joining, setJoining] = useState(false);
-  // Local optimistic state for votes
+
   const [optimisticVote, setOptimisticVote] = useState<{
     upvoteCount: number;
     downvoteCount: number;
@@ -56,29 +56,27 @@ export const PostCard: React.FC<PostCardProps> = ({
   const { toast } = useToast();
 
   const isOwner = currentUserId === post.owner._id;
-  
-  // Use optimistic state if available, otherwise use post data
+
   const displayUpvoteCount = optimisticVote?.upvoteCount ?? post.upvoteCount;
   const displayDownvoteCount = optimisticVote?.downvoteCount ?? post.downvoteCount;
   const displayVoteScore = optimisticVote?.voteScore ?? post.voteScore;
-  const userVote = optimisticVote?.userVote !== undefined 
-    ? optimisticVote.userVote 
+  const userVote = optimisticVote?.userVote !== undefined
+    ? optimisticVote.userVote
     : post.votes.find(v => v.userId === currentUserId)?.voteType || null;
 
   const handleVote = async (type: 'up' | 'down', e: React.MouseEvent) => {
     e.stopPropagation();
     if (voting) return;
 
-    // Calculate optimistic update
     const currentUserVote = userVote;
     const voteType = type === 'up' ? 'upvote' : 'downvote';
-    
+
     let newUpvoteCount = displayUpvoteCount;
     let newDownvoteCount = displayDownvoteCount;
     let newUserVote: 'upvote' | 'downvote' | null = voteType;
 
     if (currentUserVote === voteType) {
-      // Toggle off - remove vote
+
       if (voteType === 'upvote') {
         newUpvoteCount--;
       } else {
@@ -86,14 +84,14 @@ export const PostCard: React.FC<PostCardProps> = ({
       }
       newUserVote = null;
     } else if (currentUserVote === null) {
-      // New vote
+
       if (voteType === 'upvote') {
         newUpvoteCount++;
       } else {
         newDownvoteCount++;
       }
     } else {
-      // Change vote
+
       if (voteType === 'upvote') {
         newUpvoteCount++;
         newDownvoteCount--;
@@ -105,7 +103,6 @@ export const PostCard: React.FC<PostCardProps> = ({
 
     const newVoteScore = newUpvoteCount - newDownvoteCount;
 
-    // Apply optimistic update immediately
     const optimisticState = {
       upvoteCount: newUpvoteCount,
       downvoteCount: newDownvoteCount,
@@ -113,8 +110,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       userVote: newUserVote
     };
     setOptimisticVote(optimisticState);
-    
-    // Notify parent of optimistic update
+
     onVoteUpdate?.(post._id, optimisticState);
 
     setVoting(true);
@@ -124,10 +120,10 @@ export const PostCard: React.FC<PostCardProps> = ({
       } else {
         await api.downvotePost(post._id);
       }
-      // Success - clear optimistic state (server will send real update via WebSocket)
+
       setOptimisticVote(null);
     } catch (error: any) {
-      // Rollback optimistic update on error
+
       setOptimisticVote(null);
       onVoteUpdate?.(post._id, {
         upvoteCount: post.upvoteCount,
@@ -193,7 +189,7 @@ export const PostCard: React.FC<PostCardProps> = ({
   };
 
   return (
-    <Card 
+    <Card
       className={cn("flex flex-col transition-shadow hover:shadow-md", onClick && "cursor-pointer")}
       onClick={() => onClick?.(post)}
     >

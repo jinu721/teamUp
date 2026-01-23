@@ -2,7 +2,6 @@ import { io, Socket } from 'socket.io-client';
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EventCallback = (data: any) => void;
 type ErrorCallback = (error: { message: string; canRetry: boolean }) => void;
 
@@ -68,7 +67,6 @@ class SocketService {
     this.setupEventForwarding();
   }
 
-  // Retry connection manually
   retry(): void {
     if (this.token) {
       this.reconnectAttempts = 0;
@@ -80,20 +78,17 @@ class SocketService {
   private setupEventForwarding(): void {
     if (!this.socket) return;
 
-    // All events that should be forwarded to listeners
     const events = [
-      // User presence
+
       'user:online',
       'user:offline',
 
-      // Workshop events
       'workshop:created',
       'workshop:updated',
       'workshop:deleted',
       'workshop:manager:assigned',
       'workshop:manager:removed',
 
-      // Membership events
       'membership:invited',
       'membership:joined',
       'membership:left',
@@ -102,7 +97,6 @@ class SocketService {
       'membership:request:approved',
       'membership:request:rejected',
 
-      // Team events
       'team:created',
       'team:updated',
       'team:deleted',
@@ -111,14 +105,12 @@ class SocketService {
       'team:role:assigned',
       'team:role:removed',
 
-      // Role events
       'role:created',
       'role:updated',
       'role:deleted',
       'role:assigned',
       'role:revoked',
 
-      // Workshop project events
       'workshop:project:created',
       'workshop:project:updated',
       'workshop:project:deleted',
@@ -130,7 +122,6 @@ class SocketService {
       'workshop:project:maintainer:assigned',
       'workshop:project:maintainer:removed',
 
-      // Workshop task events
       'workshop:task:created',
       'workshop:task:updated',
       'workshop:task:deleted',
@@ -142,23 +133,19 @@ class SocketService {
       'workshop:task:dependency:added',
       'workshop:task:dependency:removed',
 
-      // Project events (legacy)
       'project:updated',
       'project:deleted',
       'project:removed',
 
-      // Task events (legacy)
       'task:created',
       'task:updated',
       'task:deleted',
       'task:moved',
 
-      // Message events
       'message:new',
       'typing:start',
       'typing:stop',
 
-      // Community events
       'community:post:created',
       'community:post:updated',
       'community:post:deleted',
@@ -168,19 +155,16 @@ class SocketService {
       'community:comment:deleted',
       'community:join:responded',
 
-      // Workshop events (additional)
       'workshop:project:created',
       'workshop:team:created',
       'role:updated',
       'role:deleted',
 
-      // Notification events
       'notification:new',
       'notification:read',
       'notification:allRead',
       'notification:deleted',
 
-      // Chat events
       'chat:room:created',
       'chat:room:updated',
       'chat:room:deleted',
@@ -207,8 +191,6 @@ class SocketService {
       this.listeners.clear();
     }
   }
-
-  // ==================== ROOM MANAGEMENT ====================
 
   joinWorkshop(workshopId: string): void {
     this.socket?.emit('workshop:join', workshopId);
@@ -250,8 +232,6 @@ class SocketService {
     this.socket?.emit('community:leave');
   }
 
-  // ==================== TYPING INDICATORS ====================
-
   startTyping(projectId: string): void {
     this.socket?.emit('typing:start', { projectId });
   }
@@ -267,8 +247,6 @@ class SocketService {
   stopChatTyping(roomId: string): void {
     this.socket?.emit('chat:typing:stop', { roomId });
   }
-
-  // ==================== EVENT LISTENERS ====================
 
   on(event: string, callback: EventCallback): void {
     if (!this.listeners.has(event)) {
@@ -297,8 +275,6 @@ class SocketService {
     }
   }
 
-  // ==================== STATUS ====================
-
   isConnected(): boolean {
     return this.socket?.connected || false;
   }
@@ -314,8 +290,6 @@ class SocketService {
   emit(event: string, data?: any): void {
     this.socket?.emit(event, data);
   }
-
-  // ==================== ERROR HANDLING ====================
 
   onError(callback: ErrorCallback): void {
     this.errorListeners.add(callback);

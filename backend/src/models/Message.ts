@@ -26,7 +26,7 @@ export interface IMessage extends Document {
     fileName?: string;
     fileSize?: number;
     mimeType?: string;
-    duration?: number; // for audio messages in seconds
+    duration?: number;
     seenBy: ISeenBy[];
     replyTo?: mongoose.Types.ObjectId;
     isEdited: boolean;
@@ -128,7 +128,6 @@ const messageSchema = new Schema<IMessage>(
     }
 );
 
-// Indexes for efficient queries
 messageSchema.index({ chatRoom: 1, createdAt: -1 });
 messageSchema.index({ sender: 1, createdAt: -1 });
 messageSchema.index({ chatRoom: 1, isDeleted: 1, createdAt: -1 });

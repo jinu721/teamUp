@@ -2,10 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import { WorkshopService } from '../services/WorkshopService';
 import { AuthRequest, WorkshopVisibility } from '../types';
 
-/**
- * Workshop Controller
- * Handles HTTP requests for workshop management
- */
 export class WorkshopController {
   private workshopService: WorkshopService;
 
@@ -13,17 +9,10 @@ export class WorkshopController {
     this.workshopService = new WorkshopService();
   }
 
-  /**
-   * Set socket service for real-time updates
-   */
   setSocketService(socketService: any): void {
     this.workshopService.setSocketService(socketService);
   }
 
-  /**
-   * Create a new workshop
-   * POST /workshops
-   */
   createWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user!.id;
@@ -49,10 +38,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Get user's workshops
-   * GET /workshops/my-workshops
-   */
   getUserWorkshops = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user!.id;
@@ -69,10 +54,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Get public workshops for discovery
-   * GET /workshops/public
-   */
   getPublicWorkshops = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { search, category, tags, sort, page = 1, limit = 20 } = req.query;
@@ -104,10 +85,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Get a specific workshop
-   * GET /workshops/:workshopId
-   */
   getWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -124,10 +101,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Update a workshop
-   * PUT /workshops/:workshopId
-   */
   updateWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -146,10 +119,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Delete a workshop
-   * DELETE /workshops/:workshopId
-   */
   deleteWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -166,10 +135,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Get workshop members
-   * GET /workshops/:workshopId/members
-   */
   getMembers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -187,10 +152,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Get pending join requests
-   * GET /workshops/:workshopId/pending-requests
-   */
   getPendingRequests = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -207,10 +168,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Invite a member
-   * POST /workshops/:workshopId/invite
-   */
   inviteMember = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -225,7 +182,6 @@ export class WorkshopController {
         return;
       }
 
-      // Look up user by email
       const User = require('../models/User').User;
       const invitedUser = await User.findOne({ email: email.toLowerCase() });
 
@@ -253,10 +209,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Handle join request
-   * POST /workshops/:workshopId/join
-   */
   handleJoinRequest = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -274,10 +226,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Approve join request
-   * POST /workshops/:workshopId/approve/:membershipId
-   */
   approveJoinRequest = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, membershipId } = req.params;
@@ -295,10 +243,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Reject join request
-   * POST /workshops/:workshopId/reject/:membershipId
-   */
   rejectJoinRequest = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, membershipId } = req.params;
@@ -317,10 +261,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Revoke membership
-   * DELETE /workshops/:workshopId/members/:userId
-   */
   revokeMembership = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, userId } = req.params;
@@ -339,10 +279,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Leave workshop
-   * POST /workshops/:workshopId/leave
-   */
   leaveWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -359,10 +295,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Assign manager
-   * POST /workshops/:workshopId/managers/:managerId
-   */
   assignManager = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, managerId } = req.params;
@@ -380,10 +312,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Remove manager
-   * DELETE /workshops/:workshopId/managers/:managerId
-   */
   removeManager = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, managerId } = req.params;
@@ -401,10 +329,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Upvote a workshop
-   * POST /workshops/:workshopId/upvote
-   */
   upvoteWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -422,10 +346,6 @@ export class WorkshopController {
     }
   };
 
-  /**
-   * Downvote a workshop
-   * POST /workshops/:workshopId/downvote
-   */
   downvoteWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -442,10 +362,7 @@ export class WorkshopController {
       next(error);
     }
   };
-  /**
-   * Check permission for current user
-   * GET /workshops/:workshopId/permissions/check
-   */
+
   checkPermission = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;

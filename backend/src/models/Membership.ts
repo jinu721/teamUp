@@ -1,10 +1,9 @@
 import mongoose, { Schema } from 'mongoose';
-import { 
-  IMembership, 
-  MembershipState, 
-  MembershipSource 
+import {
+  IMembership,
+  MembershipState,
+  MembershipSource
 } from '../types';
-
 
 const membershipSchema = new Schema<IMembership>(
   {
@@ -55,10 +54,8 @@ const membershipSchema = new Schema<IMembership>(
   }
 );
 
-// Unique compound index - one membership per user per workshop
 membershipSchema.index({ workshop: 1, user: 1 }, { unique: true });
 
-// Indexes for efficient queries
 membershipSchema.index({ workshop: 1, state: 1 });
 membershipSchema.index({ user: 1, state: 1 });
 

@@ -23,10 +23,10 @@ export class AuthService {
 
     const existingPending = await this.pendingUserRepository.findByEmail(email);
     if (existingPending) {
-      // Update existing pending user with new password and OTP to allow retry
+
       const hashedPassword = await bcrypt.hash(password, 10);
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
       existingPending.name = name;
       existingPending.password = hashedPassword;
@@ -40,7 +40,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     await this.pendingUserRepository.create({
       name,
@@ -71,8 +71,6 @@ export class AuthService {
     await sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
   }
 
-
-
   async verifyOTP(email: string, otp: string): Promise<{ user: any; token: string; refreshToken: string }> {
     const pendingUser = await this.pendingUserRepository.findByEmail(email);
 
@@ -88,7 +86,6 @@ export class AuthService {
       throw new ValidationError('Verification code has expired');
     }
 
-    // Move to User collection
     const newUser = await this.userRepository.create({
       name: pendingUser.name,
       email: pendingUser.email,
@@ -100,7 +97,6 @@ export class AuthService {
       lastActive: new Date(),
     } as any);
 
-    // Delete from PendingUser
     await this.pendingUserRepository.deleteById(pendingUser._id.toString());
 
     const authToken = generateToken({ id: newUser._id.toString(), email: newUser.email });
@@ -119,7 +115,7 @@ export class AuthService {
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
     pendingUser.otp = otp;
     pendingUser.otpExpires = otpExpires;
@@ -189,12 +185,11 @@ export class AuthService {
       return user;
     }
 
-    // Check by email
     const email = profile.emails?.[0]?.value;
     if (email) {
       user = await this.userRepository.findByEmail(email);
       if (user) {
-        // Link account
+
         (user as any)[idField] = profile.id;
         if (!user.isVerified) user.isVerified = true;
         await user.save();
@@ -202,7 +197,6 @@ export class AuthService {
       }
     }
 
-    // Create new user
     const dummyPassword = crypto.randomBytes(32).toString('hex');
     const hashedPassword = await bcrypt.hash(dummyPassword, 10);
 

@@ -41,7 +41,6 @@ class ApiService {
       }
     });
 
-    // Request interceptor - add auth token
     this.api.interceptors.request.use(
       (config) => {
         const token = localStorage.getItem('token');
@@ -53,7 +52,6 @@ class ApiService {
       (error) => Promise.reject(error)
     );
 
-    // Response interceptor - handle 401 errors
     this.api.interceptors.response.use(
       (response) => response,
       async (error: AxiosError) => {
@@ -73,7 +71,6 @@ class ApiService {
 
             localStorage.setItem('token', token);
 
-            // Retry original request with new token
             originalRequest.headers.Authorization = `Bearer ${token}`;
             return this.api(originalRequest);
           } catch (refreshError) {
@@ -88,8 +85,6 @@ class ApiService {
       }
     );
   }
-
-  // ==================== AUTH ====================
 
   async register(name: string, email: string, password: string): Promise<ApiResponse<{ message: string }>> {
     const response = await this.api.post('/auth/register', { name, email, password });
@@ -121,8 +116,6 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== INVITATIONS ====================
-
   async getInvitationDetails(token: string): Promise<ApiResponse<any>> {
     const response = await this.api.get(`/invites/${token}`);
     return response.data;
@@ -132,10 +125,6 @@ class ApiService {
     const response = await this.api.post(`/invites/${token}/accept`);
     return response.data;
   }
-
-  // ==================== MESSAGES ====================
-
-  // ==================== NOTIFICATIONS ====================
 
   async getNotifications(limit?: number): Promise<ApiResponse<Notification[]>> {
     const response = await this.api.get('/notifications', { params: { limit } });
@@ -167,8 +156,6 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== WORKSHOP DISCOVERY ====================
-
   async getPublicWorkshops(
     filters?: { search?: string; category?: string; tags?: string[]; sort?: string },
     page?: number,
@@ -193,8 +180,6 @@ class ApiService {
     const response = await this.api.post(`/workshops/${workshopId}/downvote`);
     return response.data;
   }
-
-  // ==================== WORKSHOPS ====================
 
   async getWorkshops(): Promise<ApiResponse<Workshop[]>> {
     const response = await this.api.get('/workshops/my-workshops');
@@ -221,8 +206,6 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== WORKSHOP MANAGERS ====================
-
   async assignWorkshopManager(workshopId: string, userId: string): Promise<ApiResponse<Workshop>> {
     const response = await this.api.post(`/workshops/${workshopId}/managers`, { userId });
     return response.data;
@@ -232,8 +215,6 @@ class ApiService {
     const response = await this.api.delete(`/workshops/${workshopId}/managers/${userId}`);
     return response.data;
   }
-
-  // ==================== WORKSHOP MEMBERSHIP ====================
 
   async getWorkshopMembers(workshopId: string): Promise<ApiResponse<Membership[]>> {
     const response = await this.api.get(`/workshops/${workshopId}/members`);
@@ -271,8 +252,6 @@ class ApiService {
     const response = await this.api.post(`/workshops/${workshopId}/leave`);
     return response.data;
   }
-
-  // ==================== WORKSHOP TEAMS ====================
 
   async getWorkshopTeams(workshopId: string): Promise<ApiResponse<Team[]>> {
     const response = await this.api.get(`/workshops/${workshopId}/teams`);
@@ -329,8 +308,6 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== WORKSHOP ROLES ====================
-
   async getWorkshopRoles(workshopId: string): Promise<ApiResponse<Role[]>> {
     const response = await this.api.get(`/workshops/${workshopId}/roles`);
     return response.data;
@@ -366,16 +343,13 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== COMMUNITY POSTS (Legacy/Alias) ====================
-
   async getCommunityPosts(
     filters?: any,
     sort?: string,
     page?: number,
     limit?: number
   ): Promise<any> {
-    // Map to public workshops
-    // Merge sort into filters if provided
+
     const combinedFilters = { ...filters };
     if (sort) combinedFilters.sort = sort;
 
@@ -400,7 +374,7 @@ class ApiService {
 
   async addComment(_postId: string, _content: string): Promise<ApiResponse<any>> {
     console.warn('addComment is partially implemented (maps to task comment log for now)');
-    // Placeholder - in a real app, workshops would have their own comments
+
     return { success: false, data: null, message: 'Not implemented' } as any;
   }
 
@@ -420,8 +394,6 @@ class ApiService {
   async respondToJoinRequest(workshopId: string, membershipId: string, status: 'approved' | 'rejected'): Promise<ApiResponse<any>> {
     return this.respondToWorkshopJoinRequest(workshopId, membershipId, status);
   }
-
-  // ==================== WORKSHOP PROJECTS ====================
 
   async getWorkshopProjects(workshopId: string): Promise<ApiResponse<WorkshopProject[]>> {
     const response = await this.api.get(`/workshops/${workshopId}/projects`);
@@ -482,9 +454,6 @@ class ApiService {
     const response = await this.api.delete(`/workshops/${workshopId}/projects/${projectId}/maintainers/${userId}`);
     return response.data;
   }
-
-
-  // ==================== WORKSHOP TASKS ====================
 
   async getWorkshopProjectTasks(workshopId: string, projectId: string): Promise<ApiResponse<WorkshopTask[]>> {
     const response = await this.api.get(`/workshops/${workshopId}/projects/${projectId}/tasks`);
@@ -561,8 +530,6 @@ class ApiService {
     return response.data;
   }
 
-  // ==================== WORKSHOP AUDIT LOGS ====================
-
   async getWorkshopAuditLogs(
     workshopId: string,
     filters?: AuditLogFilters,
@@ -578,8 +545,6 @@ class ApiService {
     });
     return response.data;
   }
-
-  // ==================== PERMISSIONS ====================
 
   async checkPermission(
     workshopId: string,

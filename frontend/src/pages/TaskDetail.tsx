@@ -79,23 +79,19 @@ const TaskDetail: React.FC = () => {
     const { tasks: allTasks } = useWorkshopTasks(workshopId, projectId);
     const { toast } = useToast();
 
-    // UI States
     const [showEditDialog, setShowEditDialog] = useState(false);
     const [showDeleteDialog, setShowDeleteDialog] = useState(false);
     const [activeTab, setActiveTab] = useState('discussion');
     const [newComment, setNewComment] = useState('');
 
-    // Form states
     const [editData, setEditData] = useState<UpdateWorkshopTaskData>({});
     const [submitting, setSubmitting] = useState(false);
 
-    // Mention States
     const [mentionSearch, setMentionSearch] = useState('');
     const [showSuggestions, setShowSuggestions] = useState(false);
     const [suggestionIndex, setSuggestionIndex] = useState(0);
     const [cursorPos, setCursorPos] = useState(0);
 
-    // Permissions
     const isOwner = workshop && user && (
         typeof workshop.owner === 'string'
             ? workshop.owner === user._id
@@ -147,7 +143,6 @@ const TaskDetail: React.FC = () => {
         }
     };
 
-    // Handlers
     const handleEdit = () => {
         if (task) {
             setEditData({
@@ -195,13 +190,12 @@ const TaskDetail: React.FC = () => {
         setNewComment(value);
         setCursorPos(selectionStart);
 
-        // Detect if typing a mention
         const textBeforeCursor = value.substring(0, selectionStart);
         const lastAtIndex = textBeforeCursor.lastIndexOf('@');
 
         if (lastAtIndex !== -1) {
             const afterAt = textBeforeCursor.substring(lastAtIndex + 1);
-            // Check if there's a space or newline between @ and cursor
+
             if (!afterAt.includes(' ') && !afterAt.includes('\n')) {
                 setMentionSearch(afterAt);
                 setShowSuggestions(true);
@@ -220,12 +214,12 @@ const TaskDetail: React.FC = () => {
 
         setNewComment(updatedComment);
         setShowSuggestions(false);
-        // Put focus back and cursor after the name
+
         setTimeout(() => {
             const textarea = document.getElementById('comment-textarea') as HTMLTextAreaElement;
             if (textarea) {
                 textarea.focus();
-                const newPos = textBeforeAt.length + userName.length + 2; // @ + name + space
+                const newPos = textBeforeAt.length + userName.length + 2;
                 textarea.setSelectionRange(newPos, newPos);
             }
         }, 0);
@@ -240,7 +234,7 @@ const TaskDetail: React.FC = () => {
         if (!newComment.trim() || !workshopId || !projectId || !taskId) return;
         setSubmitting(true);
         try {
-            // Parse mentions - more robust parsing
+
             const mentions: string[] = [];
 
             if (activeMembers) {
@@ -254,7 +248,7 @@ const TaskDetail: React.FC = () => {
             }
 
             const response = await api.addWorkshopTaskComment(workshopId, projectId, taskId, newComment, mentions);
-            // Updating task is handled by socket, but we set it here for immediate feedback
+
             setTask(response.data);
             setNewComment('');
             toast({ title: 'Comment added' });
@@ -296,11 +290,10 @@ const TaskDetail: React.FC = () => {
 
         setSubmitting(true);
         try {
-            // 1. Upload file to storage
+
             const uploadResponse = await api.uploadFile(file);
             const { fileUrl, fileName, fileType, fileSize } = uploadResponse.data;
 
-            // 2. Add attachment to task
             const taskResponse = await api.addWorkshopTaskAttachment(workshopId, projectId, taskId, {
                 fileUrl,
                 fileName,
@@ -366,7 +359,7 @@ const TaskDetail: React.FC = () => {
     return (
         <AppLayout>
             <div className="page-container max-w-7xl mx-auto space-y-6 pb-20">
-                {/* Breadcrumbs / Back */}
+
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Link to={`/workshops/${workshopId}`} className="hover:text-foreground transition-colors">Workshop</Link>
                     <ChevronRight className="h-4 w-4" />
@@ -375,7 +368,6 @@ const TaskDetail: React.FC = () => {
                     <span className="text-foreground font-medium truncate">#{task._id.slice(-6)}</span>
                 </div>
 
-                {/* Header */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
                         <div className={`p-3 rounded-xl ${getPriorityColor(task.priority)} flex items-center justify-center`}>
@@ -444,9 +436,9 @@ const TaskDetail: React.FC = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                    {/* Main Content */}
+
                     <div className="lg:col-span-3 space-y-8">
-                        {/* Description */}
+
                         <section className="space-y-3">
                             <h3 className="text-lg font-semibold flex items-center gap-2">
                                 <FileText className="h-5 w-5 text-muted-foreground" />
@@ -467,7 +459,6 @@ const TaskDetail: React.FC = () => {
                             </Card>
                         </section>
 
-                        {/* Hierarchy & Dependencies (if any) */}
                         {(task.childTasks?.length > 0 || task.blockedBy?.length > 0 || task.blocking?.length > 0) && (
                             <section className="grid md:grid-cols-2 gap-6">
                                 {task.childTasks?.length > 0 && (
@@ -526,7 +517,6 @@ const TaskDetail: React.FC = () => {
                             </section>
                         )}
 
-                        {/* Engagement Tabs */}
                         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                             <TabsList className="bg-transparent border-b rounded-none px-0 h-12 w-full justify-start gap-8">
                                 <TabsTrigger value="discussion" className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-2 h-full gap-2">
@@ -549,7 +539,6 @@ const TaskDetail: React.FC = () => {
                                 </TabsTrigger>
                             </TabsList>
 
-                            {/* Discussion Tab */}
                             <TabsContent value="discussion" className="pt-6 space-y-6">
                                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                                     {task.comments?.length === 0 ? (
@@ -659,7 +648,6 @@ const TaskDetail: React.FC = () => {
                                 </div>
                             </TabsContent>
 
-                            {/* Attachments Tab */}
                             <TabsContent value="attachments" className="pt-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                                     <label className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center py-10 cursor-pointer hover:bg-slate-50 transition-colors group ${submitting ? 'opacity-50 cursor-not-allowed' : ''}`}>
@@ -700,7 +688,6 @@ const TaskDetail: React.FC = () => {
                                 </div>
                             </TabsContent>
 
-                            {/* Activity Tab */}
                             <TabsContent value="activity" className="pt-6">
                                 <Card className="border-none shadow-none bg-slate-50/50">
                                     <CardContent className="pt-6">
@@ -713,7 +700,7 @@ const TaskDetail: React.FC = () => {
                                                 <div className="text-center py-10 opacity-50 italic">No history available</div>
                                             ) : (
                                                 <div className="space-y-8 pl-10">
-                                                    {/* Status Changes First (High importance) */}
+
                                                     {task.statusHistory?.map((history, idx) => (
                                                         <div key={history._id || idx} className="relative">
                                                             <div className="absolute -left-[30px] w-4 h-4 rounded-full bg-blue-500 border-4 border-white shadow-sm" />
@@ -740,7 +727,7 @@ const TaskDetail: React.FC = () => {
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    {/* Other Activities */}
+
                                                     {activities.map((activity, idx) => (
                                                         <div key={idx} className="relative">
                                                             <div className="absolute -left-[30px] w-4 h-4 rounded-full bg-slate-200 border-4 border-white shadow-sm" />
@@ -769,15 +756,14 @@ const TaskDetail: React.FC = () => {
                         </Tabs>
                     </div>
 
-                    {/* Sidebar Details */}
                     <div className="space-y-6">
-                        {/* Assignment Panel */}
+
                         <Card className="shadow-sm border-none bg-indigo-50/30">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-xs uppercase tracking-wider text-indigo-600 font-bold">People & Team</CardTitle>
                             </CardHeader>
                             <CardContent className="space-y-6">
-                                {/* Primary Owner */}
+
                                 <div className="space-y-2">
                                     <Label className="text-[10px] text-indigo-500 flex items-center gap-1 uppercase font-bold">
                                         <Shield className="h-3 w-3" />
@@ -794,7 +780,6 @@ const TaskDetail: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Assigned Individuals */}
                                 <div className="space-y-2">
                                     <Label className="text-[10px] text-slate-500 uppercase font-bold">Assigned People</Label>
                                     <div className="flex flex-wrap gap-2">
@@ -826,7 +811,6 @@ const TaskDetail: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Contributors */}
                                 <div className="space-y-2">
                                     <Label className="text-[10px] text-slate-500 uppercase font-bold">Contributors</Label>
                                     <div className="flex flex-wrap gap-2">
@@ -846,7 +830,7 @@ const TaskDetail: React.FC = () => {
                                             className="h-7 w-7 rounded-full bg-white border border-dashed border-slate-300 hover:border-blue-400 hover:text-blue-500 transition-colors"
                                             onClick={() => {
                                                 handleEdit();
-                                                // Ideally we'd set the tab here, but for now we'll just open the dialog
+
                                             }}
                                         >
                                             <Plus className="h-3 w-3" />
@@ -854,7 +838,6 @@ const TaskDetail: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Teams */}
                                 <div className="space-y-2">
                                     <Label className="text-[10px] text-slate-500 uppercase font-bold">Work Teams</Label>
                                     <div className="space-y-2">
@@ -886,7 +869,6 @@ const TaskDetail: React.FC = () => {
                             </CardContent>
                         </Card>
 
-                        {/* Timing & Metadata */}
                         <Card className="shadow-sm border-none bg-slate-50">
                             <CardHeader className="pb-3">
                                 <CardTitle className="text-xs uppercase tracking-wider text-slate-600 font-bold">Timing & Details</CardTitle>
@@ -939,7 +921,6 @@ const TaskDetail: React.FC = () => {
                 </div>
             </div>
 
-            {/* Edit Dialog */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white">
                     <DialogHeader className="p-6 pb-0">
@@ -1308,7 +1289,6 @@ const TaskDetail: React.FC = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Delete Confirmation */}
             <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <AlertDialogContent>
                     <AlertDialogHeader>

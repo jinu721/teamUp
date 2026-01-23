@@ -3,10 +3,6 @@ import { AuthRequest } from '../types';
 import { PermissionService } from '../services/PermissionService';
 import { AuthorizationError } from '../utils/errors';
 
-/**
- * Permission middleware factory
- * Creates middleware that checks if user has required permission
- */
 export const requirePermission = (action: string, resource: string, scopeParam?: string) => {
   return async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
     try {
@@ -19,11 +15,8 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
 
       const permissionService = PermissionService.getInstance();
 
-      // Build context only from projectId and teamId parameters
-      // Ignore other route parameters like membershipId, userId, taskId, etc.
       const context: any = {};
 
-      // Only use explicit scope parameter if provided and it's a valid scope type
       if (scopeParam && (scopeParam === 'projectId' || scopeParam === 'teamId')) {
         const scopeId = req.params[scopeParam];
         if (scopeId) {
@@ -34,7 +27,7 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
           }
         }
       } else {
-        // Auto-detect from standard parameters
+
         if (req.params.projectId) {
           context.projectId = req.params.projectId;
         }
@@ -62,10 +55,6 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
   };
 };
 
-/**
- * Workshop membership middleware
- * Checks if user is a member of the workshop
- */
 export const requireWorkshopMembership = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -77,7 +66,6 @@ export const requireWorkshopMembership = async (req: AuthRequest, _res: Response
 
     const permissionService = PermissionService.getInstance();
 
-    // Check if user has any permission in the workshop (which means they're a member)
     const hasPermission = await permissionService.checkPermission(
       userId,
       workshopId,
@@ -95,10 +83,6 @@ export const requireWorkshopMembership = async (req: AuthRequest, _res: Response
   }
 };
 
-/**
- * Workshop owner middleware
- * Checks if user is the owner of the workshop
- */
 export const requireWorkshopOwner = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.id;
@@ -126,10 +110,6 @@ export const requireWorkshopOwner = async (req: AuthRequest, _res: Response, nex
   }
 };
 
-/**
- * Workshop manager middleware
- * Checks if user is an owner or manager of the workshop
- */
 export const requireWorkshopManager = async (req: AuthRequest, _res: Response, next: NextFunction): Promise<void> => {
   try {
     const userId = req.user!.id;

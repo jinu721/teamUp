@@ -200,7 +200,6 @@ export const RoleManager: React.FC<RoleManagerProps> = ({
         </div>
       )}
 
-      {/* Create Role Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -272,7 +271,6 @@ export const RoleManager: React.FC<RoleManagerProps> = ({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Role Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={(open) => !open && setEditingRole(null)}>
         <DialogContent className="max-w-md">
           <DialogHeader>

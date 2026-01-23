@@ -14,9 +14,6 @@ import { AuditAction } from '../types';
 import { ChatService } from './ChatService';
 import { SocketService } from './SocketService';
 
-/**
- * Helper to extract ID from a potentially populated reference
- */
 function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): string {
   if (ref && typeof ref === 'object' && '_id' in ref) {
     return ref._id.toString();
@@ -24,10 +21,6 @@ function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): strin
   return ref?.toString() || '';
 }
 
-/**
- * Workshop Project Service
- * Handles all workshop-aware project business logic
- */
 export class WorkshopProjectService {
   private projectRepository: WorkshopProjectRepository;
   private workshopRepository: WorkshopRepository;
@@ -51,9 +44,6 @@ export class WorkshopProjectService {
     this.chatService.setSocketService(socketService);
   }
 
-  /**
-   * Create a new project in a workshop
-   */
   async createProject(
     workshopId: string,
     actorId: string,
@@ -70,34 +60,22 @@ export class WorkshopProjectService {
     return project;
   }
 
-  /**
-   * Get project by ID
-   */
   async getProject(projectId: string): Promise<IWorkshopProject> {
     const project = await this.projectRepository.findById(projectId);
     if (!project) throw new NotFoundError('Project');
     return project;
   }
 
-  /**
-   * Get all projects in a workshop
-   */
   async getWorkshopProjects(workshopId: string): Promise<IWorkshopProject[]> {
     return await this.projectRepository.findByWorkshop(workshopId);
   }
 
-  /**
-   * Get projects accessible to a user in a workshop
-   */
   async getUserAccessibleProjects(workshopId: string, userId: string): Promise<IWorkshopProject[]> {
     const teams = await this.teamRepository.findByMemberInWorkshop(workshopId, userId);
     const teamIds = teams.map(t => t._id.toString());
     return await this.projectRepository.findAccessibleByUser(workshopId, userId, teamIds);
   }
 
-  /**
-   * Update project
-   */
   async updateProject(
     projectId: string,
     actorId: string,
@@ -124,9 +102,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Delete project
-   */
   async deleteProject(projectId: string, actorId: string): Promise<void> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -148,9 +123,6 @@ export class WorkshopProjectService {
     if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'workshop:project:deleted', { projectId });
   }
 
-  /**
-   * Assign team to project
-   */
   async assignTeamToProject(projectId: string, actorId: string, teamId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -160,7 +132,6 @@ export class WorkshopProjectService {
 
     const updated = await this.projectRepository.assignTeam(projectId, teamId);
 
-    // Invalidate cache for team members
     const team = await this.teamRepository.findById(teamId);
     if (team) {
       for (const mId of team.members) {
@@ -175,9 +146,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Remove team from project
-   */
   async removeTeamFromProject(projectId: string, actorId: string, teamId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -202,9 +170,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Assign individual to project
-   */
   async assignIndividualToProject(projectId: string, actorId: string, userId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -220,9 +185,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Remove individual from project
-   */
   async removeIndividualFromProject(projectId: string, actorId: string, userId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -238,14 +200,10 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Assign Project Manager
-   */
   async assignProjectManager(projectId: string, actorId: string, userId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
 
-    // Only workshop owner or manager can assign project manager
     if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
       throw new AuthorizationError('Only workshop managers can assign project managers');
     }
@@ -268,9 +226,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Add Maintainer
-   */
   async addMaintainer(projectId: string, actorId: string, userId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -297,9 +252,6 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Remove Maintainer
-   */
   async removeMaintainer(projectId: string, actorId: string, userId: string): Promise<IWorkshopProject> {
     const project = await this.getProject(projectId);
     const workshopId = getIdString(project.workshop);
@@ -315,17 +267,11 @@ export class WorkshopProjectService {
     return updated;
   }
 
-  /**
-   * Helper to check project management permission
-   */
   private async canManageProject(workshopId: string, projectId: string, userId: string): Promise<boolean> {
     const res = await this.permissionService.checkPermission(userId, workshopId, 'manage', 'project', { projectId });
     return res.granted;
   }
 
-  /**
-   * Check if user has access to project
-   */
   async hasAccess(projectId: string, userId: string): Promise<boolean> {
     const project = await this.projectRepository.findById(projectId);
     if (!project) return false;

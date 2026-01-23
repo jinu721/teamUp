@@ -113,7 +113,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Comment input */}
+
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           placeholder="Write a comment..."
@@ -127,7 +127,6 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
         </Button>
       </form>
 
-      {/* Comments list */}
       {comments.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -180,7 +179,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({
                       <Edit className="mr-2 h-4 w-4" />
                       Edit
                     </DropdownMenuItem>
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => handleDelete(comment._id)}
                       className="text-destructive"
                     >

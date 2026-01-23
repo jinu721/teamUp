@@ -14,9 +14,6 @@ interface UseWorkshopsReturn {
   removeWorkshop: (workshopId: string) => void;
 }
 
-/**
- * Hook for fetching and managing user's workshops with real-time updates
- */
 export function useWorkshops(): UseWorkshopsReturn {
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +53,6 @@ export function useWorkshops(): UseWorkshopsReturn {
     setWorkshops(prev => prev.filter(w => w._id !== workshopId));
   }, []);
 
-  // Socket event handlers
   useSocketEvent('workshop:created', (workshop: Workshop) => {
     addWorkshop(workshop);
   });
@@ -88,9 +84,6 @@ interface UseWorkshopReturn {
   setWorkshop: (workshop: Workshop | null) => void;
 }
 
-/**
- * Hook for fetching a single workshop with real-time updates
- */
 export function useWorkshop(workshopId: string | undefined): UseWorkshopReturn {
   const [workshop, setWorkshop] = useState<Workshop | null>(null);
   const [loading, setLoading] = useState(true);
@@ -118,7 +111,6 @@ export function useWorkshop(workshopId: string | undefined): UseWorkshopReturn {
     fetchWorkshop();
   }, [fetchWorkshop]);
 
-  // Join workshop room for real-time updates
   useEffect(() => {
     if (workshopId) {
       socket.joinWorkshop(workshopId);
@@ -128,7 +120,6 @@ export function useWorkshop(workshopId: string | undefined): UseWorkshopReturn {
     }
   }, [workshopId]);
 
-  // Socket event handler for this specific workshop
   useSocketEvent('workshop:updated', (updatedWorkshop: Workshop) => {
     if (updatedWorkshop._id === workshopId) {
       setWorkshop(updatedWorkshop);
@@ -144,9 +135,6 @@ export function useWorkshop(workshopId: string | undefined): UseWorkshopReturn {
   };
 }
 
-/**
- * Hook for joining/leaving workshop room
- */
 export function useWorkshopRoom(workshopId: string | undefined) {
   useEffect(() => {
     if (workshopId) {

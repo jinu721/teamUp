@@ -1,6 +1,5 @@
 import dotenv from 'dotenv';
-// Load environment variables FIRST before any other imports
-// Forced restart to pick up schema changes
+
 dotenv.config();
 
 import express, { Application } from 'express';
@@ -13,7 +12,6 @@ import { errorHandler } from './middlewares/errorMiddleware';
 import authRoutes from './routes/authRoutes';
 import notificationRoutes, { notificationService } from './routes/notificationRoutes';
 
-// Workshop domain routes
 import workshopRoutes, { workshopController, teamController, projectController, taskController } from './routes/workshopRoutes';
 import roleRoutes, { roleController } from './routes/roleRoutes';
 import workshopProjectRoutes from './routes/workshopProjectRoutes';
@@ -40,7 +38,6 @@ app.use(morgan('dev'));
 
 const socketService = new SocketService(server);
 
-// Set socket service for services
 notificationService.setSocketService(socketService);
 workshopController.setSocketService(socketService);
 roleController.setSocketService(socketService);
@@ -49,11 +46,9 @@ projectController.setSocketService(socketService);
 taskController.setSocketService(socketService);
 chatController.setSocketService(socketService);
 
-// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/notifications', notificationRoutes);
 
-// Workshop-aware routes (new architecture)
 app.use('/api/workshops', workshopRoutes);
 app.use('/api/workshops/:workshopId/roles', roleRoutes);
 app.use('/api/workshops/:workshopId/projects', workshopProjectRoutes);
@@ -61,12 +56,10 @@ app.use('/api/workshops/:workshopId/projects/:projectId/tasks', workshopTaskRout
 app.use('/api/workshops/:workshopId/audit', auditRoutes);
 app.use('/api/workshops/:workshopId/permissions', permissionRoutes);
 
-// Shared task routes
 app.use('/api/workshop-tasks', taskRouter);
 app.use('/api/users', userTaskRouter);
 app.use('/api/teams', teamTaskRouter);
 
-// Chat and Activity routes
 app.use('/api/chat', chatRoutes);
 app.use('/api', activityRoutes);
 

@@ -12,9 +12,6 @@ interface UseMembershipsReturn {
   refetch: () => void;
 }
 
-/**
- * Hook for fetching workshop memberships with real-time updates
- */
 export function useMemberships(workshopId: string | undefined): UseMembershipsReturn {
   const [members, setMembers] = useState<Membership[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,7 +39,6 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
     fetchMembers();
   }, [fetchMembers]);
 
-  // Socket event handlers
   useSocketEvent('membership:invited', (membership: Membership) => {
     if (typeof membership.workshop === 'string'
       ? membership.workshop === workshopId
@@ -71,7 +67,7 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
       : membership.workshop._id;
     if (memberWorkshopId === workshopId) {
       setMembers(prev => {
-        // Prevent duplicates
+
         if (prev.some(m => m._id === membership._id)) {
           return prev;
         }
@@ -111,7 +107,6 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
     fetchMembers();
   });
 
-  // Computed values
   const pendingRequests = members.filter(m => m.state === MembershipState.PENDING);
   const activeMembers = members.filter(m => m.state === MembershipState.ACTIVE);
 
@@ -135,9 +130,6 @@ interface UseUserMembershipReturn {
   error: string | null;
 }
 
-/**
- * Hook for getting current user's membership status in a workshop
- */
 export function useUserMembership(
   workshopId: string | undefined,
   userId: string | undefined
@@ -149,8 +141,8 @@ export function useUserMembership(
     return memberId === userId;
   }) || null;
 
-  const isOwner = false; // This would need workshop data to determine
-  const isManager = false; // This would need workshop data to determine
+  const isOwner = false;
+  const isManager = false;
   const isMember = membership?.state === MembershipState.ACTIVE;
   const isPending = membership?.state === MembershipState.PENDING;
 

@@ -75,7 +75,6 @@ export const MemberList: React.FC<MemberListProps> = ({
     );
   }
 
-  // Debug logging
   console.log('[MemberList] Rendering members:', members.length);
   const unpopulatedMembers = members.filter(m => typeof m.user === 'string');
   if (unpopulatedMembers.length > 0) {

@@ -6,7 +6,6 @@ export class AuditLogRepository {
   private readonly populateActor = { path: 'actor', select: 'name email profilePhoto' };
   private readonly populateWorkshop = { path: 'workshop', select: 'name' };
 
-
   async create(data: {
     workshopId: string;
     action: AuditAction;
@@ -33,7 +32,6 @@ export class AuditLogRepository {
       .populate(this.populateActor)
       .populate(this.populateWorkshop);
   }
-
 
   async findByWorkshop(
     workshopId: string,
@@ -93,9 +91,6 @@ export class AuditLogRepository {
     );
   }
 
-  /**
-   * Find audit logs by target
-   */
   async findByTarget(
     workshopId: string,
     targetId: string,
@@ -109,9 +104,6 @@ export class AuditLogRepository {
     return await this.findByWorkshop(workshopId, filters, pagination);
   }
 
-  /**
-   * Find audit logs by action type
-   */
   async findByAction(
     workshopId: string,
     action: AuditAction,
@@ -124,9 +116,6 @@ export class AuditLogRepository {
     );
   }
 
-  /**
-   * Find recent audit logs for a workshop
-   */
   async findRecent(workshopId: string, limit: number = 50): Promise<IAuditLog[]> {
     return await AuditLog.find({ workshop: new Types.ObjectId(workshopId) })
       .populate(this.populateActor)
@@ -134,9 +123,6 @@ export class AuditLogRepository {
       .limit(limit);
   }
 
-  /**
-   * Find audit logs within a date range
-   */
   async findByDateRange(
     workshopId: string,
     startDate: Date,
@@ -150,9 +136,6 @@ export class AuditLogRepository {
     );
   }
 
-  /**
-   * Count audit logs by action type in a workshop
-   */
   async countByAction(workshopId: string): Promise<Record<string, number>> {
     const result = await AuditLog.aggregate([
       { $match: { workshop: new Types.ObjectId(workshopId) } },
@@ -165,9 +148,6 @@ export class AuditLogRepository {
     }, {} as Record<string, number>);
   }
 
-  /**
-   * Get activity summary for a user in a workshop
-   */
   async getUserActivitySummary(
     workshopId: string,
     userId: string,
@@ -194,31 +174,14 @@ export class AuditLogRepository {
     }));
   }
 
-  // ============================================
-  // INTENTIONALLY NOT IMPLEMENTED
-  // Audit logs are immutable - no updates or deletes
-  // ============================================
-
-  /**
-   * @deprecated Audit logs are immutable and cannot be updated
-   * @throws Error always
-   */
   async update(): Promise<never> {
     throw new Error('Audit logs are immutable and cannot be updated');
   }
 
-  /**
-   * @deprecated Audit logs are immutable and cannot be deleted
-   * @throws Error always
-   */
   async delete(): Promise<never> {
     throw new Error('Audit logs are immutable and cannot be deleted');
   }
 
-  /**
-   * @deprecated Audit logs are immutable and cannot be deleted
-   * @throws Error always
-   */
   async deleteByWorkshop(): Promise<never> {
     throw new Error('Audit logs are immutable and cannot be deleted');
   }

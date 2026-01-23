@@ -11,7 +11,7 @@ export class WorkshopRepository {
     const workshop = new Workshop({
       ...workshopData,
       owner: new Types.ObjectId(ownerId),
-      managers: [] // Owner is not automatically a manager
+      managers: []
     });
     const saved = await workshop.save();
     return await this.findById(saved._id.toString()) as IWorkshop;
@@ -64,7 +64,7 @@ export class WorkshopRepository {
     if (options?.sort === 'top') {
       queryBuilder = queryBuilder.sort({ voteScore: -1, createdAt: -1 });
     } else if (options?.sort === 'trending') {
-      // Basic trending: voteScore descending, then date
+
       queryBuilder = queryBuilder.sort({ voteScore: -1, createdAt: -1 });
     } else if (options?.search) {
       queryBuilder = queryBuilder.sort({ score: { $meta: 'textScore' } });

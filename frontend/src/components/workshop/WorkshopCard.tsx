@@ -12,15 +12,15 @@ interface WorkshopCardProps {
   memberCount?: number;
 }
 
-export const WorkshopCard: React.FC<WorkshopCardProps> = ({ 
-  workshop, 
+export const WorkshopCard: React.FC<WorkshopCardProps> = ({
+  workshop,
   currentUserId,
-  memberCount = 0 
+  memberCount = 0
 }) => {
-  const isOwner = typeof workshop.owner === 'string' 
-    ? workshop.owner === currentUserId 
+  const isOwner = typeof workshop.owner === 'string'
+    ? workshop.owner === currentUserId
     : workshop.owner._id === currentUserId;
-  
+
   const isManager = workshop.managers.some(m => {
     const managerId = typeof m === 'string' ? m : m._id;
     return managerId === currentUserId;

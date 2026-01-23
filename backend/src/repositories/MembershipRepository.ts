@@ -3,9 +3,6 @@ import { IMembership, MembershipState, MembershipSource } from '../types';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../utils/errors';
 
-/**
- * Create membership DTO
- */
 export interface CreateMembershipDTO {
   workshopId: string;
   userId: string;

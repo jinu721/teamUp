@@ -14,9 +14,6 @@ interface UseNotificationsReturn {
   deleteNotification: (id: string) => Promise<void>;
 }
 
-/**
- * Hook for fetching and managing notifications with real-time updates
- */
 export function useNotifications(limit: number = 50): UseNotificationsReturn {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,7 +67,6 @@ export function useNotifications(limit: number = 50): UseNotificationsReturn {
     }
   }, []);
 
-  // Socket event handlers
   useSocketEvent('notification:new', (notification: Notification) => {
     setNotifications(prev => {
       if (prev.some(n => n._id === notification._id)) return prev;
@@ -104,9 +100,6 @@ export function useNotifications(limit: number = 50): UseNotificationsReturn {
   };
 }
 
-/**
- * Hook for just the unread count (lighter weight)
- */
 export function useUnreadCount() {
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -126,7 +119,6 @@ export function useUnreadCount() {
     fetchCount();
   }, [fetchCount]);
 
-  // Update count on new notification
   useSocketEvent('notification:new', () => {
     setCount(prev => prev + 1);
   });

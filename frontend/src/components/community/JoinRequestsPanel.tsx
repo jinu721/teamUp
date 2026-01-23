@@ -103,7 +103,7 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({
             </div>
           ) : (
             <>
-              {/* Pending Requests */}
+
               {pendingRequests.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium flex items-center gap-2">
@@ -164,7 +164,6 @@ export const JoinRequestsPanel: React.FC<JoinRequestsPanelProps> = ({
                 </div>
               )}
 
-              {/* Handled Requests */}
               {handledRequests.length > 0 && (
                 <div className="space-y-3">
                   <h4 className="text-sm font-medium text-muted-foreground">

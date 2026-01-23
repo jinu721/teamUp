@@ -204,7 +204,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
                 "flex max-w-[85%] gap-3",
                 isMe ? "flex-row-reverse" : "flex-row"
             )}>
-                {/* Avatar */}
+
                 {!isMe && (
                     <div className="w-8 shrink-0 flex items-end mb-1">
                         {showAvatar ? (
@@ -216,7 +216,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
                     </div>
                 )}
 
-                {/* Bubble Container */}
                 <div className={cn(
                     "flex flex-col gap-1 relative",
                     isMe ? "items-end" : "items-start"
@@ -230,7 +229,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
                     <div className="flex items-center gap-2 group/bubble">
                         <div className={cn(
                             "relative transition-all",
-                            // Only apply bubble styling for text messages
+
                             message.messageType === 'text' && cn(
                                 "px-4 py-2.5 rounded-2xl text-sm shadow-xs",
                                 isMe
@@ -261,7 +260,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
                             )}
                         </div>
 
-                        {/* Actions */}
                         {!message.isDeleted && !isEditing && (
                             <div className={cn(
                                 "opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1",
@@ -304,7 +302,6 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
                         )}
                     </div>
 
-                    {/* Status info */}
                     {showAvatar && (
                         <div className="flex items-center gap-1.5 px-1 mt-0.5 opacity-40">
                             <span className="text-[9px] text-muted-foreground font-medium">{time}</span>
@@ -315,4 +312,3 @@ export const MessageItem: React.FC<MessageItemProps> = ({ message, isMe, showAva
         </div>
     );
 };
-

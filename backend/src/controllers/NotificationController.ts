@@ -3,10 +3,6 @@ import { NotificationService } from '../services/NotificationService';
 import { AuthRequest } from '../types';
 import { asyncHandler } from '../middlewares/errorMiddleware';
 
-/**
- * Notification Controller
- * Handles all HTTP requests for notifications
- */
 export class NotificationController {
   private notificationService: NotificationService;
 
@@ -14,10 +10,6 @@ export class NotificationController {
     this.notificationService = notificationService;
   }
 
-  /**
-   * GET /api/notifications
-   * Get user notifications
-   */
   getNotifications = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const limit = parseInt(req.query.limit as string) || 50;
@@ -30,10 +22,6 @@ export class NotificationController {
     });
   });
 
-  /**
-   * GET /api/notifications/unread
-   * Get unread notifications
-   */
   getUnreadNotifications = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const notifications = await this.notificationService.getUnreadNotifications(userId);
@@ -44,10 +32,6 @@ export class NotificationController {
     });
   });
 
-  /**
-   * GET /api/notifications/count
-   * Get unread notification count
-   */
   getUnreadCount = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const count = await this.notificationService.getUnreadCount(userId);
@@ -58,10 +42,6 @@ export class NotificationController {
     });
   });
 
-  /**
-   * PUT /api/notifications/:id/read
-   * Mark a notification as read
-   */
   markAsRead = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const { id } = req.params;
@@ -74,10 +54,6 @@ export class NotificationController {
     });
   });
 
-  /**
-   * PUT /api/notifications/read-all
-   * Mark all notifications as read
-   */
   markAllAsRead = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     await this.notificationService.markAllAsRead(userId);
@@ -88,10 +64,6 @@ export class NotificationController {
     });
   });
 
-  /**
-   * DELETE /api/notifications/:id
-   * Delete a notification
-   */
   deleteNotification = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const { id } = req.params;

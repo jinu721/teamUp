@@ -56,7 +56,7 @@ export const TaskActivityHistory: React.FC<TaskActivityHistoryProps> = ({ activi
 
         return (
           <div key={index} className="flex gap-3">
-            {/* Timeline line */}
+
             <div className="flex flex-col items-center">
               <Avatar className="h-8 w-8 shrink-0">
                 {user && (
@@ -73,7 +73,6 @@ export const TaskActivityHistory: React.FC<TaskActivityHistoryProps> = ({ activi
               )}
             </div>
 
-            {/* Activity content */}
             <div className="flex-1 pb-4">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium">{user?.name || 'Unknown user'}</span>
@@ -83,7 +82,6 @@ export const TaskActivityHistory: React.FC<TaskActivityHistoryProps> = ({ activi
                 </span>
               </div>
 
-              {/* Changes */}
               {changes.length > 0 && (
                 <div className="mt-2 space-y-1">
                   {changes.map((change, changeIdx) => (

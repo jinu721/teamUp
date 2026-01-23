@@ -43,9 +43,8 @@ export default function Landing() {
                 </div>
             </nav>
 
-            {/* Hero Section */}
             <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
-                {/* Abstract Background Shapes */}
+
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full -z-10 overflow-hidden pointer-events-none">
                     <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full animate-pulse-slow" />
                     <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] bg-blue-500/5 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '2s' }} />
@@ -73,7 +72,6 @@ export default function Landing() {
                             </Link>
                         </div>
 
-                        {/* Platform Preview */}
                         <div className="relative mt-16 lg:mt-24 p-2 bg-muted/30 border border-border/50 rounded-[2.5rem] shadow-2xl animate-in fade-in zoom-in duration-1000 delay-500">
                             <div className="bg-background rounded-[2rem] overflow-hidden border shadow-inner">
                                 <img
@@ -82,7 +80,7 @@ export default function Landing() {
                                     className="w-full h-auto opacity-90 group-hover:opacity-100 transition-opacity"
                                 />
                             </div>
-                            {/* Floating Element 1 */}
+
                             <div className="absolute -top-6 -right-6 lg:-right-12 p-5 bg-background border rounded-2xl shadow-xl flex items-center gap-4 animate-bounce-slow">
                                 <div className="h-10 w-10 bg-green-500/10 text-green-600 rounded-full flex items-center justify-center">
                                     <CheckCircle2 className="h-6 w-6" />
@@ -92,7 +90,7 @@ export default function Landing() {
                                     <p className="text-sm font-bold">100% Completed</p>
                                 </div>
                             </div>
-                            {/* Floating Element 2 */}
+
                             <div className="absolute -bottom-6 -left-6 lg:-left-12 p-5 bg-background border rounded-2xl shadow-xl flex items-center gap-4 animate-float">
                                 <div className="flex -space-x-3">
                                     {[1, 2, 3].map(i => (
@@ -110,7 +108,6 @@ export default function Landing() {
                     </div>
                 </div>
 
-                {/* Statistics / Trust Bar */}
                 <div className="container mx-auto px-4 mt-24">
                     <div className="flex flex-wrap justify-center gap-12 lg:gap-24 opacity-50 grayscale hover:grayscale-0 transition-all duration-500">
                         <div className="flex items-center gap-2 font-black text-2xl tracking-tighter opacity-70"><Globe className="h-6 w-6" /> OPEN SOURCE</div>
@@ -120,7 +117,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Solutions Section */}
             <section id="solutions" className="py-24 relative">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-3xl mx-auto mb-20 space-y-4">
@@ -225,7 +221,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Features Grid */}
             <section id="features" className="py-24 bg-muted/30">
                 <div className="container mx-auto px-4">
                     <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
@@ -285,11 +280,10 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* CTA Section */}
             <section className="py-24">
                 <div className="container mx-auto px-4">
                     <div className="relative rounded-[3rem] overflow-hidden bg-primary px-8 py-16 lg:py-24 text-center text-primary-foreground shadow-2xl shadow-primary/20">
-                        {/* Background elements */}
+
                         <div className="absolute top-0 right-0 w-[30%] h-[100%] bg-white/5 skew-x-12 translate-x-1/2" />
                         <div className="absolute bottom-0 left-0 w-[40%] h-[100%] bg-black/5 -skew-x-12 -translate-x-1/2" />
 
@@ -316,7 +310,6 @@ export default function Landing() {
                 </div>
             </section>
 
-            {/* Footer */}
             <footer className="py-12 border-t bg-muted/30">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-col md:flex-row items-center justify-between gap-8 mb-12">

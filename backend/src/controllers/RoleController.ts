@@ -14,9 +14,6 @@ import {
 import { NotFoundError, AuthorizationError, ValidationError } from '../utils/errors';
 import { Types } from 'mongoose';
 
-/**
- * Controller for managing workshop roles and assignments
- */
 export class RoleController {
   private roleRepository: RoleRepository;
   private roleAssignmentRepository: RoleAssignmentRepository;
@@ -37,17 +34,11 @@ export class RoleController {
     this.socketService = socketService;
   }
 
-  /**
-   * Helper to validate ObjectId
-   */
   private isValidId(id: any): boolean {
     if (!id) return false;
     return Types.ObjectId.isValid(id.toString());
   }
 
-  /**
-   * Create a new role
-   */
   createRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -79,9 +70,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Get all roles in a workshop
-   */
   getRoles = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -92,9 +80,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Get a specific role
-   */
   getRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { id } = req.params;
@@ -106,9 +91,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Update a role
-   */
   updateRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, id } = req.params;
@@ -130,7 +112,6 @@ export class RoleController {
         details: updates as any
       });
 
-      // Invalidate cache for all users with this role
       const assignments = await this.roleAssignmentRepository.findByRole(id);
       for (const assignment of assignments) {
         const assignedUserId = typeof assignment.user === 'string' ? assignment.user : assignment.user._id.toString();
@@ -148,10 +129,8 @@ export class RoleController {
 
         console.log(`🔔 [RoleController] Emitting role:updated event:`, eventData);
 
-        // Emit to workshop room
         this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
 
-        // Emit to each affected user directly
         for (const assignment of assignments) {
           const assignedUserId = typeof assignment.user === 'string' ? assignment.user : assignment.user._id.toString();
           this.socketService.emitToUser(assignedUserId, 'role:updated', eventData);
@@ -164,9 +143,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Delete a role
-   */
   deleteRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, id } = req.params;
@@ -197,9 +173,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Assign role to user
-   */
   assignRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, id } = req.params;
@@ -215,7 +188,6 @@ export class RoleController {
       const role = await this.roleRepository.findById(id);
       if (!role) throw new NotFoundError('Role');
 
-      // Validate scopeId if needed
       let finalScopeId: string | undefined = undefined;
       if (role.scope !== PermissionScope.WORKSHOP) {
         const sid = role.scopeId ? role.scopeId.toString() : providedScopeId;
@@ -225,7 +197,6 @@ export class RoleController {
         finalScopeId = sid;
       }
 
-      // Check for duplicate
       const alreadyAssigned = await this.roleAssignmentRepository.exists(workshopId, id, userId, role.scope, finalScopeId);
       if (alreadyAssigned) {
         throw new ValidationError('Role already assigned to this user at this scope');
@@ -262,11 +233,9 @@ export class RoleController {
 
         console.log(`🔔 [RoleController] Emitting role:assigned event:`, eventData);
 
-        // Emit to workshop room
         this.socketService.emitToWorkshop(workshopId, 'role:assigned', eventData);
         this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
 
-        // CRITICAL: Also emit directly to the affected user
         this.socketService.emitToUser(userId, 'role:assigned', eventData);
         this.socketService.emitToUser(userId, 'role:updated', eventData);
       }
@@ -277,9 +246,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Revoke role from user
-   */
   revokeRole = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, id, userId } = req.params;
@@ -312,10 +278,8 @@ export class RoleController {
 
         console.log(`🔔 [RoleController] Emitting role:revoked event:`, eventData);
 
-        // Emit to workshop room
         this.socketService.emitToWorkshop(workshopId, 'role:revoked', eventData);
 
-        // CRITICAL: Also emit directly to the affected user
         this.socketService.emitToUser(userId, 'role:revoked', eventData);
       }
 
@@ -325,9 +289,6 @@ export class RoleController {
     }
   };
 
-  /**
-   * Get user's roles in a workshop
-   */
   getUserRoles = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId, userId } = req.params;

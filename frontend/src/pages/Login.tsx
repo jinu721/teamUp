@@ -34,7 +34,7 @@ const Login: React.FC = () => {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/30 p-4">
       <div className="w-full max-w-md animate-fade-in">
-        {/* Logo */}
+
         <div className="mb-8 flex flex-col items-center">
           <h1 className="text-2xl font-bold tracking-tight">TeamUp</h1>
           <p className="text-sm text-muted-foreground">Collaborate. Create. Succeed.</p>

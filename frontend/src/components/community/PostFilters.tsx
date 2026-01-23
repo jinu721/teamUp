@@ -43,10 +43,9 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
-        {/* Sort */}
+
         <PostSortSelect value={sortOrder} onChange={onSortChange} />
 
-        {/* Category Filter */}
         <Select
           value={filters.category || 'all'}
           onValueChange={(v: string) => onFiltersChange({
@@ -66,7 +65,6 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
           </SelectContent>
         </Select>
 
-        {/* Commitment Type Filter */}
         <Select
           value={filters.commitmentType || 'all'}
           onValueChange={(v: string) => onFiltersChange({
@@ -93,7 +91,6 @@ export const PostFiltersBar: React.FC<PostFiltersProps> = ({
         )}
       </div>
 
-      {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2">
           {filters.category && (
@@ -183,7 +180,6 @@ export const PostSortSelect: React.FC<PostSortSelectProps> = ({
   );
 };
 
-// Compact sort buttons for mobile
 interface PostSortButtonsProps {
   value: SortOrder;
   onChange: (sort: SortOrder) => void;

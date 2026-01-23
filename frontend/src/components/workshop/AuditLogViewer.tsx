@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -13,9 +13,9 @@ import {
 } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDistanceToNow, format } from 'date-fns';
-import { 
-  Filter, 
-  ChevronDown, 
+import {
+  Filter,
+  ChevronDown,
   ChevronUp,
   Building,
   Users,
@@ -101,10 +101,10 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Filters */}
+
       <div className="flex items-center justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => setShowFilters(!showFilters)}
         >
@@ -126,7 +126,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
                 <label className="text-sm font-medium">Action</label>
                 <Select
                   value={filters.action || ''}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     onFilterChange({ ...filters, action: value as AuditAction || undefined })
                   }
                 >
@@ -148,7 +148,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
                 <label className="text-sm font-medium">Target Type</label>
                 <Select
                   value={filters.targetType || ''}
-                  onValueChange={(value) => 
+                  onValueChange={(value) =>
                     onFilterChange({ ...filters, targetType: value || undefined })
                   }
                 >
@@ -172,7 +172,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
                 <Input
                   placeholder="Filter by actor..."
                   value={filters.actor || ''}
-                  onChange={(e) => 
+                  onChange={(e) =>
                     onFilterChange({ ...filters, actor: e.target.value || undefined })
                   }
                 />
@@ -182,7 +182,6 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
         </Card>
       )}
 
-      {/* Log entries */}
       {logs.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           {loading ? 'Loading audit logs...' : 'No audit logs found'}
@@ -196,7 +195,7 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
             const timestamp = new Date(log.timestamp);
 
             return (
-              <Card 
+              <Card
                 key={log._id}
                 className="cursor-pointer hover:bg-muted/50 transition-colors"
                 onClick={() => setExpandedLog(isExpanded ? null : log._id)}
@@ -219,8 +218,8 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
                         <span className="font-medium text-sm">
                           {actor?.name || 'Unknown user'}
                         </span>
-                        <Badge 
-                          variant="secondary" 
+                        <Badge
+                          variant="secondary"
                           className={`text-xs ${getCategoryColor(category)}`}
                         >
                           {getCategoryIcon(category)}
@@ -239,7 +238,6 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
                         {format(timestamp, 'MMM d, yyyy HH:mm')}
                       </div>
 
-                      {/* Expanded details */}
                       {isExpanded && Object.keys(log.details).length > 0 && (
                         <div className="mt-3 p-2 bg-muted rounded text-xs">
                           <div className="font-medium mb-1">Details:</div>
@@ -265,11 +263,10 @@ export const AuditLogViewer: React.FC<AuditLogViewerProps> = ({
         </div>
       )}
 
-      {/* Load more */}
       {hasMore && (
         <div className="flex justify-center">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={onLoadMore}
             disabled={loading}
           >

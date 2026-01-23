@@ -7,12 +7,11 @@ import { ChatRoomType } from '../models/ChatRoom';
 import { SocketService } from '../services/SocketService';
 import multer from 'multer';
 
-// Configure multer for file uploads
 const storage = multer.memoryStorage();
 const upload = multer({
     storage,
     limits: {
-        fileSize: 10 * 1024 * 1024 // 10MB limit
+        fileSize: 10 * 1024 * 1024
     }
 });
 
@@ -32,18 +31,11 @@ export class ChatController {
         this.permissionService = PermissionService.getInstance();
     }
 
-    /**
-     * Set socket service for real-time updates
-     */
     setSocketService(socketService: SocketService): void {
         this.socketService = socketService;
         this.chatService.setSocketService(socketService);
     }
 
-    /**
-     * Create a new chat room
-     * POST /api/workshops/:workshopId/chat/rooms
-     */
     createRoom = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workshopId } = req.params;
@@ -61,7 +53,6 @@ export class ChatController {
 
             let roomParticipants = participants;
 
-            // Automatically add project/team members if no participants provided
             if (!roomParticipants || roomParticipants.length === 0) {
                 const pList = new Set<string>();
                 pList.add(userId);
@@ -73,7 +64,6 @@ export class ChatController {
                         if (project.projectManager) pList.add(project.projectManager.toString());
                         project.maintainers.forEach((id: any) => pList.add(id.toString()));
 
-                        // Add members from assigned teams
                         if (project.assignedTeams && project.assignedTeams.length > 0) {
                             const TeamModel = require('../models/Team').Team;
                             const teams = await TeamModel.find({ _id: { $in: project.assignedTeams } });
@@ -112,7 +102,6 @@ export class ChatController {
                 createdBy: userId
             });
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToWorkshop(workshopId, 'chat:room:created', chatRoom);
             }
@@ -127,10 +116,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Get user's chat rooms
-     * GET /api/workshops/:workshopId/chat/rooms
-     */
     getRooms = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workshopId } = req.params;
@@ -148,10 +133,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Update chat room
-     * PUT /api/chat/rooms/:roomId
-     */
     updateRoom = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -160,7 +141,6 @@ export class ChatController {
 
             const chatRoom = await this.chatService.updateChatRoom(roomId, userId, { name, description });
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToChatRoom(roomId, 'chat:room:updated', chatRoom);
             }
@@ -175,22 +155,16 @@ export class ChatController {
         }
     };
 
-    /**
-     * Delete chat room
-     * DELETE /api/chat/rooms/:roomId
-     */
     deleteRoom = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
             const userId = req.user!.id;
 
-            // Get room details first to know which workshop to emit to
             const chatRoom = await this.chatService.getChatRoom(roomId);
             const workshopId = chatRoom.workshop.toString();
 
             await this.chatService.deleteChatRoom(roomId, userId);
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToWorkshop(workshopId, 'chat:room:deleted', { roomId });
             }
@@ -204,10 +178,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Get chat room details
-     * GET /api/chat/rooms/:roomId
-     */
     getRoom = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -224,10 +194,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Get or create direct message room
-     * POST /api/workshops/:workshopId/chat/direct
-     */
     getOrCreateDirectRoom = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { workshopId } = req.params;
@@ -246,10 +212,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Send a message
-     * POST /api/chat/rooms/:roomId/messages
-     */
     sendMessage = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -262,7 +224,6 @@ export class ChatController {
                 replyTo
             });
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToChatRoom(roomId, 'chat:message:received', message);
             }
@@ -277,10 +238,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Get messages with pagination
-     * GET /api/chat/rooms/:roomId/messages
-     */
     getMessages = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -306,10 +263,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Upload media (image, audio, document)
-     * POST /api/chat/upload
-     */
     uploadMedia = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId, messageType, replyTo } = req.body;
@@ -327,7 +280,6 @@ export class ChatController {
             let uploadResult;
             let folder = 'teamup/chat';
 
-            // Upload based on message type
             switch (messageType) {
                 case MessageType.IMAGE:
                     uploadResult = await this.cloudinaryService.uploadImage(file, `${folder}/images`);
@@ -346,7 +298,6 @@ export class ChatController {
                     return;
             }
 
-            // Create message with uploaded file
             const message = await this.chatService.sendMessage(roomId, userId, {
                 messageType,
                 content: uploadResult.secureUrl,
@@ -357,7 +308,6 @@ export class ChatController {
                 replyTo
             });
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToChatRoom(roomId, 'chat:message:received', message);
             }
@@ -372,9 +322,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Upload file only (without message)
-     */
     uploadOnly = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const file = req.file;
@@ -413,10 +360,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Mark message as seen
-     * PUT /api/chat/messages/:messageId/seen
-     */
     markAsSeen = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { messageId } = req.params;
@@ -424,7 +367,6 @@ export class ChatController {
 
             const message = await this.chatService.markMessageAsSeen(messageId, userId);
 
-            // Emit real-time update
             if (this.socketService) {
                 const roomId = (message.chatRoom as any)._id || message.chatRoom;
                 this.socketService.emitToChatRoom(roomId.toString(), 'chat:message:seen', {
@@ -444,10 +386,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Mark all messages in room as seen
-     * PUT /api/chat/rooms/:roomId/seen
-     */
     markAllAsSeen = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -455,7 +393,6 @@ export class ChatController {
 
             await this.chatService.markAllMessagesAsSeen(roomId, userId);
 
-            // Emit real-time update
             if (this.socketService) {
                 this.socketService.emitToChatRoom(roomId, 'chat:room:all_seen', {
                     userId,
@@ -472,10 +409,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Edit message
-     * PUT /api/chat/messages/:messageId
-     */
     editMessage = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { messageId } = req.params;
@@ -484,7 +417,6 @@ export class ChatController {
 
             const message = await this.chatService.editMessage(messageId, userId, content);
 
-            // Emit real-time update
             if (this.socketService) {
                 const roomId = (message.chatRoom as any)._id || message.chatRoom;
                 this.socketService.emitToChatRoom(roomId.toString(), 'chat:message:edited', message);
@@ -500,10 +432,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Delete message
-     * DELETE /api/chat/messages/:messageId
-     */
     deleteMessage = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { messageId } = req.params;
@@ -511,9 +439,8 @@ export class ChatController {
 
             await this.chatService.deleteMessage(messageId, userId);
 
-            // Emit real-time update
             if (this.socketService) {
-                // Get room ID before deletion
+
                 const Message = require('../models/Message').Message;
                 const message = await Message.findById(messageId);
                 if (message) {
@@ -532,10 +459,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Add reaction to message
-     * POST /api/chat/messages/:messageId/reactions
-     */
     addReaction = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { messageId } = req.params;
@@ -544,7 +467,6 @@ export class ChatController {
 
             const message = await this.chatService.addReaction(messageId, userId, emoji);
 
-            // Emit real-time update
             if (this.socketService) {
                 const roomId = (message.chatRoom as any)._id || message.chatRoom;
                 this.socketService.emitToChatRoom(roomId.toString(), 'chat:reaction:added', {
@@ -564,10 +486,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Remove reaction from message
-     * DELETE /api/chat/messages/:messageId/reactions
-     */
     removeReaction = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { messageId } = req.params;
@@ -576,7 +494,6 @@ export class ChatController {
 
             const message = await this.chatService.removeReaction(messageId, userId, emoji);
 
-            // Emit real-time update
             if (this.socketService) {
                 const roomId = (message.chatRoom as any)._id || message.chatRoom;
                 this.socketService.emitToChatRoom(roomId.toString(), 'chat:reaction:removed', {
@@ -596,10 +513,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Search messages
-     * GET /api/chat/rooms/:roomId/search
-     */
     searchMessages = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;
@@ -625,10 +538,6 @@ export class ChatController {
         }
     };
 
-    /**
-     * Get unread message count
-     * GET /api/chat/rooms/:roomId/unread
-     */
     getUnreadCount = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { roomId } = req.params;

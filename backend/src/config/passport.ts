@@ -5,9 +5,6 @@ import { AuthService } from '../services/AuthService';
 
 const authService = new AuthService();
 
-// Serialize/Deserialize not strictly needed for JWT-only sessionless, 
-// but Passport often requires it if using session. We are using session: false in routes.
-
 export const isStrategyEnabled = (strategy: string): boolean => {
     switch (strategy) {
         case 'google':
@@ -26,7 +23,7 @@ export const isStrategyEnabled = (strategy: string): boolean => {
 };
 
 export const configurePassport = () => {
-    // GOOGLE STRATEGY
+
     if (isStrategyEnabled('google')) {
         console.log('Initializing Google Strategy...');
         passport.use(
@@ -50,7 +47,6 @@ export const configurePassport = () => {
         console.warn('Google Auth disabled: Client ID or Secret missing or using placeholders.');
     }
 
-    // GITHUB STRATEGY
     if (isStrategyEnabled('github')) {
         console.log('Initializing GitHub Strategy...');
         passport.use(

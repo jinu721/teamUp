@@ -8,10 +8,6 @@ interface UseInfiniteScrollOptions {
   rootMargin?: string;
 }
 
-/**
- * Hook for infinite scroll using IntersectionObserver
- * Returns a ref to attach to the last element in the list
- */
 export function useInfiniteScroll({
   onLoadMore,
   hasMore,
@@ -22,7 +18,6 @@ export function useInfiniteScroll({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef(onLoadMore);
 
-  // Keep callback ref updated
   useEffect(() => {
     loadMoreRef.current = onLoadMore;
   }, [onLoadMore]);
@@ -30,12 +25,10 @@ export function useInfiniteScroll({
   const lastElementRef = useCallback((node: HTMLElement | null) => {
     if (loading) return;
 
-    // Disconnect previous observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
-    // Create new observer
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !loading) {
@@ -48,13 +41,11 @@ export function useInfiniteScroll({
       }
     );
 
-    // Observe the new node
     if (node) {
       observerRef.current.observe(node);
     }
   }, [loading, hasMore, threshold, rootMargin]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (observerRef.current) {
@@ -66,9 +57,6 @@ export function useInfiniteScroll({
   return lastElementRef;
 }
 
-/**
- * Simpler hook that triggers on scroll near bottom
- */
 export function useScrollNearBottom(
   onNearBottom: () => void,
   threshold: number = 200

@@ -15,7 +15,6 @@ export const useChat = (roomId: string | null) => {
     const socket = useSocket();
     const typingTimeoutRef = useRef<any>(null);
 
-    // Load room details
     useEffect(() => {
         if (!roomId) return;
 
@@ -31,7 +30,6 @@ export const useChat = (roomId: string | null) => {
         loadRoom();
     }, [roomId]);
 
-    // Load messages
     const loadMessages = useCallback(async (pageNum: number = 1) => {
         if (!roomId) return;
 
@@ -58,7 +56,6 @@ export const useChat = (roomId: string | null) => {
         }
     }, [roomId]);
 
-    // Load initial messages
     useEffect(() => {
         if (roomId) {
             loadMessages(1);
@@ -66,14 +63,11 @@ export const useChat = (roomId: string | null) => {
         }
     }, [roomId, loadMessages]);
 
-    // Socket event listeners
     useEffect(() => {
         if (!socket || !roomId) return;
 
-        // Join room
         socket.joinChat(roomId);
 
-        // Listen for new messages
         const handleNewMessage = (message: Message) => {
             const msgRoomId = typeof message.chatRoom === 'string'
                 ? message.chatRoom
@@ -83,7 +77,7 @@ export const useChat = (roomId: string | null) => {
 
             if (msgRoomId?.toString() === roomId?.toString()) {
                 setMessages(prev => {
-                    // Prevent duplicates
+
                     if (prev.some(m => m._id === message._id)) return prev;
                     return [...prev, message];
                 });
@@ -142,7 +136,6 @@ export const useChat = (roomId: string | null) => {
         socket.on('chat:room:updated', handleRoomUpdate);
         socket.on('chat:room:deleted', handleRoomDeletion);
 
-        // Cleanup
         return () => {
             socket.leaveChat(roomId);
             socket.off('chat:message:received', handleNewMessage);
@@ -155,7 +148,6 @@ export const useChat = (roomId: string | null) => {
         };
     }, [socket, roomId]);
 
-    // Load unread count
     const loadUnreadCount = async () => {
         if (!roomId) return;
         try {
@@ -166,7 +158,6 @@ export const useChat = (roomId: string | null) => {
         }
     };
 
-    // Send message
     const sendMessage = async (content: string, replyTo?: string) => {
         if (!roomId || !content.trim()) return;
 
@@ -177,7 +168,7 @@ export const useChat = (roomId: string | null) => {
                 content: content.trim(),
                 replyTo
             });
-            // The message will also be added via socket event
+
             return response.data;
         } catch (error) {
             console.error('Failed to send message:', error);
@@ -187,7 +178,6 @@ export const useChat = (roomId: string | null) => {
         }
     };
 
-    // Upload file
     const uploadFile = async (file: File, messageType: 'image' | 'audio' | 'document', replyTo?: string) => {
         if (!roomId) return;
 
@@ -202,11 +192,10 @@ export const useChat = (roomId: string | null) => {
         }
     };
 
-    // Edit message
     const editMessage = async (messageId: string, content: string) => {
         try {
             const response = await chatApi.editMessage(messageId, content);
-            // Local state is updated via socket or manual update
+
             setMessages(prev => prev.map(m => m._id === messageId ? response.data : m));
             return response.data;
         } catch (error) {
@@ -215,11 +204,10 @@ export const useChat = (roomId: string | null) => {
         }
     };
 
-    // Delete message
     const deleteMessage = async (messageId: string) => {
         try {
             await chatApi.deleteMessage(messageId);
-            // Local state is updated via socket or manual update
+
             setMessages(prev => prev.map(m =>
                 m._id === messageId
                     ? { ...m, isDeleted: true, content: 'This message has been deleted' }
@@ -231,7 +219,6 @@ export const useChat = (roomId: string | null) => {
         }
     };
 
-    // Typing indicator
     const startTyping = () => {
         if (!roomId) return;
         socket.startChatTyping(roomId);

@@ -14,8 +14,7 @@ const SocialCallback: React.FC = () => {
             if (refreshToken) {
                 localStorage.setItem('refreshToken', refreshToken);
             }
-            // We need to force a reload or notify auth context.
-            // A hard reload is simplest to guarantee state sync.
+
             window.location.href = '/dashboard';
         } else {
             navigate('/login');

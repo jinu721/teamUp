@@ -3,9 +3,6 @@ import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttac
 import { Types } from 'mongoose';
 import { NotFoundError } from '../utils/errors';
 
-/**
- * Tasks grouped by status for board view
- */
 export interface TasksByStatus {
   [status: string]: IWorkshopTask[];
 }
@@ -38,7 +35,6 @@ export class WorkshopTaskRepository {
       project: new Types.ObjectId(projectId),
       createdBy: new Types.ObjectId(createdBy),
 
-      // Convert string IDs to ObjectIds
       parentTask: taskData.parentTask ? new Types.ObjectId(taskData.parentTask) : undefined,
       primaryOwner: taskData.primaryOwner ? new Types.ObjectId(taskData.primaryOwner) : undefined,
       contributors: taskData.contributors?.map(id => new Types.ObjectId(id)) || [],
@@ -62,7 +58,6 @@ export class WorkshopTaskRepository {
 
     const saved = await task.save();
 
-    // If this is a subtask, update the parent task
     if (taskData.parentTask) {
       await WorkshopTask.findByIdAndUpdate(taskData.parentTask, {
         $addToSet: { childTasks: saved._id }
@@ -108,7 +103,6 @@ export class WorkshopTaskRepository {
       throw new NotFoundError('Task');
     }
 
-    // Handle ID conversions
     const formattedUpdates: any = { ...updates };
     if (updates.primaryOwner) formattedUpdates.primaryOwner = new Types.ObjectId(updates.primaryOwner);
     if (updates.contributors) formattedUpdates.contributors = updates.contributors.map(uid => new Types.ObjectId(uid));
@@ -118,7 +112,6 @@ export class WorkshopTaskRepository {
     if (updates.blockedBy) formattedUpdates.blockedBy = updates.blockedBy.map(tid => new Types.ObjectId(tid));
     if (updates.blocking) formattedUpdates.blocking = updates.blocking.map(tid => new Types.ObjectId(tid));
 
-    // Track changes for activity history
     const changes: Record<string, { old: any; new: any }> = {};
     for (const [key, newValue] of Object.entries(updates)) {
       const oldValue = (currentTask as any)[key];
@@ -127,7 +120,6 @@ export class WorkshopTaskRepository {
       }
     }
 
-    // Special handling for status change to track history
     if (updates.status && updates.status !== currentTask.status) {
       const lastHistoryEntry = currentTask.statusHistory[currentTask.statusHistory.length - 1];
       const duration = lastHistoryEntry
@@ -148,7 +140,6 @@ export class WorkshopTaskRepository {
       }
     }
 
-    // Add activity entry
     if (Object.keys(changes).length > 0) {
       if (!formattedUpdates.$push) formattedUpdates.$push = {};
       formattedUpdates.$push.activityHistory = {
@@ -244,15 +235,12 @@ export class WorkshopTaskRepository {
     const task = await WorkshopTask.findById(id);
     if (!task) throw new NotFoundError('Task');
 
-    // Remove from parent's childTasks
     if (task.parentTask) {
       await WorkshopTask.findByIdAndUpdate(task.parentTask, {
         $pull: { childTasks: task._id }
       });
     }
 
-    // Delete all child tasks? Or orphan them?
-    // Let's orphan them for now but we could also cascade delete
     if (task.childTasks.length > 0) {
       await WorkshopTask.updateMany(
         { _id: { $in: task.childTasks } },

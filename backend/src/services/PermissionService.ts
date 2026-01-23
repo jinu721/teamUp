@@ -14,17 +14,11 @@ import { MembershipRepository } from '../repositories/MembershipRepository';
 import { WorkshopProjectRepository } from '../repositories/WorkshopProjectRepository';
 import { Types } from 'mongoose';
 
-/**
- * Cache entry for permission results
- */
 interface CacheEntry {
   result: PermissionResult;
   timestamp: number;
 }
 
-/**
- * Helper to extract ID from a potentially populated reference
- */
 function getIdString(ref: any): string {
   if (!ref) return '';
   if (typeof ref === 'string') return ref;
@@ -33,14 +27,6 @@ function getIdString(ref: any): string {
   return ref.toString();
 }
 
-/**
- * Permission Service
- * Implements layered permission evaluation with caching
- * 
- * Evaluation order (Cascading): INDIVIDUAL → TEAM → PROJECT → WORKSHOP
- * More specific scopes override less specific ones
- * Within the same scope, DENY takes precedence over GRANT
- */
 export class PermissionService {
   private roleAssignmentRepository: RoleAssignmentRepository;
   private workshopRepository: WorkshopRepository;
@@ -48,9 +34,8 @@ export class PermissionService {
   private membershipRepository: MembershipRepository;
   private projectRepository: WorkshopProjectRepository;
 
-  // In-memory cache for permission results
   private cache: Map<string, CacheEntry>;
-  private readonly CACHE_TTL_MS = 60000; // 1 minute cache TTL
+  private readonly CACHE_TTL_MS = 60000;
 
   private static instance: PermissionService;
 
@@ -70,9 +55,6 @@ export class PermissionService {
     this.cache = new Map();
   }
 
-  /**
-   * Generate cache key for permission check
-   */
   private getCacheKey(
     userId: string,
     workshopId: string,
@@ -83,16 +65,10 @@ export class PermissionService {
     return `${userId}:${workshopId}:${action}:${resource}:${context?.projectId || ''}:${context?.teamId || ''}`;
   }
 
-  /**
-   * Check if cache entry is still valid
-   */
   private isCacheValid(entry: CacheEntry): boolean {
     return Date.now() - entry.timestamp < this.CACHE_TTL_MS;
   }
 
-  /**
-   * Check permission for a user to perform an action on a resource
-   */
   async checkPermission(
     userId: string,
     workshopId: string,
@@ -100,7 +76,7 @@ export class PermissionService {
     resource: string,
     context?: PermissionContext
   ): Promise<PermissionResult> {
-    // Validate IDs format immediately
+
     if (!Types.ObjectId.isValid(workshopId) || (userId && !Types.ObjectId.isValid(userId))) {
       return {
         granted: false,
@@ -108,16 +84,12 @@ export class PermissionService {
       };
     }
 
-    // Check cache first
     const cacheKey = this.getCacheKey(userId, workshopId, action, resource, context);
     const cached = this.cache.get(cacheKey);
     if (cached && this.isCacheValid(cached)) {
       return cached.result;
     }
 
-    // 1. Implicit High-Level Roles (Hierarchical)
-
-    // Workshop Owner or Manager has full access
     const isOwnerOrManager = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
     if (isOwnerOrManager) {
       const result: PermissionResult = {
@@ -129,11 +101,10 @@ export class PermissionService {
       return result;
     }
 
-    // Project Manager has full access to their project
     if (context?.projectId) {
-      // Validate ObjectId format before querying
+
       if (!Types.ObjectId.isValid(context.projectId)) {
-        // Invalid projectId, skip this check
+
         const result: PermissionResult = {
           granted: false,
           reason: 'Invalid project ID format'
@@ -153,7 +124,6 @@ export class PermissionService {
         return result;
       }
 
-      // Maintainers have write/manage access to their project
       if (project && project.maintainers?.some(id => getIdString(id) === userId)) {
         if (['read', 'view', 'write', 'update', 'manage'].includes(action)) {
           const result: PermissionResult = {
@@ -167,7 +137,6 @@ export class PermissionService {
       }
     }
 
-    // Team validation
     if (context?.teamId) {
       if (!Types.ObjectId.isValid(context.teamId)) {
         const result: PermissionResult = {
@@ -179,10 +148,9 @@ export class PermissionService {
       }
     }
 
-    // 2. Base Access (Visibility & Membership)
     const workshop = await this.workshopRepository.findById(workshopId);
     if (workshop) {
-      // Public workshops allow viewing by anyone
+
       if (workshop.visibility === WorkshopVisibility.PUBLIC && (action === 'view' || action === 'read')) {
         const result: PermissionResult = {
           granted: true,
@@ -195,7 +163,7 @@ export class PermissionService {
 
       const membership = await this.membershipRepository.findByWorkshopAndUser(workshopId, userId);
       if (membership) {
-        // Active members get basic view access
+
         if (membership.state === MembershipState.ACTIVE && (action === 'view' || action === 'read')) {
           const result: PermissionResult = {
             granted: true,
@@ -208,7 +176,6 @@ export class PermissionService {
       }
     }
 
-    // 3. Explicit Role-Based Permissions (Cascading Scopes)
     const result = await this.evaluateLayeredPermissions(
       userId,
       workshopId,
@@ -217,14 +184,10 @@ export class PermissionService {
       context
     );
 
-    // Cache the result
     this.cache.set(cacheKey, { result, timestamp: Date.now() });
     return result;
   }
 
-  /**
-   * Evaluate permissions across all scope levels: INDIVIDUAL → TEAM → PROJECT → WORKSHOP
-   */
   private async evaluateLayeredPermissions(
     userId: string,
     workshopId: string,
@@ -246,7 +209,7 @@ export class PermissionService {
         if (context?.projectId) {
           scopeIds = [context.projectId];
         } else {
-          // If checking project permission but no specific project in context, skip this layer
+
           continue;
         }
       } else if (scope === PermissionScope.TEAM) {
@@ -293,9 +256,6 @@ export class PermissionService {
     };
   }
 
-  /**
-   * Get permission at a specific scope level, prioritizing DENY
-   */
   private async getPermissionAtScope(
     userId: string,
     workshopId: string,
@@ -334,7 +294,7 @@ export class PermissionService {
       );
 
       for (const p of matchingPermissions) {
-        // DENY always wins at the same scope level
+
         if (p.type === PermissionType.DENY) return p;
         if (p.type === PermissionType.GRANT) bestPermission = p;
       }
@@ -342,8 +302,6 @@ export class PermissionService {
 
     return bestPermission;
   }
-
-  // --- Cache Management ---
 
   invalidateUserCache(userId: string, workshopId: string): void {
     const prefix = `${userId}:${workshopId}:`;
@@ -363,9 +321,6 @@ export class PermissionService {
     this.cache.clear();
   }
 
-  /**
-   * Check if user has any of the specified permissions
-   */
   async hasAnyPermission(
     userId: string,
     workshopId: string,
@@ -379,9 +334,6 @@ export class PermissionService {
     return false;
   }
 
-  /**
-   * Check if user has all of the specified permissions
-   */
   async hasAllPermissions(
     userId: string,
     workshopId: string,

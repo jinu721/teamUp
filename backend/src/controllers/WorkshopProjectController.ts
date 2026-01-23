@@ -3,10 +3,6 @@ import { WorkshopProjectService } from '../services/WorkshopProjectService';
 import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
-/**
- * Workshop Project Controller
- * Handles HTTP requests for workshop-aware project management
- */
 export class WorkshopProjectController {
   private projectService: WorkshopProjectService;
   private socketService: SocketService | null = null;
@@ -15,16 +11,10 @@ export class WorkshopProjectController {
     this.projectService = projectService || new WorkshopProjectService();
   }
 
-  /**
-   * Set socket service for real-time updates
-   */
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
   }
 
-  /**
-   * Create a new project in a workshop
-   */
   createProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -47,9 +37,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Get all projects in a workshop
-   */
   getProjects = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -60,9 +47,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Get projects accessible to the current user
-   */
   getAccessibleProjects = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { workshopId } = req.params;
@@ -74,9 +58,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Get a specific project
-   */
   getProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -87,9 +68,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Update a project
-   */
   updateProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -107,9 +85,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Delete a project
-   */
   deleteProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId, workshopId } = req.params;
@@ -126,9 +101,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Assign team to project
-   */
   assignTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -150,9 +122,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Remove team from project
-   */
   removeTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId, teamId } = req.params;
@@ -170,9 +139,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Assign individual to project
-   */
   assignIndividual = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -194,9 +160,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Remove individual from project
-   */
   removeIndividual = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId, individualId } = req.params;
@@ -214,9 +177,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Assign Project Manager
-   */
   assignProjectManager = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -239,9 +199,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Add Maintainer
-   */
   addMaintainer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -264,9 +221,6 @@ export class WorkshopProjectController {
     }
   };
 
-  /**
-   * Remove Maintainer
-   */
   removeMaintainer = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId, maintainerId } = req.params;

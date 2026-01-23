@@ -16,7 +16,7 @@ export const TeamCard: React.FC<TeamCardProps> = ({ team, onClick }) => {
   const roleCount = team.internalRoles.length;
 
   return (
-    <Card 
+    <Card
       className="transition-all hover:shadow-md cursor-pointer"
       onClick={onClick}
     >
@@ -44,13 +44,12 @@ export const TeamCard: React.FC<TeamCardProps> = ({ team, onClick }) => {
           )}
         </div>
 
-        {/* Member avatars */}
         {memberCount > 0 && (
           <div className="flex -space-x-2">
             {team.members.slice(0, 5).map((member, idx) => {
               const user = typeof member === 'string' ? null : member;
               if (!user) return null;
-              
+
               return (
                 <Avatar key={idx} className="h-8 w-8 border-2 border-background">
                   <AvatarImage src={user.profilePhoto} />
@@ -68,7 +67,6 @@ export const TeamCard: React.FC<TeamCardProps> = ({ team, onClick }) => {
           </div>
         )}
 
-        {/* Internal roles */}
         {roleCount > 0 && (
           <div className="flex flex-wrap gap-1 mt-3">
             {team.internalRoles.slice(0, 3).map((role, idx) => (

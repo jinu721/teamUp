@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer';
 
 export const sendEmail = async (to: string, subject: string, html: string) => {
     try {
-        // If credentials are provided in env, use them
+
         if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
             const transporter = nodemailer.createTransport({
                 host: process.env.SMTP_HOST,
@@ -22,7 +22,7 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
             });
             console.log(`Email sent to ${to}`);
         } else {
-            // Fallback for development/demo without SMTP
+
             console.log('---------------------------------------------------');
             console.log(`[Mock Email Service] To: ${to}`);
             console.log(`[Mock Email Service] Subject: ${subject}`);
@@ -32,7 +32,6 @@ export const sendEmail = async (to: string, subject: string, html: string) => {
         }
     } catch (error) {
         console.error('Error sending email:', error);
-        // Don't throw logic error to avoid crashing auth flow if email fails in strictly dev mode, 
-        // but in prod we might want to handle it. For this user request, logging is safer.
+
     }
 };

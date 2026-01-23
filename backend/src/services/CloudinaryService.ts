@@ -22,9 +22,6 @@ export class CloudinaryService {
         });
     }
 
-    /**
-     * Upload image to Cloudinary
-     */
     async uploadImage(
         file: Express.Multer.File,
         folder: string = 'teamup/images'
@@ -42,9 +39,6 @@ export class CloudinaryService {
         }
     }
 
-    /**
-     * Upload audio to Cloudinary
-     */
     async uploadAudio(
         file: Express.Multer.File,
         folder: string = 'teamup/audio'
@@ -60,9 +54,6 @@ export class CloudinaryService {
         }
     }
 
-    /**
-     * Upload document to Cloudinary
-     */
     async uploadDocument(
         file: Express.Multer.File,
         folder: string = 'teamup/documents'
@@ -75,9 +66,6 @@ export class CloudinaryService {
         }
     }
 
-    /**
-     * Generic file upload method
-     */
     private async uploadFile(
         file: Express.Multer.File,
         folder: string,
@@ -112,7 +100,6 @@ export class CloudinaryService {
                 }
             );
 
-            // Convert buffer to stream and pipe to Cloudinary
             const bufferStream = new Readable();
             bufferStream.push(file.buffer);
             bufferStream.push(null);
@@ -120,9 +107,6 @@ export class CloudinaryService {
         });
     }
 
-    /**
-     * Delete file from Cloudinary
-     */
     async deleteFile(publicId: string, resourceType: 'image' | 'video' | 'raw' = 'image'): Promise<void> {
         try {
             await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
@@ -131,9 +115,6 @@ export class CloudinaryService {
         }
     }
 
-    /**
-     * Get optimized image URL
-     */
     getOptimizedImageUrl(publicId: string, width?: number, height?: number): string {
         return cloudinary.url(publicId, {
             transformation: [
@@ -143,9 +124,6 @@ export class CloudinaryService {
         });
     }
 
-    /**
-     * Generate signed URL for private resources
-     */
     getSignedUrl(publicId: string, expiresIn: number = 3600): string {
         const timestamp = Math.floor(Date.now() / 1000) + expiresIn;
         return cloudinary.url(publicId, {

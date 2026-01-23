@@ -1,7 +1,6 @@
 import { Request } from 'express';
 import { Types, Document } from 'mongoose';
 
-// Re-export all workshop types
 export * from './workshop';
 
 declare global {

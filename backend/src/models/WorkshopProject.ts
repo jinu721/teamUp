@@ -8,9 +8,6 @@ import {
   DEFAULT_TASK_WORKFLOW
 } from '../types';
 
-/**
- * Workflow Transition sub-schema
- */
 const workflowTransitionSchema = new Schema<IWorkflowTransition>(
   {
     from: {
@@ -28,9 +25,6 @@ const workflowTransitionSchema = new Schema<IWorkflowTransition>(
   { _id: false }
 );
 
-/**
- * Task Workflow sub-schema
- */
 const taskWorkflowSchema = new Schema<ITaskWorkflow>(
   {
     statuses: {
@@ -45,9 +39,6 @@ const taskWorkflowSchema = new Schema<ITaskWorkflow>(
   { _id: false }
 );
 
-/**
- * Project Settings sub-schema
- */
 const projectSettingsSchema = new Schema<IProjectSettings>(
   {
     allowExternalContribution: {
@@ -62,11 +53,6 @@ const projectSettingsSchema = new Schema<IProjectSettings>(
   { _id: false }
 );
 
-
-/**
- * Workshop Project Schema
- * A project that belongs to a workshop and can be assigned to teams/individuals
- */
 const workshopProjectSchema = new Schema<IWorkshopProject>(
   {
     workshop: {
@@ -114,7 +100,6 @@ const workshopProjectSchema = new Schema<IWorkshopProject>(
   }
 );
 
-// Indexes for efficient queries
 workshopProjectSchema.index({ workshop: 1 });
 workshopProjectSchema.index({ assignedTeams: 1 });
 workshopProjectSchema.index({ assignedIndividuals: 1 });

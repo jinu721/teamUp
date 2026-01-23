@@ -116,7 +116,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ roomId }) => {
 
     const handleReply = (message: any) => {
         setReplyingTo(message);
-        // Focus the input
+
         const inputElement = document.getElementById('chat-input');
         if (inputElement) inputElement.focus();
     };
@@ -175,7 +175,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ roomId }) => {
 
     return (
         <div className="flex flex-col h-full bg-background relative">
-            {/* Header */}
+
             <div className="h-16 border-b flex items-center justify-between px-6 bg-card/50 backdrop-blur-md z-10">
                 <div className="flex items-center gap-3 min-w-0">
                     <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -239,7 +239,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ roomId }) => {
                 </AlertDialogContent>
             </AlertDialog>
 
-            {/* Messages */}
             <div className="flex-1 overflow-y-auto px-4 py-6 space-y-6 custom-scrollbar" ref={scrollRef}>
                 {hasMore && (
                     <div className="flex justify-center pb-4">
@@ -278,7 +277,6 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({ roomId }) => {
                 <div ref={messagesEndRef} />
             </div>
 
-            {/* Footer / Input */}
             <div className="p-4 border-t bg-card/30">
                 {typingUsers.size > 0 && (
                     <div className="absolute -top-6 left-4 right-4 flex items-center gap-1.5 px-2 py-1">

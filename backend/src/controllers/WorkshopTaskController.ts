@@ -3,10 +3,6 @@ import { WorkshopTaskService } from '../services/WorkshopTaskService';
 import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
-/**
- * Workshop Task Controller
- * Handles HTTP requests for workshop-aware task management
- */
 export class WorkshopTaskController {
   private taskService: WorkshopTaskService;
 
@@ -14,17 +10,10 @@ export class WorkshopTaskController {
     this.taskService = new WorkshopTaskService();
   }
 
-  /**
-   * Set socket service for real-time updates
-   */
   setSocketService(socketService: SocketService): void {
     this.taskService.setSocketService(socketService);
   }
 
-  /**
-   * Create a new task in a project
-   * POST /workshops/:workshopId/projects/:projectId/tasks
-   */
   createTask = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -42,10 +31,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Add a comment to a task
-   * POST /workshops/:workshopId/projects/:projectId/tasks/:taskId/comments
-   */
   addComment = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -64,10 +49,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Add an attachment to a task
-   * POST /workshops/:workshopId/projects/:projectId/tasks/:taskId/attachments
-   */
   addAttachment = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -86,10 +67,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get all tasks in a project
-   * GET /workshops/:workshopId/projects/:projectId/tasks
-   */
   getProjectTasks = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -107,10 +84,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get project task board (grouped by status)
-   * GET /workshops/:workshopId/projects/:projectId/tasks/board
-   */
   getProjectTaskBoard = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { projectId } = req.params;
@@ -128,10 +101,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get a specific task
-   * GET /workshops/:workshopId/projects/:projectId/tasks/:taskId
-   */
   getTask = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -149,10 +118,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Update a task
-   * PUT /workshops/:workshopId/projects/:projectId/tasks/:taskId
-   */
   updateTask = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -171,10 +136,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Update task status (for drag-and-drop)
-   * PUT /workshops/:workshopId/projects/:projectId/tasks/:taskId/status
-   */
   updateTaskStatus = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -193,10 +154,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Delete a task
-   * DELETE /workshops/:workshopId/projects/:projectId/tasks/:taskId
-   */
   deleteTask = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -213,10 +170,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Assign team to task
-   * POST /workshops/:workshopId/projects/:projectId/tasks/:taskId/teams/:teamId
-   */
   assignTeam = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -235,10 +188,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Assign individual to task
-   * POST /workshops/:workshopId/projects/:projectId/tasks/:taskId/individuals/:individualId
-   */
   assignIndividual = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;
@@ -257,10 +206,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get tasks assigned to current user
-   * GET /workshops/:workshopId/my-tasks
-   */
   getMyTasks = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = req.user!.id;
@@ -277,10 +222,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get tasks assigned to a team
-   * GET /workshops/:workshopId/teams/:teamId/tasks
-   */
   getTeamTasks = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { teamId } = req.params;
@@ -298,10 +239,6 @@ export class WorkshopTaskController {
     }
   };
 
-  /**
-   * Get task activities
-   * GET /workshops/:workshopId/projects/:projectId/tasks/:taskId/activity
-   */
   getTaskActivities = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { taskId } = req.params;

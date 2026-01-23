@@ -1,4 +1,3 @@
-// ==================== ENUMS ====================
 
 export enum TaskStatus {
   TODO = 'todo',
@@ -45,8 +44,6 @@ export enum NotificationType {
   COMMENT = 'comment'
 }
 
-// ==================== USER ====================
-
 export interface User {
   _id: string;
   name: string;
@@ -58,17 +55,11 @@ export interface User {
   lastActive: Date;
 }
 
-// ==================== WORKSHOP ====================
-
 export enum WorkshopVisibility {
   PUBLIC = 'public',
   PRIVATE = 'private',
   INTERNAL = 'internal'
 }
-
-// Community types replaced by Workshop
-
-// ==================== NOTIFICATION ====================
 
 export interface Notification {
   _id: string;
@@ -76,15 +67,13 @@ export interface Notification {
   type: NotificationType;
   title: string;
   message: string;
-  relatedProject?: any; // Avoiding circular dependency with WorkshopProject
-  relatedWorkshop?: any; // Avoiding circular dependency with Workshop
-  relatedTask?: any; // Avoiding circular dependency with WorkshopTask
+  relatedProject?: any;
+  relatedWorkshop?: any;
+  relatedTask?: any;
   relatedUser?: User;
   isRead: boolean;
   createdAt: Date;
 }
-
-// ==================== API RESPONSES ====================
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -111,7 +100,6 @@ export interface VoteResponse {
   userVote: 'upvote' | 'downvote' | null;
 }
 
-
 export interface CreateTaskData {
   title: string;
   description?: string;
@@ -121,8 +109,6 @@ export interface CreateTaskData {
   assignedTo?: string;
   dueDate?: Date;
 }
-
-// ==================== FILTERS ====================
 
 export interface PostFilters {
   category?: ProjectCategory | string;
@@ -165,8 +151,6 @@ export interface JoinRequest {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string;
 }
-
-// ==================== HELPER TYPES ====================
 
 export const PROJECT_CATEGORY_LABELS: Record<ProjectCategory, string> = {
   [ProjectCategory.WEB_DEVELOPMENT]: 'Web Development',

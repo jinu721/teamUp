@@ -96,7 +96,7 @@ const Dashboard: React.FC = () => {
   return (
     <AppLayout>
       <div className="page-container">
-        {/* Header */}
+
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="section-header mb-0">
             <h1 className="section-title flex items-center gap-2">
@@ -114,7 +114,7 @@ const Dashboard: React.FC = () => {
         </div>
 
         <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
-          {/* Workshops section */}
+
           <div className="lg:col-span-2 space-y-4">
             {workshops.length === 0 ? (
               <Card className="shadow-soft">
@@ -156,9 +156,8 @@ const Dashboard: React.FC = () => {
             )}
           </div>
 
-          {/* Sidebar */}
           <div className="space-y-4 sm:space-y-6">
-            {/* Notifications */}
+
             <Card className="shadow-soft">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base sm:text-lg">Recent Notifications</CardTitle>
@@ -179,7 +178,6 @@ const Dashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
             <Card className="shadow-soft">
               <CardHeader className="pb-3">
                 <CardTitle className="text-base sm:text-lg">Quick Actions</CardTitle>

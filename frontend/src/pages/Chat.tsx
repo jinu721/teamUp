@@ -9,7 +9,6 @@ const ChatPage: React.FC = () => {
     const { workshopId, roomId } = useParams<{ workshopId: string; roomId: string }>();
     const navigate = useNavigate();
 
-    // If workshopId is missing, we might want to redirect to a default or show a message
     if (!workshopId) {
         return (
             <AppLayout>
@@ -24,7 +23,7 @@ const ChatPage: React.FC = () => {
     return (
         <AppLayout>
             <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-background">
-                {/* Chat Sidebar */}
+
                 <div className="w-80 border-r flex-shrink-0 hidden md:block">
                     <ChatSidebar
                         workshopId={workshopId}
@@ -33,7 +32,6 @@ const ChatPage: React.FC = () => {
                     />
                 </div>
 
-                {/* Chat Window */}
                 <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
                     {roomId ? (
                         <ChatWindow roomId={roomId} />

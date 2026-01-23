@@ -21,7 +21,6 @@ import ChatPage from '@/pages/Chat';
 import Landing from '@/pages/Landing';
 import { Loader2 } from 'lucide-react';
 
-// Component to handle socket errors globally
 const SocketErrorHandler: React.FC = () => {
   useSocketErrorHandler();
   return null;

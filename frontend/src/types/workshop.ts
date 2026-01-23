@@ -1,7 +1,5 @@
 import { User, ProjectCategory } from './index';
 
-// ==================== WORKSHOP ENUMS ====================
-
 export enum WorkshopVisibility {
   PRIVATE = 'private',
   PUBLIC = 'public'
@@ -79,8 +77,6 @@ export enum AuditAction {
   TASK_STATUS_CHANGED = 'task_status_changed'
 }
 
-// ==================== WORKSHOP INTERFACES ====================
-
 export interface WorkshopSettings {
   allowOpenContribution: boolean;
   requireApprovalForJoin: boolean;
@@ -97,11 +93,11 @@ export interface Workshop {
   settings: WorkshopSettings;
   createdAt: Date;
   updatedAt: Date;
-  // Discovery fields
+
   category?: ProjectCategory;
   tags?: string[];
   requiredSkills?: string[];
-  // Voting fields
+
   votes?: { userId: string; voteType: 'upvote' | 'downvote'; createdAt: Date }[];
   upvoteCount?: number;
   downvoteCount?: number;
@@ -113,8 +109,6 @@ export interface Workshop {
     joinedAt?: Date;
   };
 }
-
-// ==================== MEMBERSHIP INTERFACES ====================
 
 export interface Membership {
   _id: string;
@@ -130,8 +124,6 @@ export interface Membership {
   createdAt: Date;
   updatedAt: Date;
 }
-
-// ==================== TEAM INTERFACES ====================
 
 export interface TeamRole {
   name: string;
@@ -149,8 +141,6 @@ export interface Team {
   createdAt: Date;
   updatedAt: Date;
 }
-
-// ==================== ROLE INTERFACES ====================
 
 export interface Permission {
   action: string;
@@ -181,8 +171,6 @@ export interface RoleAssignment {
   createdAt: Date;
 }
 
-// ==================== PROJECT INTERFACES ====================
-
 export interface WorkflowTransition {
   from: string;
   to: string;
@@ -212,8 +200,6 @@ export interface WorkshopProject {
   createdAt: Date;
   updatedAt: Date;
 }
-
-// ==================== TASK INTERFACES ====================
 
 export interface TaskActivity {
   user: User;
@@ -255,54 +241,44 @@ export interface WorkshopTask {
   _id: string;
   project: WorkshopProject | string;
 
-  // Basic Info
   title: string;
   description: string;
   type: TaskType;
   status: string;
 
-  // Hierarchy & Relationships
   parentTask?: WorkshopTask | string;
   childTasks: (WorkshopTask | string)[];
   blockedBy: (WorkshopTask | string)[];
   blocking: (WorkshopTask | string)[];
-  dependencies: WorkshopTask[]; // Legacy support
+  dependencies: WorkshopTask[];
 
-  // Assignment & Ownership
   primaryOwner?: User;
   assignedTeams: Team[];
   assignedIndividuals: User[];
   contributors: User[];
   watchers: User[];
 
-  // Priority & Classification
   priority: number;
   severity: number;
   labels: string[];
   tags: string[];
 
-  // Time Tracking
   estimatedHours?: number;
   actualHours?: number;
   startDate?: string;
   dueDate?: string;
   completedAt?: string;
 
-  // Workflow & History
   statusHistory: TaskStatusHistory[];
   activityHistory: TaskActivity[];
 
-  // Collaboration
   comments: TaskComment[];
   attachments: TaskAttachment[];
 
-  // Metadata
   createdBy: User;
   createdAt: string;
   updatedAt: string;
 }
-
-// ==================== AUDIT LOG INTERFACES ====================
 
 export interface AuditLog {
   _id: string;
@@ -315,15 +291,11 @@ export interface AuditLog {
   timestamp: Date;
 }
 
-// ==================== PERMISSION RESULT ====================
-
 export interface PermissionResult {
   granted: boolean;
   source?: PermissionScope;
   reason?: string;
 }
-
-// ==================== FORM DATA ====================
 
 export interface CreateWorkshopData {
   name: string;
@@ -424,8 +396,6 @@ export interface UpdateWorkshopTaskData {
   completedAt?: string;
 }
 
-// ==================== FILTER INTERFACES ====================
-
 export interface AuditLogFilters {
   action?: AuditAction;
   actor?: string;
@@ -434,8 +404,6 @@ export interface AuditLogFilters {
   startDate?: Date;
   endDate?: Date;
 }
-
-// ==================== LABEL HELPERS ====================
 
 export const WORKSHOP_VISIBILITY_LABELS: Record<WorkshopVisibility, string> = {
   [WorkshopVisibility.PRIVATE]: 'Private',
@@ -467,8 +435,6 @@ export const PERMISSION_SCOPE_LABELS: Record<PermissionScope, string> = {
   [PermissionScope.TEAM]: 'Team',
   [PermissionScope.INDIVIDUAL]: 'Individual'
 };
-
-// ==================== DEFAULT VALUES ====================
 
 export const DEFAULT_WORKSHOP_SETTINGS: WorkshopSettings = {
   allowOpenContribution: false,

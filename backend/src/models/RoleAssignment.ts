@@ -1,10 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import { IRoleAssignment, PermissionScope } from '../types';
 
-/**
- * Role Assignment Schema
- * Links a role to a user within a specific scope
- */
 const roleAssignmentSchema = new Schema<IRoleAssignment>(
   {
     workshop: {
@@ -32,7 +28,7 @@ const roleAssignmentSchema = new Schema<IRoleAssignment>(
     },
     scopeId: {
       type: Schema.Types.ObjectId
-      // Reference depends on scope (Project, Team, or null for Workshop/Individual)
+
     },
     assignedBy: {
       type: Schema.Types.ObjectId,
@@ -45,7 +41,6 @@ const roleAssignmentSchema = new Schema<IRoleAssignment>(
   }
 );
 
-// Indexes for efficient queries
 roleAssignmentSchema.index({ workshop: 1, user: 1 });
 roleAssignmentSchema.index({ role: 1 });
 roleAssignmentSchema.index({ user: 1, scope: 1, scopeId: 1 });

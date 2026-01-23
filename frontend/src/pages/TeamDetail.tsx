@@ -17,11 +17,11 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { ArrowLeft, MoreVertical, Edit, Trash2, Users } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -35,20 +35,17 @@ const TeamDetail: React.FC = () => {
   const { activeMembers } = useMemberships(workshopId);
   const { toast } = useToast();
 
-  // Dialog states
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showAddMemberDialog, setShowAddMemberDialog] = useState(false);
 
-  // Form states
   const [editData, setEditData] = useState<UpdateTeamData>({});
   const [selectedMemberId, setSelectedMemberId] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Computed values
   const isOwner = workshop && user && (
-    typeof workshop.owner === 'string' 
-      ? workshop.owner === user._id 
+    typeof workshop.owner === 'string'
+      ? workshop.owner === user._id
       : workshop.owner._id === user._id
   );
   const isManager = workshop && user && workshop.managers.some(m => {
@@ -57,7 +54,6 @@ const TeamDetail: React.FC = () => {
   });
   const canManage = isOwner || isManager;
 
-  // Get members not in team for add dialog
   const availableMembers = activeMembers.filter(membership => {
     const memberId = typeof membership.user === 'string' ? membership.user : membership.user._id;
     return !team?.members.some(m => {
@@ -66,7 +62,6 @@ const TeamDetail: React.FC = () => {
     });
   });
 
-  // Handlers
   const handleEdit = () => {
     if (team) {
       setEditData({
@@ -180,7 +175,7 @@ const TeamDetail: React.FC = () => {
   return (
     <AppLayout>
       <div className="page-container space-y-6">
-        {/* Header */}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => navigate(`/workshops/${workshopId}`)}>
@@ -208,7 +203,7 @@ const TeamDetail: React.FC = () => {
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Team
                 </DropdownMenuItem>
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={() => setShowDeleteDialog(true)}
                   className="text-destructive focus:text-destructive"
                 >
@@ -220,7 +215,6 @@ const TeamDetail: React.FC = () => {
           )}
         </div>
 
-        {/* Team Members */}
         <Card>
           <CardHeader>
             <CardTitle>Team Members ({team.members.length})</CardTitle>
@@ -239,7 +233,6 @@ const TeamDetail: React.FC = () => {
         </Card>
       </div>
 
-      {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
@@ -271,7 +264,6 @@ const TeamDetail: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Add Member Dialog */}
       <Dialog open={showAddMemberDialog} onOpenChange={setShowAddMemberDialog}>
         <DialogContent>
           <DialogHeader>
@@ -313,7 +305,6 @@ const TeamDetail: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>

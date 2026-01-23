@@ -212,11 +212,7 @@ export class WorkshopProjectRepository {
     const project = await WorkshopProject.findById(projectId);
     if (!project) return false;
 
-    // Check if user is individually assigned
     if (project.assignedIndividuals.some(i => i.toString() === userId)) return true;
-
-    // Check if user is in any assigned team
-    // This would require team membership check - implement if needed
 
     return false;
   }

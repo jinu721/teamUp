@@ -41,10 +41,9 @@ const WorkshopDashboard: React.FC = () => {
   const { teams, loading: teamsLoading, addTeam } = useTeams(workshopId);
   const { projects, loading: projectsLoading, addProject } = useWorkshopProjects(workshopId);
   const { roles, loading: rolesLoading } = useRoles(workshopId);
-  // Join workshop room for real-time updates
+
   useWorkshopRoom(workshopId);
 
-  // Load Permissions reactively
   const { permissions: permsMap } = usePermissions(workshopId, [
     { action: 'create', resource: 'project' },
     { action: 'create', resource: 'team' },
@@ -63,14 +62,12 @@ const WorkshopDashboard: React.FC = () => {
 
   const { toast } = useToast();
 
-  // Dialog states
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showNewTeamDialog, setShowNewTeamDialog] = useState(false);
   const [showNewProjectDialog, setShowNewProjectDialog] = useState(false);
 
-  // Form states
   const [editData, setEditData] = useState<UpdateWorkshopData>({});
   const [inviteEmail, setInviteEmail] = useState('');
   const [selectedInviteRoleId, setSelectedInviteRoleId] = useState<string | undefined>(undefined);
@@ -78,7 +75,6 @@ const WorkshopDashboard: React.FC = () => {
   const [newProject, setNewProject] = useState<CreateWorkshopProjectData>({ name: '', description: '' });
   const [submitting, setSubmitting] = useState(false);
 
-  // Computed values
   const isOwner = workshop && user && (
     typeof workshop.owner === 'string'
       ? workshop.owner === user._id
@@ -101,7 +97,6 @@ const WorkshopDashboard: React.FC = () => {
   });
   const isMember = isOwner || isManager || isActiveMember;
 
-  // Handlers
   const handleEdit = () => {
     if (workshop) {
       setEditData({
@@ -347,7 +342,6 @@ const WorkshopDashboard: React.FC = () => {
                 )}
               </TabsList>
 
-              {/* Projects Tab */}
               <TabsContent value="projects" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold">Projects ({projects.length})</h2>
@@ -391,7 +385,6 @@ const WorkshopDashboard: React.FC = () => {
                 )}
               </TabsContent>
 
-              {/* Teams Tab */}
               <TabsContent value="teams" className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h2 className="text-lg font-semibold">Teams ({teams.length})</h2>
@@ -427,7 +420,6 @@ const WorkshopDashboard: React.FC = () => {
                 )}
               </TabsContent>
 
-              {/* Members Tab */}
               <TabsContent value="members" className="space-y-4">
                 {pendingRequests.length > 0 && canManage && (
                   <Card>
@@ -472,7 +464,6 @@ const WorkshopDashboard: React.FC = () => {
                 </Card>
               </TabsContent>
 
-              {/* Roles Tab */}
               {canManage && (
                 <TabsContent value="roles" className="space-y-4">
                   {rolesLoading ? (
@@ -517,7 +508,6 @@ const WorkshopDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Edit Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
         <DialogContent>
           <DialogHeader>
@@ -581,7 +571,6 @@ const WorkshopDashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Invite Dialog */}
       <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
         <DialogContent>
           <DialogHeader>
@@ -623,7 +612,6 @@ const WorkshopDashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* New Team Dialog */}
       <Dialog open={showNewTeamDialog} onOpenChange={setShowNewTeamDialog}>
         <DialogContent>
           <DialogHeader>
@@ -658,7 +646,6 @@ const WorkshopDashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* New Project Dialog */}
       <Dialog open={showNewProjectDialog} onOpenChange={setShowNewProjectDialog}>
         <DialogContent>
           <DialogHeader>
@@ -693,7 +680,6 @@ const WorkshopDashboard: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
