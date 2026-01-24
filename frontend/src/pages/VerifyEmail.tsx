@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Card, CardContent, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle, XCircle, ArrowRight, RefreshCw, ArrowLeft, Mail } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import api from '@/services/api';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
