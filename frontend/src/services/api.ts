@@ -106,6 +106,16 @@ class ApiService {
     return response.data;
   }
 
+  async forgotPassword(email: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await this.api.post('/auth/forgot-password', { email });
+    return response.data;
+  }
+
+  async resetPassword(token: string, password: string): Promise<ApiResponse<{ message: string }>> {
+    const response = await this.api.post('/auth/reset-password', { token, password });
+    return response.data;
+  }
+
   async getProfile(): Promise<ApiResponse<User>> {
     const response = await this.api.get('/auth/me');
     return response.data;

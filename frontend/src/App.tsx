@@ -6,6 +6,8 @@ import { useSocketErrorHandler } from '@/hooks/useSocket';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import VerifyEmail from '@/pages/VerifyEmail';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import SocialCallback from '@/pages/SocialCallback';
 import Dashboard from '@/pages/Dashboard';
 import PublicWorkshops from '@/pages/PublicWorkshops';
@@ -78,6 +80,22 @@ function AppRoutes() {
         element={
           <PublicRoute>
             <VerifyEmail />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPassword />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <ResetPassword />
           </PublicRoute>
         }
       />
