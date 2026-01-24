@@ -128,16 +128,16 @@ export class AuthService {
   async login(email: string, password: string): Promise<{ user: any; token: string; refreshToken: string }> {
     const user = await this.userRepository.findByEmail(email);
     if (!user) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new ValidationError('Invalid email or password');
     }
 
     if (!user.isVerified) {
-      throw new AuthenticationError('Please verify your email before logging in.');
+      throw new ValidationError('Please verify your email before logging in.');
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new AuthenticationError('Invalid email or password');
+      throw new ValidationError('Invalid email or password');
     }
 
     await this.userRepository.updatePresence(user._id.toString(), true);
