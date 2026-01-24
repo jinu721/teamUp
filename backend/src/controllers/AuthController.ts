@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { AuthRequest } from '../types';
-import { ValidationError } from '../utils/errorHandler';
+import { ValidationError } from '../utils/errors';
 
 export class AuthController {
   private authService: AuthService;

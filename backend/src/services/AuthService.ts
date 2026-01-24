@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { UserRepository } from '../repositories/UserRepository';
 import { PendingUserRepository } from '../repositories/PendingUserRepository';
 import { generateToken, generateRefreshToken, verifyRefreshToken } from '../config/jwt';
-import { AuthenticationError, ValidationError } from '../utils/errorHandler';
+import { AuthenticationError, ValidationError } from '../utils/errors';
 import { sendEmail } from '../utils/emailService';
 
 export class AuthService {

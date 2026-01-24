@@ -60,14 +60,11 @@ function handleJWTExpiredError(): AuthenticationError {
 }
 
 function sanitizeErrorMessage(message: string): string {
-
   const sensitivePatterns = [
-    /password/gi,
-    /token/gi,
-    /secret/gi,
-    /key/gi,
     /mongodb:\/\/[^\/\s]+/gi,
-    /connection string/gi
+    /connection string/gi,
+    /Bearer\s+[A-Za-z0-9\-_]+/gi,
+    /jwt\s+[A-Za-z0-9\-_\.]+/gi
   ];
 
   let sanitized = message;
