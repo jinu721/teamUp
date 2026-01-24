@@ -33,7 +33,7 @@ export const configurePassport = () => {
                     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
                     callbackURL: `${process.env.APP_URL}/api/auth/google/callback`,
                 },
-                async (_accessToken, _refreshToken, profile, done) => {
+                async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
                     try {
                         const user = await authService.socialLogin(profile, 'google');
                         return done(null, user);
@@ -57,7 +57,7 @@ export const configurePassport = () => {
                     callbackURL: `${process.env.APP_URL}/api/auth/github/callback`,
                     scope: ['user:email'],
                 },
-                async (_accessToken, _refreshToken, profile, done) => {
+                async (_accessToken: string, _refreshToken: string, profile: any, done: any) => {
                     try {
                         const user = await authService.socialLogin(profile, 'github');
                         return done(null, user);
