@@ -61,13 +61,11 @@ const chatRoomSchema = new Schema<IChatRoom>(
         },
         project: {
             type: Schema.Types.ObjectId,
-            ref: 'WorkshopProject',
-            index: true
+            ref: 'WorkshopProject'
         },
         team: {
             type: Schema.Types.ObjectId,
-            ref: 'Team',
-            index: true
+            ref: 'Team'
         },
         participants: [{
             type: Schema.Types.ObjectId,

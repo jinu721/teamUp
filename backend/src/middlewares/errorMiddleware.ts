@@ -66,7 +66,7 @@ function sanitizeErrorMessage(message: string): string {
     /token/gi,
     /secret/gi,
     /key/gi,
-    /mongodb:\/\
+    /mongodb:\/\/[^\/\s]+/gi,
     /connection string/gi
   ];
 
