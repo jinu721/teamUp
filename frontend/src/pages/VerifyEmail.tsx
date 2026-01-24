@@ -159,7 +159,7 @@ const VerifyEmail: React.FC = () => {
                         <ArrowLeft className="w-5 h-5" />
                     </button>
                     
-                    <h1 className="text-3xl font-bold text-gray-900 mb-4">
+                    <h1 className="text-3xl focd nt-bold text-gray-900 mb-4">
                         Verify your email
                     </h1>
                     <p className="text-gray-500 text-lg">
