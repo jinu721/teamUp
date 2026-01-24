@@ -1,6 +1,7 @@
 
 export { User } from './User';
 export { PendingUser } from './PendingUser';
+export { PasswordReset } from './PasswordReset';
 export { Notification } from './Notification';
 
 export { Workshop } from './Workshop';

@@ -136,4 +136,46 @@ export class AuthController {
       next(error);
     }
   };
+
+  forgotPassword = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        throw new ValidationError('Email is required');
+      }
+
+      const result = await this.authService.forgotPassword(email);
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  resetPassword = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { token, password } = req.body;
+
+      if (!token || !password) {
+        throw new ValidationError('Token and password are required');
+      }
+
+      if (password.length < 6) {
+        throw new ValidationError('Password must be at least 6 characters');
+      }
+
+      const result = await this.authService.resetPassword(token, password);
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }

@@ -15,6 +15,8 @@ router.post('/verify-otp', authController.verifyOTP as any);
 router.post('/resend-otp', authController.resendOTP as any);
 router.post('/login', authController.login as any);
 router.post('/refresh-token', authController.refreshToken as any);
+router.post('/forgot-password', authController.forgotPassword as any);
+router.post('/reset-password', authController.resetPassword as any);
 router.get('/me', authenticate as any, authController.getProfile as any);
 router.put('/profile', authenticate as any, authController.updateProfile as any);
 
