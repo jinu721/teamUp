@@ -55,9 +55,12 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
       ? membership.workshop
       : membership.workshop._id;
     if (memberWorkshopId === workshopId) {
-      setMembers(prev => prev.map(m =>
-        m._id === membership._id ? membership : m
-      ));
+      setMembers(prev => {
+        if (prev.some(m => m._id === membership._id)) {
+          return prev.map(m => m._id === membership._id ? membership : m);
+        }
+        return [...prev, membership];
+      });
     }
   });
 
@@ -81,9 +84,12 @@ export function useMemberships(workshopId: string | undefined): UseMembershipsRe
       ? membership.workshop
       : membership.workshop._id;
     if (memberWorkshopId === workshopId) {
-      setMembers(prev => prev.map(m =>
-        m._id === membership._id ? membership : m
-      ));
+      setMembers(prev => {
+        if (prev.some(m => m._id === membership._id)) {
+          return prev.map(m => m._id === membership._id ? membership : m);
+        }
+        return [...prev, membership];
+      });
     }
   });
 

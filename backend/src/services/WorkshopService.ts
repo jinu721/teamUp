@@ -243,6 +243,23 @@ export class WorkshopService {
       }
     }
 
+    // If user exists, create a pending membership so it shows up in UI
+    let membership: IMembership | undefined;
+    if (existingUser) {
+      const existing = await this.membershipRepository.findByWorkshopAndUser(workshopId, existingUser._id.toString());
+      if (!existing) {
+        membership = await this.membershipRepository.create({
+          workshopId,
+          userId: existingUser._id.toString(),
+          source: MembershipSource.INVITATION,
+          invitedBy: actorId,
+          state: MembershipState.PENDING
+        });
+      } else {
+        membership = existing;
+      }
+    }
+
     // Generate token
     const token = crypto.randomBytes(32).toString('hex');
 
@@ -257,6 +274,11 @@ export class WorkshopService {
 
     // Log audit
     await this.auditService.logMemberInvited(workshopId, actorId, email);
+
+    // Emit socket event if we have a membership
+    if (membership && this.socketService) {
+      this.socketService.emitToWorkshop(workshopId, 'membership:invited', membership);
+    }
 
     // Send email
     const inviter = await User.findById(actorId);
