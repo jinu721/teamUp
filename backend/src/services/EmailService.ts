@@ -11,7 +11,7 @@ export class EmailService {
     const emailPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
 
     this.fromEmail = process.env.EMAIL_FROM || emailUser || 'noreply@teamup.com';
-    this.appUrl = process.env.APP_URL || 'http://localhost:5173';
+    this.appUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
     const hasCredentials = !!(emailUser && emailPass);
     this.emailEnabled = hasCredentials;
 
@@ -156,9 +156,10 @@ export class EmailService {
     toEmail: string,
     inviterName: string,
     workshopName: string,
-    workshopId: string
+    _workshopId: string,
+    token: string
   ): Promise<boolean> {
-    const workshopLink = `${this.appUrl}/workshops/${workshopId}`;
+    const inviteLink = `${this.appUrl}/invite/${token}`;
 
     console.log('\n========================================');
     console.log('📧 WORKSHOP INVITATION');
@@ -166,7 +167,7 @@ export class EmailService {
     console.log(`To: ${toEmail}`);
     console.log(`From: ${inviterName}`);
     console.log(`Workshop: ${workshopName}`);
-    console.log(`\n🔗 WORKSHOP LINK: ${workshopLink}`);
+    console.log(`\n🔗 INVITE LINK: ${inviteLink}`);
     console.log('========================================\n');
 
     if (!this.emailEnabled || !this.transporter) {
@@ -178,8 +179,8 @@ export class EmailService {
       from: `"TeamUp" <${this.fromEmail}>`,
       to: toEmail,
       subject: `You've been invited to join "${workshopName}" on TeamUp`,
-      html: this.getWorkshopInvitationEmailHtml(inviterName, workshopName, workshopLink),
-      text: `You've been invited to join "${workshopName}" on TeamUp!\n\n${inviterName} has invited you to collaborate in their workshop.\n\nClick here to view: ${workshopLink}\n\nLooking forward to having you!`
+      html: this.getWorkshopInvitationEmailHtml(inviterName, workshopName, inviteLink),
+      text: `You've been invited to join "${workshopName}" on TeamUp!\n\n${inviterName} has invited you to collaborate in their workshop.\n\nClick here to accept: ${inviteLink}\n\nLooking forward to having you!`
     };
 
     try {
@@ -188,7 +189,7 @@ export class EmailService {
       return true;
     } catch (error) {
       console.error('❌ Failed to send email:', error);
-      console.log('📋 Share this link manually:', workshopLink);
+      console.log('📋 Share this link manually:', inviteLink);
       return true;
     }
   }
@@ -237,7 +238,7 @@ export class EmailService {
       <p style="margin: 0; color: #6b7280; font-size: 14px;">Click the button below to view the workshop</p>
     </div>
     <div style="text-align: center; margin: 30px 0;">
-      <a href="${workshopLink}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">View Workshop</a>
+      <a href="${workshopLink}" style="display: inline-block; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Accept Invitation</a>
     </div>
     <p style="color: #6b7280; font-size: 14px;">Or copy and paste this link into your browser:<br><a href="${workshopLink}" style="color: #6366f1; word-break: break-all;">${workshopLink}</a></p>
     <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">

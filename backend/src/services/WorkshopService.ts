@@ -26,6 +26,8 @@ import { ChatService } from './ChatService';
 import { Types } from 'mongoose';
 import { Membership } from '../models/Membership';
 import { User } from '../models/User';
+import { Invitation, IInvitation } from '../models/Invitation';
+import crypto from 'crypto';
 
 function getIdString(ref: any): string {
   if (ref && typeof ref === 'object' && '_id' in ref) {
@@ -225,57 +227,79 @@ export class WorkshopService {
     return workshop;
   }
 
-  async inviteMember(workshopId: string, actorId: string, invitedUserId: string, roleId?: string): Promise<IMembership> {
+  async inviteMember(workshopId: string, actorId: string, invitedEmail: string, roleId?: string): Promise<void> {
     if (!(await this.workshopRepository.isOwnerOrManager(workshopId, actorId))) {
       throw new AuthorizationError('No permission');
     }
-    const existing = await this.membershipRepository.findByWorkshopAndUser(workshopId, invitedUserId);
-    let membership: IMembership;
 
-    if (existing) {
-      if (existing.state === MembershipState.ACTIVE) throw new ValidationError('Already member');
-      membership = await Membership.findByIdAndUpdate(
-        existing._id,
-        { $set: { state: MembershipState.PENDING, invitedBy: new Types.ObjectId(actorId) }, $unset: { removedBy: 1, removedAt: 1 } },
-        { new: true }
-      ).populate(['user', 'workshop', 'invitedBy']) as IMembership;
-    } else {
-      membership = await this.membershipRepository.create({
-        workshopId,
-        userId: invitedUserId,
-        source: MembershipSource.INVITATION,
-        invitedBy: actorId,
-        state: MembershipState.PENDING
-      });
-    }
+    const email = invitedEmail.toLowerCase();
 
-    if (roleId) {
-      const role = await this.roleRepository.findById(roleId);
-      if (role) {
-
-        if (role.workshop.toString() === workshopId) {
-          await this.roleAssignmentRepository.create({
-            workshopId,
-            roleId,
-            userId: invitedUserId,
-            scope: role.scope,
-            scopeId: role.scopeId?.toString(),
-            assignedBy: actorId
-          });
-        }
+    // Check if already a member
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      const existingMembership = await this.membershipRepository.findByWorkshopAndUser(workshopId, existingUser._id.toString());
+      if (existingMembership && existingMembership.state === MembershipState.ACTIVE) {
+        throw new ValidationError('User is already a member of this workshop');
       }
     }
 
-    await this.auditService.logMemberInvited(workshopId, actorId, invitedUserId);
+    // Generate token
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Create invitation record
+    await Invitation.create({
+      token,
+      email,
+      workshop: new Types.ObjectId(workshopId),
+      role: roleId ? new Types.ObjectId(roleId) : undefined,
+      invitedBy: new Types.ObjectId(actorId)
+    });
+
+    // Log audit
+    await this.auditService.logMemberInvited(workshopId, actorId, email);
+
+    // Send email
     const inviter = await User.findById(actorId);
-    if (membership && inviter) {
-      const targetEmail = (membership.user as any)?.email;
-      if (targetEmail) {
-        await this.emailService.sendWorkshopInvitation(targetEmail, inviter.name || 'Admin', (membership.workshop as any)?.name, workshopId);
+    const workshop = await this.workshopRepository.findById(workshopId);
+
+    if (inviter && workshop) {
+      await this.emailService.sendWorkshopInvitation(
+        email,
+        inviter.name || 'Admin',
+        workshop.name,
+        workshopId,
+        token
+      );
+    }
+  }
+
+  async acceptInvitationByToken(invitation: IInvitation, userId: string): Promise<IMembership> {
+    const workshopId = invitation.workshop.toString();
+
+    // Create membership
+    const membership = await this.handleJoinRequest(workshopId, userId);
+
+    // If it was a pending request, auto-approve it because they have a valid invite
+    if (membership.state === MembershipState.PENDING) {
+      await this.approveJoinRequest(workshopId, invitation.invitedBy.toString(), membership._id.toString());
+    }
+
+    // If there was a specific role assigned in the invitation, assign it
+    if (invitation.role) {
+      const roleId = invitation.role.toString();
+      const role = await this.roleRepository.findById(roleId);
+      if (role && role.workshop.toString() === workshopId) {
+        await this.roleAssignmentRepository.create({
+          workshopId,
+          roleId,
+          userId,
+          scope: role.scope,
+          scopeId: role.scopeId?.toString(),
+          assignedBy: invitation.invitedBy.toString()
+        });
       }
     }
 
-    if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:invited', membership);
     return membership;
   }
 

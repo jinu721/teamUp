@@ -9,6 +9,7 @@ import { Users, CheckCircle, XCircle, LogIn, UserPlus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface InviteDetails {
+  type?: 'project' | 'workshop';
   project: {
     _id: string;
     title: string;
@@ -68,7 +69,8 @@ const InviteAccept: React.FC = () => {
       });
 
       setTimeout(() => {
-        navigate(`/projects/${invite?.project._id}`);
+        const path = invite?.type === 'workshop' ? 'workshops' : 'projects';
+        navigate(`/${path}/${invite?.project._id}`);
       }, 2000);
     } catch (err: any) {
       toast({

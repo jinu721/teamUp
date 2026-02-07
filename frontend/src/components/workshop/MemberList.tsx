@@ -1,5 +1,5 @@
 import React from 'react';
-import { Membership, MembershipState, MEMBERSHIP_STATE_LABELS, MEMBERSHIP_SOURCE_LABELS, Role } from '@/types/workshop';
+import { Membership, MembershipState, MembershipSource, MEMBERSHIP_STATE_LABELS, MEMBERSHIP_SOURCE_LABELS, Role } from '@/types/workshop';
 import { User } from '@/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -164,24 +164,38 @@ export const MemberList: React.FC<MemberListProps> = ({
 
               {canManage && membership.state === MembershipState.PENDING && (
                 <div className="flex items-center gap-1">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-9 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-full"
-                    onClick={() => onApprove?.(membership._id)}
-                  >
-                    <Check className="h-4 w-4 mr-1.5" />
-                    Approve
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
-                    onClick={() => onReject?.(membership._id)}
-                  >
-                    <X className="h-4 w-4 mr-1.5" />
-                    Reject
-                  </Button>
+                  {membership.source === MembershipSource.INVITATION ? (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
+                      onClick={() => onReject?.(membership._id)}
+                    >
+                      <X className="h-4 w-4 mr-1.5" />
+                      Cancel Invitation
+                    </Button>
+                  ) : (
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-9 px-3 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-full"
+                        onClick={() => onApprove?.(membership._id)}
+                      >
+                        <Check className="h-4 w-4 mr-1.5" />
+                        Approve
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-full"
+                        onClick={() => onReject?.(membership._id)}
+                      >
+                        <X className="h-4 w-4 mr-1.5" />
+                        Reject
+                      </Button>
+                    </>
+                  )}
                 </div>
               )}
 

@@ -182,26 +182,10 @@ export class WorkshopController {
         return;
       }
 
-      const User = require('../models/User').User;
-      const invitedUser = await User.findOne({ email: email.toLowerCase() });
-
-      console.log("invitedUser", invitedUser);
-
-      if (!invitedUser) {
-        res.status(404).json({
-          success: false,
-          message: 'User with this email not found'
-        });
-        return;
-      }
-
-      const membership = await this.workshopService.inviteMember(workshopId, actorId, invitedUser._id.toString(), roleId);
-
-      console.log("membership", membership);
+      await this.workshopService.inviteMember(workshopId, actorId, email, roleId);
 
       res.status(201).json({
         success: true,
-        data: membership,
         message: 'Member invited successfully'
       });
     } catch (error) {

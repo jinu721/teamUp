@@ -20,6 +20,7 @@ import auditRoutes from './routes/auditRoutes';
 import permissionRoutes from './routes/permissionRoutes';
 import chatRoutes, { chatController } from './routes/chatRoutes';
 import activityRoutes from './routes/activityRoutes';
+import inviteRoutes from './routes/inviteRoutes';
 import morgan from 'morgan';
 
 const app: Application = express();
@@ -61,6 +62,7 @@ app.use('/api/users', userTaskRouter);
 app.use('/api/teams', teamTaskRouter);
 
 app.use('/api/chat', chatRoutes);
+app.use('/api/invites', inviteRoutes);
 app.use('/api', activityRoutes);
 
 app.use(errorHandler);
