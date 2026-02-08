@@ -10,13 +10,16 @@ import { NotificationItem } from '@/components/dashboard/NotificationItem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Inbox, Building as WorkshopIcon, Users, ArrowRight } from 'lucide-react';
+import { Plus, Inbox, Building as WorkshopIcon, Users, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { WorkshopTask } from '@/types/workshop';
+import { DashboardTaskItem } from '@/components/dashboard/DashboardTaskItem';
 
 const Dashboard: React.FC = () => {
   const { } = useAuth();
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [tasks, setTasks] = useState<WorkshopTask[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -31,12 +34,14 @@ const Dashboard: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [workshopsRes, notificationsRes] = await Promise.all([
+      const [workshopsRes, notificationsRes, tasksRes] = await Promise.all([
         api.getWorkshops(),
-        api.getNotifications(10)
+        api.getNotifications(10),
+        api.getMyTasks()
       ]);
       setWorkshops(workshopsRes.data);
       setNotifications(notificationsRes.data);
+      setTasks(tasksRes.data.filter(t => t.status !== 'done'));
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast({
@@ -174,6 +179,27 @@ const Dashboard: React.FC = () => {
                       onMarkAsRead={handleMarkAsRead}
                     />
                   ))
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-soft overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  My Active Tasks
+                </CardTitle>
+                <CardDescription>Assigned to you across workshops</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No active tasks</p>
+                ) : (
+                  <div className="space-y-3">
+                    {tasks.slice(0, 5).map(task => (
+                      <DashboardTaskItem key={task._id} task={task} />
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>
