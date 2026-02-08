@@ -10,13 +10,16 @@ import { NotificationItem } from '@/components/dashboard/NotificationItem';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Inbox, Building as WorkshopIcon, Users, ArrowRight } from 'lucide-react';
+import { Plus, Inbox, Building as WorkshopIcon, Users, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { WorkshopTask } from '@/types/workshop';
+import { DashboardTaskItem } from '@/components/dashboard/DashboardTaskItem';
 
 const Dashboard: React.FC = () => {
   const { } = useAuth();
   const [workshops, setWorkshops] = useState<Workshop[]>([]);
   const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [tasks, setTasks] = useState<WorkshopTask[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -31,12 +34,14 @@ const Dashboard: React.FC = () => {
 
   const loadData = async () => {
     try {
-      const [workshopsRes, notificationsRes] = await Promise.all([
+      const [workshopsRes, notificationsRes, tasksRes] = await Promise.all([
         api.getWorkshops(),
-        api.getNotifications(10)
+        api.getNotifications(10),
+        api.getMyTasks()
       ]);
       setWorkshops(workshopsRes.data);
       setNotifications(notificationsRes.data);
+      setTasks(tasksRes.data.filter(t => t.status !== 'done'));
     } catch (error) {
       console.error('Failed to load dashboard data:', error);
       toast({
@@ -83,10 +88,16 @@ const Dashboard: React.FC = () => {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-10 w-32" />
           </div>
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-48" />
-            ))}
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
           </div>
         </div>
       </AppLayout>
@@ -174,6 +185,27 @@ const Dashboard: React.FC = () => {
                       onMarkAsRead={handleMarkAsRead}
                     />
                   ))
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-soft overflow-hidden">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  My Active Tasks
+                </CardTitle>
+                <CardDescription>Assigned to you across workshops</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {tasks.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-6">No active tasks</p>
+                ) : (
+                  <div className="space-y-3">
+                    {tasks.slice(0, 5).map(task => (
+                      <DashboardTaskItem key={task._id} task={task} />
+                    ))}
+                  </div>
                 )}
               </CardContent>
             </Card>

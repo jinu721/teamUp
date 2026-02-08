@@ -121,6 +121,11 @@ class ApiService {
     return response.data;
   }
 
+  async getMyTasks(): Promise<ApiResponse<WorkshopTask[]>> {
+    const response = await this.api.get('/users/my-tasks');
+    return response.data;
+  }
+
   async updateProfile(data: Partial<User>): Promise<ApiResponse<User>> {
     const response = await this.api.put('/auth/profile', data);
     return response.data;
