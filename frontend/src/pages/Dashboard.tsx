@@ -88,10 +88,16 @@ const Dashboard: React.FC = () => {
             <Skeleton className="h-10 w-48" />
             <Skeleton className="h-10 w-32" />
           </div>
-          <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {[1, 2, 3].map(i => (
-              <Skeleton key={i} className="h-48" />
-            ))}
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+            <div className="lg:col-span-2 grid gap-4 sm:grid-cols-2">
+              {[1, 2, 3, 4].map(i => (
+                <Skeleton key={i} className="h-40" />
+              ))}
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-64" />
+              <Skeleton className="h-64" />
+            </div>
           </div>
         </div>
       </AppLayout>
