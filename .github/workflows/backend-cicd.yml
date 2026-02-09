@@ -5,6 +5,7 @@ on:
     branches: [ main, feature/my-active-tasks ]
     paths:
       - 'backend/**'
+      - '.github/workflows/backend-cicd.yml'
   pull_request:
     branches: [ main ]
     paths:
@@ -45,7 +46,6 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-
       - name: Deploy to EC2 via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -53,19 +53,20 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            # Navigate to the correct folder (with exact case)
-            mkdir -p ~/teamUp
+            # Navigate to the correct folder
             cd ~/teamUp
             
-            # Initialize git if it's a new folder, otherwise pull
-            if [ ! -d ".git" ]; then
-              git clone https://github.com/${{ github.repository }}.git .
-            else
-              git pull origin main
-            fi
+            # Pull latest changes
+            git pull origin main
             
+            # Navigate to backend and update
             cd backend
-            # Use 'docker compose' (v2) which is the modern standard on AWS
-            docker compose down || true
-            docker compose up --build -d
-            docker image prune -f
+            npm install --production
+            npm run build
+            
+            # Restart with PM2
+            # Assuming the process name is 'teamUp' as seen in your logs
+            pm2 restart teamUp || pm2 start dist/server.js --name teamUp
+            
+            # Save PM2 state
+            pm2 save
