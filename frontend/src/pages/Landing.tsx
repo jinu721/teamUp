@@ -18,8 +18,11 @@ import {
     Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Landing() {
+    const { isAuthenticated } = useAuth();
+
     return (
         <div className="min-h-screen bg-background selection:bg-primary/10">
             <nav className="fixed top-0 w-full z-50 border-b bg-background/80 backdrop-blur-md">
@@ -33,12 +36,22 @@ export default function Landing() {
                         <a href="#community" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Community</a>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Link to="/login">
-                            <Button variant="ghost" size="sm" className="font-medium">Sign In</Button>
-                        </Link>
-                        <Link to="/register">
-                            <Button size="sm" className="font-medium px-5 rounded-full">Get Started</Button>
-                        </Link>
+                        {isAuthenticated ? (
+                            <Link to="/dashboard">
+                                <Button className="font-bold px-6 rounded-xl hover:scale-105 transition-transform">
+                                    Go to Dashboard
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link to="/login">
+                                    <Button variant="ghost" size="sm" className="font-medium">Sign In</Button>
+                                </Link>
+                                <Link to="/register">
+                                    <Button size="sm" className="font-medium px-5 rounded-full">Get Started</Button>
+                                </Link>
+                            </>
+                        )}
                     </div>
                 </div>
             </nav>
@@ -60,11 +73,19 @@ export default function Landing() {
                             The collective playground for all who want to <span className="text-foreground font-bold underline decoration-primary/30">Team Up</span>. Whether you are an Open Source contributor, individual collaborator, company team, or freelance group—manage your projects and build the future together.
                         </p>
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
-                            <Link to="/register">
-                                <Button size="lg" className="h-14 px-8 text-base font-semibold rounded-full shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-105">
-                                    Launch Your Workshop <ArrowRight className="ml-2 h-5 w-5" />
-                                </Button>
-                            </Link>
+                            {isAuthenticated ? (
+                                <Link to="/dashboard">
+                                    <Button size="lg" className="h-14 px-8 text-base font-bold rounded-full shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-105">
+                                        Back to your Workshops <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
+                                </Link>
+                            ) : (
+                                <Link to="/register">
+                                    <Button size="lg" className="h-14 px-8 text-base font-semibold rounded-full shadow-xl shadow-primary/25 hover:shadow-primary/40 transition-all hover:scale-105">
+                                        Launch Your Workshop <ArrowRight className="ml-2 h-5 w-5" />
+                                    </Button>
+                                </Link>
+                            )}
                             <Link to="/community">
                                 <Button variant="outline" size="lg" className="h-14 px-8 text-base font-semibold rounded-full hover:bg-muted/50 transition-all">
                                     Explore Community
@@ -353,16 +374,26 @@ export default function Landing() {
                                 Start your workshop for free today.
                             </p>
                             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                                <Link to="/register">
-                                    <Button size="lg" variant="secondary" className="h-14 px-10 text-base font-bold rounded-full hover:scale-105 transition-all">
-                                        Get Started Free
-                                    </Button>
-                                </Link>
-                                <Link to="/login">
-                                    <Button size="lg" variant="ghost" className="h-14 px-10 text-base font-bold text-white hover:bg-white/10 rounded-full">
-                                        Sign In to Account
-                                    </Button>
-                                </Link>
+                                {isAuthenticated ? (
+                                    <Link to="/dashboard">
+                                        <Button size="lg" variant="secondary" className="h-14 px-10 text-base font-bold rounded-full hover:scale-105 transition-all">
+                                            Return to Dashboard
+                                        </Button>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link to="/register">
+                                            <Button size="lg" variant="secondary" className="h-14 px-10 text-base font-bold rounded-full hover:scale-105 transition-all">
+                                                Get Started Free
+                                            </Button>
+                                        </Link>
+                                        <Link to="/login">
+                                            <Button size="lg" variant="ghost" className="h-14 px-10 text-base font-bold text-white hover:bg-white/10 rounded-full">
+                                                Sign In to Account
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
