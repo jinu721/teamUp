@@ -53,9 +53,19 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            cd ~/teamup
-            git pull origin main
+            # Navigate to the correct folder (with exact case)
+            mkdir -p ~/teamUp
+            cd ~/teamUp
+            
+            # Initialize git if it's a new folder, otherwise pull
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/${{ github.repository }}.git .
+            else
+              git pull origin main
+            fi
+            
             cd backend
-            docker-compose down
-            docker-compose up --build -d
+            # Use 'docker compose' (v2) which is the modern standard on AWS
+            docker compose down || true
+            docker compose up --build -d
             docker image prune -f
