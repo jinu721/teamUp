@@ -46,18 +46,16 @@ jobs:
         uses: actions/checkout@v4
 
 
-      - name: Generate Deployment Package
-        run: |
-          cd backend
-          zip -r ../deploy.zip . -x "node_modules/*" "src/*" ".env"
-
-      - name: Deploy to AWS Elastic Beanstalk
-        uses: einaregilsson/beanstalk-deploy@v21
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
         with:
-          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: teamup-backend
-          environment_name: Teamup-backend-env
-          version_label: ${{ github.sha }}
-          region: us-east-1
-          deployment_package: deploy.zip
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/teamup
+            git pull origin main
+            cd backend
+            docker-compose down
+            docker-compose up --build -d
+            docker image prune -f
