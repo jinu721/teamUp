@@ -414,9 +414,16 @@ export class WorkshopService {
     return await this.membershipRepository.findPendingByWorkshop(workshopId);
   }
 
-  async getPublicWorkshops(options?: any, currentUserId?: string): Promise<{ workshops: any[]; total: number }> {
-    const workshops = await this.workshopRepository.findPublic(options);
-    const total = await this.workshopRepository.countPublic(options);
+  async getPublicWorkshops(options?: any, currentUserId?: string): Promise<{ workshops: any[]; total: number; pages: number }> {
+    const limit = options?.limit || 20;
+    const page = options?.page || 1;
+    const skip = (page - 1) * limit;
+
+    const findOptions = { ...options, skip };
+    delete findOptions.page;
+
+    const workshops = await this.workshopRepository.findPublic(findOptions);
+    const total = await this.workshopRepository.countPublic(findOptions);
 
     const enrichedWorkshops = await Promise.all(workshops.map(async (workshop) => {
       const workshopObj = workshop.toObject();
@@ -438,7 +445,11 @@ export class WorkshopService {
       return workshopObj;
     }));
 
-    return { workshops: enrichedWorkshops, total };
+    return {
+      workshops: enrichedWorkshops,
+      total,
+      pages: Math.ceil(total / limit)
+    };
   }
 
   async upvoteWorkshop(_userId: string, workshopId: string): Promise<IWorkshop> {

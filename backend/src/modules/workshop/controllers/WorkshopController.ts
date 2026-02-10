@@ -55,7 +55,6 @@ export class WorkshopController {
   getPublicWorkshops = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const { search, category, tags, sort, page = 1, limit = 20 } = req.query;
-      const skip = (Number(page) - 1) * Number(limit);
       const currentUserId = (req as any).user?.id;
 
       const result = await this.workshopService.getPublicWorkshops({
@@ -63,7 +62,7 @@ export class WorkshopController {
         category: category as string,
         tags: tags ? (Array.isArray(tags) ? tags as string[] : [tags as string]) : undefined,
         limit: Number(limit),
-        skip,
+        page: Number(page),
         sort: sort as string
       }, currentUserId);
 
@@ -74,7 +73,7 @@ export class WorkshopController {
           page: Number(page),
           limit: Number(limit),
           total: result.total,
-          pages: Math.ceil(result.total / Number(limit))
+          pages: result.pages
         },
         message: 'Public workshops retrieved successfully'
       });
