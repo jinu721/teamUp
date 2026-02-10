@@ -1,5 +1,5 @@
 import { Workshop } from '../models/Workshop';
-import { IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO, WorkshopVisibility } from '../../../shared/types/index';
+import { IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO, WorkshopVisibility } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IWorkshopRepository } from '../interfaces/IWorkshopRepository';
@@ -164,7 +164,7 @@ export class WorkshopRepository implements IWorkshopRepository {
 
   async isManager(workshopId: string, userId: string): Promise<boolean> {
     const workshop = await Workshop.findById(workshopId);
-    return workshop?.managers.some(m => m.toString() === userId) || false;
+    return workshop?.managers.some((m: Types.ObjectId) => m.toString() === userId) || false;
   }
 
   async isOwnerOrManager(workshopId: string, userId: string): Promise<boolean> {
@@ -172,7 +172,7 @@ export class WorkshopRepository implements IWorkshopRepository {
     if (!workshop) return false;
 
     return workshop.owner.toString() === userId ||
-      workshop.managers.some(m => m.toString() === userId);
+      workshop.managers.some((m: Types.ObjectId) => m.toString() === userId);
   }
 
   async getManagerCount(workshopId: string): Promise<number> {

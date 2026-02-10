@@ -1,4 +1,4 @@
-import { INotification, NotificationType } from '../../../shared/types/index';
+import { INotification, NotificationType } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export interface INotificationService {

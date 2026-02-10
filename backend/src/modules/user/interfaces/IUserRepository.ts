@@ -1,4 +1,4 @@
-import { IUser } from '../../../shared/types/index';
+import { IUser } from '../types/index';
 
 export interface IUserRepository {
     create(userData: Partial<IUser>): Promise<IUser>;

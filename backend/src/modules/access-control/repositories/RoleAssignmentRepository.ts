@@ -1,5 +1,5 @@
 import { RoleAssignment } from '../models/RoleAssignment';
-import { IRoleAssignment, PermissionScope } from '../../../shared/types/index';
+import { IRoleAssignment, PermissionScope } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IRoleAssignmentRepository } from '../interfaces/IRoleAssignmentRepository';

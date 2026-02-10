@@ -1,5 +1,5 @@
 import { Role } from '../models/Role';
-import { IRole, CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../../../shared/types/index';
+import { IRole, CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IRoleRepository } from '../interfaces/IRoleRepository';

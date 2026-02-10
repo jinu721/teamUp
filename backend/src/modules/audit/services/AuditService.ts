@@ -1,9 +1,5 @@
-import {
-  IAuditLog,
-  AuditAction,
-  AuditLogFilters,
-  Pagination
-} from '../../../shared/types/index';
+import { IAuditLog, AuditAction, AuditLogFilters } from '../types/index';
+import { Pagination } from '../../../shared/types/index';
 import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
 import { IAuditService } from '../interfaces/IAuditService';
 

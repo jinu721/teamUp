@@ -1,16 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IInvitation extends Document {
-    token: string;
-    email: string;
-    workshop: mongoose.Types.ObjectId;
-    role?: mongoose.Types.ObjectId;
-    invitedBy: mongoose.Types.ObjectId;
-    expiresAt: Date;
-    isUsed: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { IInvitation } from '../types/index';
 
 const invitationSchema = new Schema<IInvitation>(
     {

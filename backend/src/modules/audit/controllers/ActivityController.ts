@@ -1,7 +1,7 @@
 import { Response, NextFunction } from 'express';
-import { IActivityHistoryService, ActivityFilters } from '../interfaces/IActivityHistoryService';
+import { IActivityHistoryService } from '../interfaces/IActivityHistoryService';
 import { AuthRequest } from '../../../shared/types/index';
-import { ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
+import { ActivityAction, ActivityEntityType, ActivityFilters } from '../types/index';
 
 export class ActivityController {
     constructor(private activityService: IActivityHistoryService) { }

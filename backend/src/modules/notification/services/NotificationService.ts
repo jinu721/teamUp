@@ -1,5 +1,5 @@
 import { INotificationRepository } from '../interfaces/INotificationRepository';
-import { INotification, NotificationType } from '../../../shared/types/index';
+import { INotification, NotificationType } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import { INotificationService } from '../interfaces/INotificationService';
 import { NotFoundError } from '../../../shared/utils/errors';

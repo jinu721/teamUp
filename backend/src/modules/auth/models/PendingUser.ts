@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IPendingUser } from '../../../shared/types/index';
+import { IPendingUser } from '../types/index';
 
 const pendingUserSchema = new Schema<IPendingUser>(
     {

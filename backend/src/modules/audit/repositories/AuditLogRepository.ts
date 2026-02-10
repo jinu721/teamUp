@@ -1,6 +1,7 @@
 import { Types } from 'mongoose';
 import { AuditLog } from '../models/AuditLog';
-import { IAuditLog, AuditAction, AuditLogFilters, Pagination } from '../../../shared/types/index';
+import { IAuditLog, AuditAction, AuditLogFilters } from '../types/index';
+import { Pagination } from '../../../shared/types/index';
 import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
 
 export class AuditLogRepository implements IAuditLogRepository {

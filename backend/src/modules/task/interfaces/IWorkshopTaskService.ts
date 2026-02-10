@@ -1,4 +1,4 @@
-import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO } from '../../../shared/types/index';
+import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO } from '../types/index';
 import { TasksByStatus } from './IWorkshopTaskRepository';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 

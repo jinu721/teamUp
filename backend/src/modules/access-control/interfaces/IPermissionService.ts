@@ -1,4 +1,4 @@
-import { PermissionContext, PermissionResult } from '../../../shared/types/index';
+import { PermissionContext, PermissionResult } from '../types/index';
 
 export interface IPermissionService {
     checkPermission(

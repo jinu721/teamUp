@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IWorkshopTask, ITaskActivity, TaskType, ITaskComment, ITaskStatusHistory, ITaskAttachment } from '../../../shared/types/index';
+import { IWorkshopTask, ITaskActivity, TaskType, ITaskComment, ITaskStatusHistory, ITaskAttachment } from '../types/index';
 
 const taskActivitySchema = new Schema<ITaskActivity>(
   {

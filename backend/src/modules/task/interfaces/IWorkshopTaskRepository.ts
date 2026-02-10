@@ -1,4 +1,4 @@
-import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttachment } from '../../../shared/types/index';
+import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttachment } from '../types/index';
 
 export interface TasksByStatus {
     [status: string]: IWorkshopTask[];

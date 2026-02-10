@@ -1,42 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export enum MessageType {
-    TEXT = 'text',
-    AUDIO = 'audio',
-    IMAGE = 'image',
-    DOCUMENT = 'document'
-}
-
-export interface IMessageReaction {
-    user: mongoose.Types.ObjectId;
-    emoji: string;
-    createdAt: Date;
-}
-
-export interface ISeenBy {
-    user: mongoose.Types.ObjectId;
-    seenAt: Date;
-}
-
-export interface IMessage extends Document {
-    chatRoom: mongoose.Types.ObjectId;
-    sender: mongoose.Types.ObjectId;
-    messageType: MessageType;
-    content: string;
-    fileName?: string;
-    fileSize?: number;
-    mimeType?: string;
-    duration?: number;
-    seenBy: ISeenBy[];
-    replyTo?: mongoose.Types.ObjectId;
-    isEdited: boolean;
-    editedAt?: Date;
-    isDeleted: boolean;
-    deletedAt?: Date;
-    reactions: IMessageReaction[];
-    createdAt: Date;
-    updatedAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { MessageType, IMessage, ISeenBy, IMessageReaction } from '../types/index';
 
 const messageReactionSchema = new Schema<IMessageReaction>({
     user: {

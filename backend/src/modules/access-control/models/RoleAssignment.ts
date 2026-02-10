@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IRoleAssignment, PermissionScope } from '../../../shared/types/index';
+import { IRoleAssignment, PermissionScope } from '../types/index';
 
 const roleAssignmentSchema = new Schema<IRoleAssignment>(
   {

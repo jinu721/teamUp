@@ -1,4 +1,4 @@
-import { IRoleAssignment, PermissionScope } from '../../../shared/types/index';
+import { IRoleAssignment, PermissionScope } from '../types/index';
 import { CreateRoleAssignmentDTO } from '../repositories/RoleAssignmentRepository';
 
 export interface IRoleAssignmentRepository {

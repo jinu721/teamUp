@@ -1,4 +1,4 @@
-import { INotification } from '../../../shared/types/index';
+import { INotification } from '../types/index';
 
 export interface INotificationRepository {
     create(notificationData: Partial<INotification>): Promise<INotification>;

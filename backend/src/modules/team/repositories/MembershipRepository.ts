@@ -1,16 +1,9 @@
 import { Membership } from '../models/Membership';
-import { IMembership, MembershipState, MembershipSource } from '../../../shared/types/index';
+import { IMembership, MembershipState, MembershipSource, CreateMembershipDTO } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IMembershipRepository } from '../interfaces/IMembershipRepository';
 
-export interface CreateMembershipDTO {
-  workshopId: string;
-  userId: string;
-  source: MembershipSource;
-  invitedBy?: string;
-  state?: MembershipState;
-}
 
 export class MembershipRepository implements IMembershipRepository {
   private readonly populateUser = { path: 'user', select: 'name email profilePhoto' };

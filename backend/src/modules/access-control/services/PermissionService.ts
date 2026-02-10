@@ -1,12 +1,6 @@
-import {
-  PermissionScope,
-  PermissionType,
-  IPermission,
-  PermissionContext,
-  PermissionResult,
-  MembershipState,
-  WorkshopVisibility
-} from '../../../shared/types/index';
+import { PermissionScope, PermissionType, IPermission, PermissionContext, PermissionResult } from '../types/index';
+import { MembershipState } from '../../team/types/index';
+import { WorkshopVisibility } from '../../workshop/types/index';
 import { IRoleAssignmentRepository } from '../interfaces/IRoleAssignmentRepository';
 import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
 import { ITeamRepository } from '../../team/interfaces/ITeamRepository';

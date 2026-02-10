@@ -1,34 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export enum ChatRoomType {
-    WORKSHOP = 'workshop',
-    PROJECT = 'project',
-    TEAM = 'team',
-    DIRECT = 'direct'
-}
-
-export interface IChatRoomSettings {
-    allowFileSharing: boolean;
-    allowAudioMessages: boolean;
-    maxFileSize: number;
-}
-
-export interface IChatRoom extends Document {
-    roomType: ChatRoomType;
-    workshop: mongoose.Types.ObjectId;
-    project?: mongoose.Types.ObjectId;
-    team?: mongoose.Types.ObjectId;
-    participants: mongoose.Types.ObjectId[];
-    name: string;
-    description?: string;
-    lastMessage?: mongoose.Types.ObjectId;
-    lastMessageAt?: Date;
-    createdBy: mongoose.Types.ObjectId;
-    admins: mongoose.Types.ObjectId[];
-    settings: IChatRoomSettings;
-    createdAt: Date;
-    updatedAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { ChatRoomType, IChatRoom, IChatRoomSettings } from '../types/index';
 
 const chatRoomSettingsSchema = new Schema<IChatRoomSettings>({
     allowFileSharing: {

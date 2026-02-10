@@ -1,10 +1,6 @@
 import { Types } from 'mongoose';
-import {
-  IWorkshopProject,
-  CreateWorkshopProjectDTO,
-  UpdateWorkshopProjectDTO,
-  AuditAction
-} from '../../../shared/types/index';
+import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../types/index';
+import { AuditAction } from '../../audit/types/index';
 import { IWorkshopProjectRepository } from '../interfaces/IWorkshopProjectRepository';
 import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
 import { ITeamRepository } from '../../team/interfaces/ITeamRepository';

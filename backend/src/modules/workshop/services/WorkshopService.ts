@@ -1,15 +1,7 @@
-import {
-  IWorkshop,
-  IMembership,
-  CreateWorkshopDTO,
-  UpdateWorkshopDTO,
-  MembershipState,
-  MembershipSource,
-  AuditAction,
-
-  PermissionScope,
-  PermissionType
-} from '../../../shared/types/index';
+import { IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO } from '../types/index';
+import { IMembership, MembershipState, MembershipSource } from '../../team/types/index';
+import { AuditAction } from '../../audit/types/index';
+import { PermissionScope, PermissionType } from '../../access-control/types/index';
 
 import { IWorkshopRepository } from '../interfaces/IWorkshopRepository';
 import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';

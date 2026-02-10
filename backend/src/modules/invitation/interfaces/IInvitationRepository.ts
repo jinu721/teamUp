@@ -1,4 +1,4 @@
-import { IInvitation } from '../models/Invitation';
+import { IInvitation } from '../types/index';
 
 export interface IInvitationRepository {
     findByToken(token: string): Promise<IInvitation | null>;

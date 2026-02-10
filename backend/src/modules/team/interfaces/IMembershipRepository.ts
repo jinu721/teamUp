@@ -1,5 +1,4 @@
-import { IMembership, MembershipState } from '../../../shared/types/index';
-import { CreateMembershipDTO } from '../repositories/MembershipRepository';
+import { IMembership, MembershipState, CreateMembershipDTO } from '../types/index';
 
 export interface IMembershipRepository {
     create(membershipData: CreateMembershipDTO): Promise<IMembership>;

@@ -1,4 +1,4 @@
-import { IRole, CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../../../shared/types/index';
+import { IRole, CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../types/index';
 
 export interface IRoleRepository {
     create(workshopId: string, roleData: CreateRoleDTO): Promise<IRole>;

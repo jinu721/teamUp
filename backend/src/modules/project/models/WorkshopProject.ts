@@ -6,7 +6,7 @@ import {
   IWorkflowTransition,
   DEFAULT_PROJECT_SETTINGS,
   DEFAULT_TASK_WORKFLOW
-} from '../../../shared/types/index';
+} from '../types/index';
 
 const workflowTransitionSchema = new Schema<IWorkflowTransition>(
   {

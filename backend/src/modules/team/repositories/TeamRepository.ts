@@ -1,5 +1,5 @@
 import { Team } from '../models/Team';
-import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../../../shared/types/index';
+import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { ITeamRepository } from '../interfaces/ITeamRepository';
@@ -111,7 +111,7 @@ export class TeamRepository implements ITeamRepository {
 
   async isMember(teamId: string, userId: string): Promise<boolean> {
     const team = await Team.findById(teamId);
-    return team?.members.some(m => m.toString() === userId) || false;
+    return team?.members.some((m: Types.ObjectId) => m.toString() === userId) || false;
   }
 
   async countMembers(teamId: string): Promise<number> {
@@ -183,7 +183,7 @@ export class TeamRepository implements ITeamRepository {
 
     const roles: string[] = [];
     for (const role of (team.internalRoles || [])) {
-      if (role.members.some(m => m.toString() === userId)) {
+      if (role.members.some((m: Types.ObjectId) => m.toString() === userId)) {
         roles.push(role.name);
       }
     }

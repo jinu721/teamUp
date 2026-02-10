@@ -1,46 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export enum ActivityAction {
-    CREATED = 'created',
-    UPDATED = 'updated',
-    DELETED = 'deleted',
-    ASSIGNED = 'assigned',
-    UNASSIGNED = 'unassigned',
-    COMPLETED = 'completed',
-    REOPENED = 'reopened',
-    COMMENTED = 'commented',
-    UPLOADED = 'uploaded',
-    JOINED = 'joined',
-    LEFT = 'left',
-    INVITED = 'invited',
-    APPROVED = 'approved',
-    REJECTED = 'rejected'
-}
-
-export enum ActivityEntityType {
-    WORKSHOP = 'workshop',
-    PROJECT = 'project',
-    TASK = 'task',
-    TEAM = 'team',
-    MESSAGE = 'message',
-    MEMBER = 'member',
-    ROLE = 'role',
-    FILE = 'file'
-}
-
-export interface IActivityHistory extends Document {
-    workshop: mongoose.Types.ObjectId;
-    user: mongoose.Types.ObjectId;
-    action: ActivityAction;
-    entityType: ActivityEntityType;
-    entityId: mongoose.Types.ObjectId;
-    entityName: string;
-    description: string;
-    metadata?: any;
-    ipAddress?: string;
-    userAgent?: string;
-    createdAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { ActivityAction, ActivityEntityType, IActivityHistory } from '../types/index';
 
 const activityHistorySchema = new Schema<IActivityHistory>(
     {

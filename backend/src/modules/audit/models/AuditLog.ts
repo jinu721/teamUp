@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IAuditLog, AuditAction } from '../../../shared/types/index';
+import { IAuditLog, AuditAction } from '../types/index';
 
 const auditLogSchema = new Schema<IAuditLog>(
   {

@@ -1,8 +1,4 @@
-import {
-    IWorkshopProject,
-    CreateWorkshopProjectDTO,
-    UpdateWorkshopProjectDTO
-} from '../../../shared/types/index';
+import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export interface IWorkshopProjectService {

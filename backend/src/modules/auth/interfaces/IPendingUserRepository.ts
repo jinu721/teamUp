@@ -1,4 +1,4 @@
-import { IPendingUser } from '../../../shared/types/index';
+import { IPendingUser } from '../types/index';
 
 export interface IPendingUserRepository {
     create(userData: Partial<IPendingUser>): Promise<IPendingUser>;

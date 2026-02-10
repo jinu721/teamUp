@@ -1,43 +1,16 @@
-import { ChatRoom, IChatRoom, ChatRoomType } from '../models/ChatRoom';
-import { Message, IMessage, MessageType } from '../models/Message';
+import { ChatRoom } from '../models/ChatRoom';
+import { Message } from '../models/Message';
+import { IChatRoom, ChatRoomType, IMessage, MessageType, CreateChatRoomData, SendMessageData, ISeenBy, IMessageReaction } from '../types/index';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
 import { Types } from 'mongoose';
 import { IActivityHistoryService } from '../../audit/interfaces/IActivityHistoryService';
-import { ActivityAction, ActivityEntityType } from '../../audit/models/ActivityHistory';
+import { ActivityAction, ActivityEntityType } from '../../audit/types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
 import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
 import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopProjectRepository';
 import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
 import { IChatService } from '../interfaces/IChatService';
-
-export interface CreateChatRoomData {
-    roomType: ChatRoomType;
-    workshopId: string;
-    projectId?: string;
-    teamId?: string;
-    participants: string[];
-    name: string;
-    description?: string;
-    createdBy: string;
-}
-
-export interface SendMessageData {
-    messageType: MessageType;
-    content: string;
-    fileName?: string;
-    fileSize?: number;
-    mimeType?: string;
-    duration?: number;
-    replyTo?: string;
-}
-
-export interface MessageFilters {
-    search?: string;
-    messageType?: MessageType;
-    startDate?: Date;
-    endDate?: Date;
-}
 
 export class ChatService implements IChatService {
     constructor(
@@ -399,7 +372,7 @@ export class ChatService implements IChatService {
             throw new NotFoundError('Message');
         }
 
-        const alreadySeen = message.seenBy.some(s => s.user.toString() === userId);
+        const alreadySeen = message.seenBy.some((s: ISeenBy) => s.user.toString() === userId);
         if (alreadySeen) {
             return message;
         }
@@ -480,7 +453,7 @@ export class ChatService implements IChatService {
         }
 
         const existingReaction = message.reactions.find(
-            r => this.getIdString(r.user) === userId && r.emoji === emoji
+            (r: IMessageReaction) => this.getIdString(r.user) === userId && r.emoji === emoji
         );
 
         if (existingReaction) {
@@ -504,7 +477,7 @@ export class ChatService implements IChatService {
         }
 
         message.reactions = message.reactions.filter(
-            r => !(this.getIdString(r.user) === userId && r.emoji === emoji)
+            (r: IMessageReaction) => !(this.getIdString(r.user) === userId && r.emoji === emoji)
         );
 
         await message.save();

@@ -1,9 +1,5 @@
 import { Types } from 'mongoose';
-import {
-  ITeam,
-  CreateTeamDTO,
-  UpdateTeamDTO
-} from '../../../shared/types/index';
+import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../types/index';
 import { ITeamRepository } from '../interfaces/ITeamRepository';
 import { IMembershipRepository } from '../interfaces/IMembershipRepository';
 import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';

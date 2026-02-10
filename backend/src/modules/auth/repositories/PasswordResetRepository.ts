@@ -1,4 +1,5 @@
-import { PasswordReset, IPasswordReset } from '../models/PasswordReset';
+import { PasswordReset } from '../models/PasswordReset';
+import { IPasswordReset } from '../types/index';
 import { IPasswordResetRepository } from '../interfaces/IPasswordResetRepository';
 
 export class PasswordResetRepository implements IPasswordResetRepository {

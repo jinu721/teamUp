@@ -1,13 +1,5 @@
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface IPasswordReset extends Document {
-    email: string;
-    token: string;
-    expiresAt: Date;
-    used: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-}
+import mongoose, { Schema } from 'mongoose';
+import { IPasswordReset } from '../types/index';
 
 const passwordResetSchema = new Schema<IPasswordReset>(
     {

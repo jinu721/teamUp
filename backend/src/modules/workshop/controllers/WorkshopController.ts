@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { IWorkshopService } from '../interfaces/IWorkshopService';
-import { AuthRequest, WorkshopVisibility } from '../../../shared/types/index';
+import { AuthRequest } from '../../../shared/types/index';
+import { WorkshopVisibility, IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO, ProjectCategory } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class WorkshopController {

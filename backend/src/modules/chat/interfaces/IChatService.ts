@@ -1,6 +1,6 @@
 import { IChatRoom } from '../models/ChatRoom';
 import { IMessage } from '../models/Message';
-import { CreateChatRoomData, SendMessageData } from '../services/ChatService';
+import { CreateChatRoomData, SendMessageData } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export interface IChatService {

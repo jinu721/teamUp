@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { IRole, IPermission, PermissionType, PermissionScope } from '../../../shared/types/index';
+import { IRole, IPermission, PermissionType, PermissionScope } from '../types/index';
 
 const permissionSchema = new Schema<IPermission>(
   {

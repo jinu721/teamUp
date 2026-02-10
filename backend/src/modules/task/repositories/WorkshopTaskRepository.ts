@@ -1,5 +1,5 @@
 import { WorkshopTask } from '../models/WorkshopTask';
-import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttachment } from '../../../shared/types/index';
+import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttachment } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IWorkshopTaskRepository, TasksByStatus } from '../interfaces/IWorkshopTaskRepository';

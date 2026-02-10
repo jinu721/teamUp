@@ -1,9 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import {
-  IMembership,
-  MembershipState,
-  MembershipSource
-} from '../../../shared/types/index';
+import { IMembership, MembershipState, MembershipSource } from '../types/index';
 
 const membershipSchema = new Schema<IMembership>(
   {

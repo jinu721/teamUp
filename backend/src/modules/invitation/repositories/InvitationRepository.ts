@@ -1,4 +1,5 @@
-import { Invitation, IInvitation } from '../models/Invitation';
+import { Invitation } from '../models/Invitation';
+import { IInvitation } from '../types/index';
 import { IInvitationRepository } from '../interfaces/IInvitationRepository';
 
 export class InvitationRepository implements IInvitationRepository {

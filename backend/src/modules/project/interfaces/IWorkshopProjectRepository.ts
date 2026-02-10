@@ -1,4 +1,4 @@
-import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../../../shared/types/index';
+import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../types/index';
 
 export interface IWorkshopProjectRepository {
     create(workshopId: string, projectData: CreateWorkshopProjectDTO): Promise<IWorkshopProject>;

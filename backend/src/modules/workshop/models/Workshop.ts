@@ -5,7 +5,7 @@ import {
   WorkshopVisibility,
   ProjectCategory,
   DEFAULT_WORKSHOP_SETTINGS
-} from '../../../shared/types/index';
+} from '../types/index';
 
 const workshopSettingsSchema = new Schema<IWorkshopSettings>(
   {

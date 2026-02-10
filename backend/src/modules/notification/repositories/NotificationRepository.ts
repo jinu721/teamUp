@@ -1,5 +1,5 @@
 import { Notification } from '../models/Notification';
-import { INotification } from '../../../shared/types/index';
+import { INotification } from '../types/index';
 import { Types } from 'mongoose';
 import { INotificationRepository } from '../interfaces/INotificationRepository';
 

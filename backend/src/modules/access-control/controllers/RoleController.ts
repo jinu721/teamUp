@@ -6,11 +6,7 @@ import { IAuditService } from '../../audit/interfaces/IAuditService';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import { IPermissionService } from '../interfaces/IPermissionService';
 import { AuthRequest } from '../../../shared/types/index';
-import {
-  CreateRoleDTO,
-  UpdateRoleDTO,
-  PermissionScope
-} from '../../../shared/types/index';
+import { CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../types/index';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
 import { Types } from 'mongoose';
 

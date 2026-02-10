@@ -3,7 +3,10 @@ import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopPr
 import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
 import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
 import { INotificationRepository } from '../../notification/interfaces/INotificationRepository';
-import { IWorkshopTask, IMembership, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, NotificationType, AuditAction } from '../../../shared/types/index';
+import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO } from '../types/index';
+import { IMembership } from '../../team/types/index';
+import { NotificationType } from '../../notification/types/index';
+import { AuditAction } from '../../audit/types/index';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import { IAuditService } from '../../audit/interfaces/IAuditService';
@@ -290,7 +293,7 @@ export class WorkshopTaskService implements IWorkshopTaskService {
     }
 
     const oldPrimaryOwner = task.primaryOwner?.toString();
-    const oldContributors = new Set(task.contributors?.map(c => typeof c === 'string' ? c : (c as any)._id?.toString() || c.toString()) || []);
+    const oldContributors = new Set(task.contributors?.map((c: any) => typeof c === 'string' ? c : (c as any)._id?.toString() || c.toString()) || []);
 
     const updatedTask = await this.taskRepo.update(taskId, updates, userId);
 

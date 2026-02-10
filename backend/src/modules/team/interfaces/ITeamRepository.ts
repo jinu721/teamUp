@@ -1,4 +1,4 @@
-import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../../../shared/types/index';
+import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../types/index';
 
 export interface ITeamRepository {
     create(workshopId: string, teamData: CreateTeamDTO): Promise<ITeam>;

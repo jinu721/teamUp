@@ -1,7 +1,8 @@
 import { Response } from 'express';
 import { IAuditService } from '../interfaces/IAuditService';
 import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
-import { AuthRequest, AuditAction } from '../../../shared/types/index';
+import { AuthRequest } from '../../../shared/types/index';
+import { AuditAction } from '../types/index';
 import { AuthorizationError } from '../../../shared/utils/errors';
 import { asyncHandler } from '../../../shared/middlewares/errorMiddleware';
 

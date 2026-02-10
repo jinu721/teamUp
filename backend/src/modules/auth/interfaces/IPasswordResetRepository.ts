@@ -1,4 +1,4 @@
-import { IPasswordReset } from '../models/PasswordReset';
+import { IPasswordReset } from '../types/index';
 
 export interface IPasswordResetRepository {
     create(data: Partial<IPasswordReset>): Promise<IPasswordReset>;

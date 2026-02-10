@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { INotificationService } from '../interfaces/INotificationService';
 import { AuthRequest } from '../../../shared/types/index';
+import { INotification } from '../types/index';
 import { asyncHandler } from '../../../shared/middlewares/errorMiddleware';
 
 export class NotificationController {

@@ -1,5 +1,5 @@
 import { WorkshopProject } from '../models/WorkshopProject';
-import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../../../shared/types/index';
+import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
 import { IWorkshopProjectRepository } from '../interfaces/IWorkshopProjectRepository';

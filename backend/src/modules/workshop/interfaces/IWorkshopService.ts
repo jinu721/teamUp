@@ -1,10 +1,5 @@
-import {
-    IWorkshop,
-    IMembership,
-    CreateWorkshopDTO,
-    UpdateWorkshopDTO,
-    MembershipState
-} from '../../../shared/types/index';
+import { IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO } from '../types/index';
+import { IMembership, MembershipState } from '../../team/types/index';
 import { IInvitation } from '../../invitation/models/Invitation';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 

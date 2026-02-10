@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import { ITeam, ITeamRole } from '../../../shared/types/index';
+import { ITeam, ITeamRole } from '../types/index';
 
 const teamRoleSchema = new Schema<ITeamRole>(
   {

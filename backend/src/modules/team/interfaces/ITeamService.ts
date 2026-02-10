@@ -1,8 +1,4 @@
-import {
-    ITeam,
-    CreateTeamDTO,
-    UpdateTeamDTO
-} from '../../../shared/types/index';
+import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export interface ITeamService {
