@@ -22,22 +22,15 @@ function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): strin
 }
 
 export class WorkshopProjectService {
-  private projectRepository: WorkshopProjectRepository;
-  private workshopRepository: WorkshopRepository;
-  private teamRepository: TeamRepository;
-  private auditService: AuditService;
-  private permissionService: PermissionService;
-  private chatService: ChatService;
-  private socketService?: SocketService;
-
-  constructor() {
-    this.projectRepository = new WorkshopProjectRepository();
-    this.workshopRepository = new WorkshopRepository();
-    this.teamRepository = new TeamRepository();
-    this.auditService = new AuditService();
-    this.permissionService = PermissionService.getInstance();
-    this.chatService = new ChatService();
-  }
+  constructor(
+    private projectRepository: WorkshopProjectRepository,
+    private workshopRepository: WorkshopRepository,
+    private teamRepository: TeamRepository,
+    private auditService: AuditService,
+    private permissionService: PermissionService,
+    private chatService: ChatService,
+    private socketService: SocketService | null = null
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;

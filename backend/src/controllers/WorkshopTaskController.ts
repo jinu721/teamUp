@@ -4,11 +4,7 @@ import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
 export class WorkshopTaskController {
-  private taskService: WorkshopTaskService;
-
-  constructor() {
-    this.taskService = new WorkshopTaskService();
-  }
+  constructor(private taskService: WorkshopTaskService) { }
 
   setSocketService(socketService: SocketService): void {
     this.taskService.setSocketService(socketService);

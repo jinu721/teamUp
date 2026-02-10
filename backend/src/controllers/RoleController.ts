@@ -15,20 +15,15 @@ import { NotFoundError, AuthorizationError, ValidationError } from '../utils/err
 import { Types } from 'mongoose';
 
 export class RoleController {
-  private roleRepository: RoleRepository;
-  private roleAssignmentRepository: RoleAssignmentRepository;
-  private workshopRepository: WorkshopRepository;
-  private auditService: AuditService;
   private socketService: SocketService | null = null;
-  private permissionService: PermissionService;
 
-  constructor() {
-    this.roleRepository = new RoleRepository();
-    this.roleAssignmentRepository = new RoleAssignmentRepository();
-    this.workshopRepository = new WorkshopRepository();
-    this.auditService = new AuditService();
-    this.permissionService = PermissionService.getInstance();
-  }
+  constructor(
+    private roleRepository: RoleRepository,
+    private roleAssignmentRepository: RoleAssignmentRepository,
+    private workshopRepository: WorkshopRepository,
+    private auditService: AuditService,
+    private permissionService: PermissionService
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
@@ -127,7 +122,6 @@ export class RoleController {
           timestamp: new Date().toISOString()
         };
 
-        console.log(`🔔 [RoleController] Emitting role:updated event:`, eventData);
 
         this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
 
@@ -231,7 +225,6 @@ export class RoleController {
           timestamp: new Date().toISOString()
         };
 
-        console.log(`🔔 [RoleController] Emitting role:assigned event:`, eventData);
 
         this.socketService.emitToWorkshop(workshopId, 'role:assigned', eventData);
         this.socketService.emitToWorkshop(workshopId, 'role:updated', eventData);
@@ -276,7 +269,6 @@ export class RoleController {
           timestamp: new Date().toISOString()
         };
 
-        console.log(`🔔 [RoleController] Emitting role:revoked event:`, eventData);
 
         this.socketService.emitToWorkshop(workshopId, 'role:revoked', eventData);
 

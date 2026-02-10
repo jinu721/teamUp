@@ -28,30 +28,16 @@ function getIdString(ref: any): string {
 }
 
 export class PermissionService {
-  private roleAssignmentRepository: RoleAssignmentRepository;
-  private workshopRepository: WorkshopRepository;
-  private teamRepository: TeamRepository;
-  private membershipRepository: MembershipRepository;
-  private projectRepository: WorkshopProjectRepository;
-
   private cache: Map<string, CacheEntry>;
   private readonly CACHE_TTL_MS = 60000;
 
-  private static instance: PermissionService;
-
-  public static getInstance(): PermissionService {
-    if (!PermissionService.instance) {
-      PermissionService.instance = new PermissionService();
-    }
-    return PermissionService.instance;
-  }
-
-  private constructor() {
-    this.roleAssignmentRepository = new RoleAssignmentRepository();
-    this.workshopRepository = new WorkshopRepository();
-    this.teamRepository = new TeamRepository();
-    this.membershipRepository = new MembershipRepository();
-    this.projectRepository = new WorkshopProjectRepository();
+  constructor(
+    private roleAssignmentRepository: RoleAssignmentRepository,
+    private workshopRepository: WorkshopRepository,
+    private teamRepository: TeamRepository,
+    private membershipRepository: MembershipRepository,
+    private projectRepository: WorkshopProjectRepository
+  ) {
     this.cache = new Map();
   }
 
@@ -76,7 +62,6 @@ export class PermissionService {
     resource: string,
     context?: PermissionContext
   ): Promise<PermissionResult> {
-
     if (!Types.ObjectId.isValid(workshopId) || (userId && !Types.ObjectId.isValid(userId))) {
       return {
         granted: false,
@@ -102,9 +87,7 @@ export class PermissionService {
     }
 
     if (context?.projectId) {
-
       if (!Types.ObjectId.isValid(context.projectId)) {
-
         const result: PermissionResult = {
           granted: false,
           reason: 'Invalid project ID format'
@@ -150,7 +133,6 @@ export class PermissionService {
 
     const workshop = await this.workshopRepository.findById(workshopId);
     if (workshop) {
-
       if (workshop.visibility === WorkshopVisibility.PUBLIC && (action === 'view' || action === 'read')) {
         const result: PermissionResult = {
           granted: true,
@@ -163,7 +145,6 @@ export class PermissionService {
 
       const membership = await this.membershipRepository.findByWorkshopAndUser(workshopId, userId);
       if (membership) {
-
         if (membership.state === MembershipState.ACTIVE && (action === 'view' || action === 'read')) {
           const result: PermissionResult = {
             granted: true,
@@ -209,7 +190,6 @@ export class PermissionService {
         if (context?.projectId) {
           scopeIds = [context.projectId];
         } else {
-
           continue;
         }
       } else if (scope === PermissionScope.TEAM) {
@@ -294,7 +274,6 @@ export class PermissionService {
       );
 
       for (const p of matchingPermissions) {
-
         if (p.type === PermissionType.DENY) return p;
         if (p.type === PermissionType.GRANT) bestPermission = p;
       }

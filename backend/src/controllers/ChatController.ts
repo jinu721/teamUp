@@ -6,6 +6,8 @@ import { MessageType } from '../models/Message';
 import { ChatRoomType } from '../models/ChatRoom';
 import { SocketService } from '../services/SocketService';
 import multer from 'multer';
+import { PermissionService } from '../services/PermissionService';
+import { AuthorizationError } from '../utils/errors';
 
 const storage = multer.memoryStorage();
 const upload = multer({
@@ -15,21 +17,15 @@ const upload = multer({
     }
 });
 
-import { PermissionService } from '../services/PermissionService';
-import { AuthorizationError } from '../utils/errors';
-
 export class ChatController {
-    private chatService: ChatService;
-    private cloudinaryService: CloudinaryService;
-    private permissionService: PermissionService;
     private socketService: SocketService | null = null;
     public uploadMiddleware = upload.single('file');
 
-    constructor() {
-        this.chatService = new ChatService();
-        this.cloudinaryService = new CloudinaryService();
-        this.permissionService = PermissionService.getInstance();
-    }
+    constructor(
+        private chatService: ChatService,
+        private cloudinaryService: CloudinaryService,
+        private permissionService: PermissionService
+    ) { }
 
     setSocketService(socketService: SocketService): void {
         this.socketService = socketService;
@@ -440,7 +436,6 @@ export class ChatController {
             await this.chatService.deleteMessage(messageId, userId);
 
             if (this.socketService) {
-
                 const Message = require('../models/Message').Message;
                 const message = await Message.findById(messageId);
                 if (message) {

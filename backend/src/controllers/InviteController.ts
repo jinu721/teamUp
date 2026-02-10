@@ -3,13 +3,13 @@ import { AuthRequest } from '../types';
 import { Invitation } from '../models/Invitation';
 import { WorkshopService } from '../services/WorkshopService';
 import { NotFoundError, ValidationError } from '../utils/errors';
+import { UserRepository } from '../repositories/UserRepository';
 
 export class InviteController {
-    private workshopService: WorkshopService;
-
-    constructor() {
-        this.workshopService = new WorkshopService();
-    }
+    constructor(
+        private workshopService: WorkshopService,
+        private userRepository: UserRepository
+    ) { }
 
     getInviteDetails = async (req: AuthRequest, res: Response, next: NextFunction) => {
         try {
@@ -55,17 +55,17 @@ export class InviteController {
                 throw new NotFoundError('Invitation is invalid or has expired');
             }
 
-            // Ensure the logged-in user's email matches the invite email (optional but recommended)
-            const User = require('../models/User').User;
-            const user = await User.findById(userId);
+            const user = await this.userRepository.findById(userId);
+            if (!user) {
+                throw new NotFoundError('User not found');
+            }
+
             if (user.email.toLowerCase() !== invitation.email.toLowerCase()) {
                 throw new ValidationError(`This invitation was sent to ${invitation.email}, but you are logged in as ${user.email}`);
             }
 
-            // Add user to workshop
             await this.workshopService.acceptInvitationByToken(invitation, userId);
 
-            // Mark invite as used
             invitation.isUsed = true;
             await invitation.save();
 

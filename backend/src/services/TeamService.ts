@@ -21,22 +21,15 @@ function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): strin
 }
 
 export class TeamService {
-  private teamRepository: TeamRepository;
-  private membershipRepository: MembershipRepository;
-  private workshopRepository: WorkshopRepository;
-  private auditService: AuditService;
-  private permissionService: PermissionService;
-  private chatService: ChatService;
-  private socketService?: SocketService;
-
-  constructor() {
-    this.teamRepository = new TeamRepository();
-    this.membershipRepository = new MembershipRepository();
-    this.workshopRepository = new WorkshopRepository();
-    this.auditService = new AuditService();
-    this.permissionService = PermissionService.getInstance();
-    this.chatService = new ChatService();
-  }
+  constructor(
+    private teamRepository: TeamRepository,
+    private membershipRepository: MembershipRepository,
+    private workshopRepository: WorkshopRepository,
+    private auditService: AuditService,
+    private permissionService: PermissionService,
+    private chatService: ChatService,
+    private socketService: SocketService | null = null
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
@@ -48,7 +41,6 @@ export class TeamService {
     actorId: string,
     data: CreateTeamDTO
   ): Promise<ITeam> {
-
     const permission = await this.permissionService.checkPermission(actorId, workshopId, 'create', 'team');
     if (!permission.granted) {
       await this.auditService.logUnauthorizedAccess(workshopId, actorId, 'create', 'team');

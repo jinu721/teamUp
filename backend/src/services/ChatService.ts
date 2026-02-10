@@ -5,6 +5,7 @@ import { Types } from 'mongoose';
 import { ActivityHistoryService } from './ActivityHistoryService';
 import { ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
 import { SocketService } from './SocketService';
+import { WorkshopRepository } from '../repositories/WorkshopRepository';
 
 export interface CreateChatRoomData {
     roomType: ChatRoomType;
@@ -35,12 +36,11 @@ export interface MessageFilters {
 }
 
 export class ChatService {
-    private activityService: ActivityHistoryService;
-    private socketService: SocketService | null = null;
-
-    constructor() {
-        this.activityService = new ActivityHistoryService();
-    }
+    constructor(
+        private activityService: ActivityHistoryService,
+        private workshopRepository: WorkshopRepository,
+        private socketService: SocketService | null = null
+    ) { }
 
     setSocketService(socketService: SocketService): void {
         this.socketService = socketService;
@@ -52,8 +52,7 @@ export class ChatService {
     }
 
     async createChatRoom(data: CreateChatRoomData): Promise<IChatRoom> {
-        const WorkshopModel = require('../models/Workshop').Workshop;
-        const workshop = await WorkshopModel.findById(data.workshopId);
+        const workshop = await this.workshopRepository.findById(data.workshopId);
 
         const participants = [...data.participants];
         if (data.roomType !== ChatRoomType.DIRECT && workshop) {
@@ -100,11 +99,9 @@ export class ChatService {
     }
 
     async getUserChatRooms(userId: string, workshopId: string): Promise<IChatRoom[]> {
-
         await this.syncUserToWorkshopRooms(userId, workshopId);
 
-        const WorkshopModel = require('../models/Workshop').Workshop;
-        const workshop = await WorkshopModel.findById(workshopId);
+        const workshop = await this.workshopRepository.findById(workshopId);
         const isOwner = workshop && workshop.owner.toString() === userId;
 
         const query: any = { workshop: new Types.ObjectId(workshopId) };
@@ -132,7 +129,6 @@ export class ChatService {
     }
 
     async getOrCreateDirectRoom(workshopId: string, user1Id: string, user2Id: string): Promise<IChatRoom> {
-
         const existingRoom = await ChatRoom.findOne({
             roomType: ChatRoomType.DIRECT,
             workshop: new Types.ObjectId(workshopId),
@@ -194,7 +190,6 @@ export class ChatService {
     }
 
     private async performRoomDeletion(roomId: string): Promise<void> {
-
         await Message.deleteMany({ chatRoom: new Types.ObjectId(roomId) });
         await ChatRoom.findByIdAndDelete(roomId);
 
@@ -214,11 +209,9 @@ export class ChatService {
             state: 'active'
         });
 
-        const WorkshopModel = require('../models/Workshop').Workshop;
-        const workshop = await WorkshopModel.findById(workshopObjectId);
+        const workshop = await this.workshopRepository.findById(workshopId);
 
         if (!membership) {
-
             const isOwner = workshop && workshop.owner.toString() === userId;
             if (!isOwner) {
                 await this.syncUserRemovalFromWorkshopRooms(userId, workshopId);
@@ -229,7 +222,6 @@ export class ChatService {
         const isOwner = workshop && workshop.owner.toString() === userId;
 
         if (isOwner) {
-
             await ChatRoom.updateMany(
                 {
                     workshop: workshopObjectId,
@@ -297,7 +289,6 @@ export class ChatService {
     }
 
     async sendMessage(roomId: string, senderId: string, data: SendMessageData): Promise<IMessage> {
-
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === senderId)) {
             throw new AuthorizationError('You are not a participant of this chat room');
@@ -340,7 +331,6 @@ export class ChatService {
         page: number = 1,
         limit: number = 50
     ): Promise<{ messages: IMessage[]; total: number; hasMore: boolean }> {
-
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === userId)) {
             throw new AuthorizationError('You are not a participant of this chat room');
@@ -495,7 +485,6 @@ export class ChatService {
         page: number = 1,
         limit: number = 20
     ): Promise<{ messages: IMessage[]; total: number }> {
-
         const chatRoom = await this.getChatRoom(roomId);
         if (!chatRoom.participants.some(p => this.getIdString(p) === userId)) {
             throw new AuthorizationError('You are not a participant of this chat room');

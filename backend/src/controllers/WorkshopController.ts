@@ -2,14 +2,12 @@ import { Request, Response, NextFunction } from 'express';
 import { WorkshopService } from '../services/WorkshopService';
 import { AuthRequest, WorkshopVisibility } from '../types';
 
+import { SocketService } from '../services/SocketService';
+
 export class WorkshopController {
-  private workshopService: WorkshopService;
+  constructor(private workshopService: WorkshopService) { }
 
-  constructor() {
-    this.workshopService = new WorkshopService();
-  }
-
-  setSocketService(socketService: any): void {
+  setSocketService(socketService: SocketService): void {
     this.workshopService.setSocketService(socketService);
   }
 

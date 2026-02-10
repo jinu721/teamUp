@@ -12,7 +12,11 @@ declare global {
   }
 }
 
-export type AuthRequest = Request;
+import { Container as DIContainer } from '../di/types';
+
+export type AuthRequest = Request & {
+  container?: DIContainer;
+};
 
 export interface SocketUser {
   userId: string;

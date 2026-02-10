@@ -4,12 +4,9 @@ import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
 export class TeamController {
-  private teamService: TeamService;
   private socketService: SocketService | null = null;
 
-  constructor() {
-    this.teamService = new TeamService();
-  }
+  constructor(private teamService: TeamService) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;

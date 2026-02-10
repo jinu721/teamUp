@@ -1,22 +1,23 @@
 import { Router } from 'express';
-import { RoleController } from '../controllers/RoleController';
 import { authenticate } from '../middlewares/auth';
+import { Container } from '../di/types';
 
-const router = Router({ mergeParams: true });
-const roleController = new RoleController();
+export const createRoleRoutes = (container: Container) => {
+    const router = Router({ mergeParams: true });
+    const roleController = container.roleCtrl;
 
-router.use(authenticate);
+    router.use(authenticate);
 
-router.post('/', roleController.createRole);
-router.get('/', roleController.getRoles);
-router.get('/:id', roleController.getRole);
-router.put('/:id', roleController.updateRole);
-router.delete('/:id', roleController.deleteRole);
+    router.post('/', roleController.createRole);
+    router.get('/', roleController.getRoles);
+    router.get('/:id', roleController.getRole);
+    router.put('/:id', roleController.updateRole);
+    router.delete('/:id', roleController.deleteRole);
+    router.post('/:id/assign', roleController.assignRole);
+    router.delete('/:id/assign/:userId', roleController.revokeRole);
+    router.get('/user/:userId', roleController.getUserRoles);
 
-router.post('/:id/assign', roleController.assignRole);
-router.delete('/:id/assign/:userId', roleController.revokeRole);
+    return router;
+};
 
-router.get('/user/:userId', roleController.getUserRoles);
-
-export default router;
-export { roleController };
+export default createRoleRoutes;

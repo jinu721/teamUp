@@ -1,21 +1,10 @@
-export class Container {
-    private services = new Map<string, any>();
+import { Server as HTTPServer } from 'http';
+import { DIContainer } from './container';
+import { Container } from './types';
 
-    register(name: string, service: any) {
-        this.services.set(name, service);
-    }
+export * from './types';
+export * from './container';
 
-    get<T>(name: string): T {
-        const service = this.services.get(name);
-        if (!service) {
-            throw new Error(`Service ${name} not found in container`);
-        }
-        return service;
-    }
-}
-
-export const createContainer = () => {
-    const container = new Container();
-    // Register services here as needed
-    return container;
+export const createDIContainer = (httpServer: HTTPServer): Container => {
+    return new DIContainer(httpServer);
 };

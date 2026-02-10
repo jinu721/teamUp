@@ -4,11 +4,7 @@ import { AuthRequest } from '../types';
 import { ValidationError } from '../utils/errors';
 
 export class AuthController {
-  private authService: AuthService;
-
-  constructor() {
-    this.authService = new AuthService();
-  }
+  constructor(private authService: AuthService) { }
 
   register = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {

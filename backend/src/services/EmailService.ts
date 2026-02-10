@@ -1,32 +1,10 @@
-import nodemailer from 'nodemailer';
+import { EmailProvider } from '../providers/EmailProvider';
 
 export class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
-  private fromEmail: string;
   private appUrl: string;
-  private emailEnabled: boolean;
 
-  constructor() {
-    const emailUser = process.env.EMAIL_USER || process.env.SMTP_USER;
-    const emailPass = process.env.EMAIL_PASS || process.env.SMTP_PASS;
-
-    this.fromEmail = process.env.EMAIL_FROM || emailUser || 'noreply@teamup.com';
+  constructor(private emailProv: EmailProvider) {
     this.appUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
-    const hasCredentials = !!(emailUser && emailPass);
-    this.emailEnabled = hasCredentials;
-
-    if (hasCredentials) {
-      this.transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: emailUser,
-          pass: emailPass
-        }
-      });
-      console.log('[EmailService] Service initialized with Gmail:', emailUser);
-    } else {
-      console.log('[EmailService] Service running in console-only mode (no credentials found)');
-    }
   }
 
   async sendProjectInvitation(
@@ -38,36 +16,15 @@ export class EmailService {
   ): Promise<boolean> {
     const inviteLink = `${this.appUrl}/invite/${inviteToken}`;
 
-    console.log('\n----------------------------------------');
-    console.log('PROJECT INVITATION');
-    console.log('----------------------------------------');
-    console.log(`To: ${toEmail}`);
-    console.log(`From: ${inviterName}`);
-    console.log(`Project: ${projectTitle}`);
-    console.log(`Link: ${inviteLink}`);
-    console.log('----------------------------------------\n');
-
-    if (!this.emailEnabled || !this.transporter) {
-      console.log('[EmailService] SMTP not configured. Share link manually.');
-      return true;
-    }
-
-    const mailOptions = {
-      from: `"TeamUp" <${this.fromEmail}>`,
-      to: toEmail,
-      subject: `Invitation to join project: ${projectTitle}`,
-      html: this.getInvitationEmailHtml(inviterName, projectTitle, inviteLink),
-      text: `You have been invited to join project "${projectTitle}" on TeamUp.\n\n${inviterName} has invited you to collaborate.\n\nAccept invitation: ${inviteLink}\n\nThis invitation will expire in 7 days.`
-    };
+    const subject = `Invitation to join project: ${projectTitle}`;
+    const html = this.getInvitationEmailHtml(inviterName, projectTitle, inviteLink);
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('[EmailService] Message sent:', info.messageId);
+      await this.emailProv.sendEmail(toEmail, subject, html);
       return true;
     } catch (error) {
-      console.error('[EmailService] Error sending email:', error);
-      console.log('[EmailService] Manual link share required:', inviteLink);
-      return true;
+      console.error('[EmailService] Error sending project invitation:', error);
+      return false;
     }
   }
 
@@ -79,33 +36,15 @@ export class EmailService {
   ): Promise<boolean> {
     const viewLink = `${this.appUrl}/community?post=${postId}`;
 
-    console.log('\n----------------------------------------');
-    console.log('JOIN REQUEST NOTIFICATION');
-    console.log('----------------------------------------');
-    console.log(`To: ${toEmail}`);
-    console.log(`Requester: ${requesterName}`);
-    console.log(`Post: ${postTitle}`);
-    console.log(`Link: ${viewLink}`);
-    console.log('----------------------------------------\n');
-
-    if (!this.emailEnabled || !this.transporter) {
-      return true;
-    }
-
-    const mailOptions = {
-      from: `"TeamUp" <${this.fromEmail}>`,
-      to: toEmail,
-      subject: `New join request: ${postTitle}`,
-      html: this.getJoinRequestEmailHtml(requesterName, postTitle, viewLink),
-      text: `${requesterName} has requested to join your project "${postTitle}". View the request here: ${viewLink}`
-    };
+    const subject = `New join request: ${postTitle}`;
+    const html = this.getJoinRequestEmailHtml(requesterName, postTitle, viewLink);
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.emailProv.sendEmail(toEmail, subject, html);
       return true;
     } catch (error) {
-      console.error('[EmailService] Error sending notification:', error);
-      return true;
+      console.error('[EmailService] Error sending join request notification:', error);
+      return false;
     }
   }
 
@@ -118,34 +57,15 @@ export class EmailService {
     const isApproved = status === 'approved';
     const projectLink = projectId ? `${this.appUrl}/projects/${projectId}` : '';
 
-    console.log('\n----------------------------------------');
-    console.log(`JOIN REQUEST ${status.toUpperCase()}`);
-    console.log('----------------------------------------');
-    console.log(`To: ${toEmail}`);
-    console.log(`Post: ${postTitle}`);
-    if (projectLink) console.log(`Link: ${projectLink}`);
-    console.log('----------------------------------------\n');
-
-    if (!this.emailEnabled || !this.transporter) {
-      return true;
-    }
-
-    const mailOptions = {
-      from: `"TeamUp" <${this.fromEmail}>`,
-      to: toEmail,
-      subject: `Update on your request: ${postTitle}`,
-      html: this.getJoinResponseEmailHtml(postTitle, isApproved, projectLink),
-      text: isApproved
-        ? `Your request to join "${postTitle}" was approved. ${projectLink ? `View project: ${projectLink}` : ''}`
-        : `Your request to join "${postTitle}" was not approved at this time.`
-    };
+    const subject = `Update on your request: ${postTitle}`;
+    const html = this.getJoinResponseEmailHtml(postTitle, isApproved, projectLink);
 
     try {
-      await this.transporter.sendMail(mailOptions);
+      await this.emailProv.sendEmail(toEmail, subject, html);
       return true;
     } catch (error) {
-      console.error('[EmailService] Error sending response:', error);
-      return true;
+      console.error('[EmailService] Error sending join request response:', error);
+      return false;
     }
   }
 
@@ -158,36 +78,15 @@ export class EmailService {
   ): Promise<boolean> {
     const inviteLink = `${this.appUrl}/invite/${token}`;
 
-    console.log('\n----------------------------------------');
-    console.log('WORKSHOP INVITATION');
-    console.log('----------------------------------------');
-    console.log(`To: ${toEmail}`);
-    console.log(`From: ${inviterName}`);
-    console.log(`Workshop: ${workshopName}`);
-    console.log(`Link: ${inviteLink}`);
-    console.log('----------------------------------------\n');
-
-    if (!this.emailEnabled || !this.transporter) {
-      console.log('[EmailService] SMTP not configured. Share link manually.');
-      return true;
-    }
-
-    const mailOptions = {
-      from: `"TeamUp" <${this.fromEmail}>`,
-      to: toEmail,
-      subject: `Invitation to join workshop: ${workshopName}`,
-      html: this.getWorkshopInvitationEmailHtml(inviterName, workshopName, inviteLink),
-      text: `You have been invited to join workshop "${workshopName}" on TeamUp.\n\n${inviterName} has invited you to collaborate.\n\nAccept invitation: ${inviteLink}`
-    };
+    const subject = `Invitation to join workshop: ${workshopName}`;
+    const html = this.getWorkshopInvitationEmailHtml(inviterName, workshopName, inviteLink);
 
     try {
-      const info = await this.transporter.sendMail(mailOptions);
-      console.log('[EmailService] Message sent:', info.messageId);
+      await this.emailProv.sendEmail(toEmail, subject, html);
       return true;
     } catch (error) {
-      console.error('[EmailService] Error sending email:', error);
-      console.log('[EmailService] Manual link share required:', inviteLink);
-      return true;
+      console.error('[EmailService] Error sending workshop invitation:', error);
+      return false;
     }
   }
 

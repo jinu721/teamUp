@@ -4,12 +4,10 @@ import { SocketService } from './SocketService';
 import { NotFoundError } from '../utils/errors';
 
 export class NotificationService {
-  private notificationRepo: NotificationRepository;
-  private socketService: SocketService | null = null;
-
-  constructor() {
-    this.notificationRepo = new NotificationRepository();
-  }
+  constructor(
+    private notificationRepo: NotificationRepository,
+    private socketService: SocketService | null = null
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;

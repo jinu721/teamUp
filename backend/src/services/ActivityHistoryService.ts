@@ -1,5 +1,6 @@
-import { ActivityHistory, IActivityHistory, ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
+import { IActivityHistory, ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
 import { Types } from 'mongoose';
+import { ActivityHistoryRepository } from '../repositories/ActivityHistoryRepository';
 
 export interface LogActivityData {
     workshop: string;
@@ -23,9 +24,10 @@ export interface ActivityFilters {
 }
 
 export class ActivityHistoryService {
+    constructor(private activityRepository: ActivityHistoryRepository) { }
 
     async logActivity(data: LogActivityData): Promise<IActivityHistory> {
-        const activity = await ActivityHistory.create({
+        const activity = await this.activityRepository.create({
             workshop: new Types.ObjectId(data.workshop),
             user: new Types.ObjectId(data.user),
             action: data.action,
@@ -76,12 +78,13 @@ export class ActivityHistoryService {
         }
 
         const [activities, total] = await Promise.all([
-            ActivityHistory.find(query)
-                .populate('user')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit),
-            ActivityHistory.countDocuments(query)
+            this.activityRepository.find(query, {
+                populate: 'user',
+                sort: { createdAt: -1 },
+                skip,
+                limit
+            }),
+            this.activityRepository.countDocuments(query)
         ]);
 
         return {
@@ -122,12 +125,13 @@ export class ActivityHistoryService {
         }
 
         const [activities, total] = await Promise.all([
-            ActivityHistory.find(query)
-                .populate(['user', 'workshop'])
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit),
-            ActivityHistory.countDocuments(query)
+            this.activityRepository.find(query, {
+                populate: ['user', 'workshop'],
+                sort: { createdAt: -1 },
+                skip,
+                limit
+            }),
+            this.activityRepository.countDocuments(query)
         ]);
 
         return {
@@ -151,12 +155,13 @@ export class ActivityHistoryService {
         };
 
         const [activities, total] = await Promise.all([
-            ActivityHistory.find(query)
-                .populate('user')
-                .sort({ createdAt: -1 })
-                .skip(skip)
-                .limit(limit),
-            ActivityHistory.countDocuments(query)
+            this.activityRepository.find(query, {
+                populate: 'user',
+                sort: { createdAt: -1 },
+                skip,
+                limit
+            }),
+            this.activityRepository.countDocuments(query)
         ]);
 
         return {
@@ -170,19 +175,20 @@ export class ActivityHistoryService {
         userId: string,
         limit: number = 20
     ): Promise<IActivityHistory[]> {
-        return ActivityHistory.find({
+        return this.activityRepository.find({
             user: new Types.ObjectId(userId)
-        })
-            .populate(['workshop'])
-            .sort({ createdAt: -1 })
-            .limit(limit);
+        }, {
+            populate: ['workshop'],
+            sort: { createdAt: -1 },
+            limit
+        });
     }
 
     async deleteOldActivities(daysOld: number = 90): Promise<number> {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - daysOld);
 
-        const result = await ActivityHistory.deleteMany({
+        const result = await this.activityRepository.deleteMany({
             createdAt: { $lt: cutoffDate }
         });
 
@@ -193,7 +199,7 @@ export class ActivityHistoryService {
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - days);
 
-        const stats = await ActivityHistory.aggregate([
+        const stats = await this.activityRepository.aggregate([
             {
                 $match: {
                     workshop: new Types.ObjectId(workshopId),

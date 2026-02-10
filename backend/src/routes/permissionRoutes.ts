@@ -1,17 +1,18 @@
 import { Router } from 'express';
-import { PermissionController } from '../controllers/PermissionController';
 import { authenticate } from '../middlewares/auth';
 import { requireWorkshopMembership } from '../middlewares/permission';
-import { PermissionService } from '../services/PermissionService';
+import { Container } from '../di/types';
 
-const router = Router({ mergeParams: true });
-const permissionService = PermissionService.getInstance();
-const permissionController = new PermissionController(permissionService);
+export const createPermissionRoutes = (container: Container) => {
+    const router = Router({ mergeParams: true });
+    const permissionController = container.permissionCtrl;
 
-router.use(authenticate);
-router.use(requireWorkshopMembership);
+    router.use(authenticate);
+    router.use(requireWorkshopMembership);
 
-router.post('/check', permissionController.checkPermission);
+    router.post('/check', permissionController.checkPermission);
 
-export default router;
-export { permissionService, permissionController };
+    return router;
+};
+
+export default createPermissionRoutes;

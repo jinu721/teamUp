@@ -7,11 +7,7 @@ import {
 import { AuditLogRepository } from '../repositories/AuditLogRepository';
 
 export class AuditService {
-  private auditLogRepository: AuditLogRepository;
-
-  constructor() {
-    this.auditLogRepository = new AuditLogRepository();
-  }
+  constructor(private auditLogRepository: AuditLogRepository) { }
 
   async log(entry: {
     workshopId: string;

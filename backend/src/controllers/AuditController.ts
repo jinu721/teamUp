@@ -6,13 +6,10 @@ import { AuthorizationError } from '../utils/errors';
 import { asyncHandler } from '../middlewares/errorMiddleware';
 
 export class AuditController {
-  private auditService: AuditService;
-  private workshopRepository: WorkshopRepository;
-
-  constructor() {
-    this.auditService = new AuditService();
-    this.workshopRepository = new WorkshopRepository();
-  }
+  constructor(
+    private auditService: AuditService,
+    private workshopRepository: WorkshopRepository
+  ) { }
 
   getAuditLogs = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;

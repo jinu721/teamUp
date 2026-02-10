@@ -1,22 +1,21 @@
-import bcrypt from 'bcryptjs';
-import crypto from 'crypto';
 import { UserRepository } from '../repositories/UserRepository';
 import { PendingUserRepository } from '../repositories/PendingUserRepository';
 import { PasswordResetRepository } from '../repositories/PasswordResetRepository';
-import { generateToken, generateRefreshToken, verifyRefreshToken } from '../config/jwt';
+import { TokenProvider } from '../providers/TokenProvider';
+import { EmailProvider } from '../providers/EmailProvider';
+import { HashProvider } from '../providers/HashProvider';
 import { AuthenticationError, ValidationError, NotFoundError } from '../utils/errors';
-import { sendEmail } from '../utils/emailService';
+import crypto from 'crypto';
 
 export class AuthService {
-  private userRepository: UserRepository;
-  private pendingUserRepository: PendingUserRepository;
-  private passwordResetRepository: PasswordResetRepository;
-
-  constructor() {
-    this.userRepository = new UserRepository();
-    this.pendingUserRepository = new PendingUserRepository();
-    this.passwordResetRepository = new PasswordResetRepository();
-  }
+  constructor(
+    private userRepository: UserRepository,
+    private pendingUserRepository: PendingUserRepository,
+    private passwordResetRepository: PasswordResetRepository,
+    private tokenProv: TokenProvider,
+    private emailProv: EmailProvider,
+    private hashProv: HashProvider
+  ) { }
 
   async register(name: string, email: string, password: string): Promise<{ message: string }> {
     const existingUser = await this.userRepository.findByEmail(email);
@@ -26,8 +25,7 @@ export class AuthService {
 
     const existingPending = await this.pendingUserRepository.findByEmail(email);
     if (existingPending) {
-
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await this.hashProv.hash(password);
       const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -41,7 +39,7 @@ export class AuthService {
       return { message: 'Verification code re-sent. Please check your email.' };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await this.hashProv.hash(password);
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -61,7 +59,7 @@ export class AuthService {
   private async sendVerificationOTP(email: string, otp: string) {
     const emailHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h1 style="color: #333 text-align: center;">Welcome to Team Up!</h1>
+        <h1 style="color: #333; text-align: center;">Welcome to Team Up!</h1>
         <p>Your verification code is:</p>
         <div style="text-align: center; margin: 30px 0;">
           <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff; background: #f0f7ff; padding: 10px 20px; border-radius: 5px; border: 1px dashed #007bff;">${otp}</span>
@@ -71,7 +69,7 @@ export class AuthService {
       </div>
     `;
 
-    await sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
+    await this.emailProv.sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
   }
 
   async verifyOTP(email: string, otp: string): Promise<{ user: any; token: string; refreshToken: string }> {
@@ -102,8 +100,8 @@ export class AuthService {
 
     await this.pendingUserRepository.deleteById(pendingUser._id.toString());
 
-    const authToken = generateToken({ id: newUser._id.toString(), email: newUser.email });
-    const refreshToken = generateRefreshToken({ id: newUser._id.toString(), email: newUser.email });
+    const authToken = this.tokenProv.generateToken({ id: newUser._id.toString(), email: newUser.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: newUser._id.toString(), email: newUser.email });
 
     const userResponse = JSON.parse(JSON.stringify(newUser));
     delete userResponse.password;
@@ -138,15 +136,15 @@ export class AuthService {
       throw new ValidationError('Please verify your email before logging in.');
     }
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+    const isPasswordValid = await this.hashProv.compare(password, user.password);
     if (!isPasswordValid) {
       throw new ValidationError('Invalid email or password');
     }
 
     await this.userRepository.updatePresence(user._id.toString(), true);
 
-    const token = generateToken({ id: user._id.toString(), email: user.email });
-    const refreshToken = generateRefreshToken({ id: user._id.toString(), email: user.email });
+    const token = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: user._id.toString(), email: user.email });
 
     const userResponse = JSON.parse(JSON.stringify(user));
     delete userResponse.password;
@@ -156,14 +154,14 @@ export class AuthService {
 
   async refreshToken(token: string): Promise<{ token: string }> {
     try {
-      const decoded = verifyRefreshToken(token);
+      const decoded = this.tokenProv.verifyRefreshToken(token);
       const user = await this.userRepository.findById(decoded.id);
 
       if (!user) {
         throw new AuthenticationError('User not found');
       }
 
-      const newToken = generateToken({ id: user._id.toString(), email: user.email });
+      const newToken = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
       return { token: newToken };
     } catch (error) {
       throw new AuthenticationError('Invalid or expired refresh token');
@@ -192,7 +190,6 @@ export class AuthService {
     if (email) {
       user = await this.userRepository.findByEmail(email);
       if (user) {
-
         (user as any)[idField] = profile.id;
         if (!user.isVerified) user.isVerified = true;
         await user.save();
@@ -201,7 +198,7 @@ export class AuthService {
     }
 
     const dummyPassword = crypto.randomBytes(32).toString('hex');
-    const hashedPassword = await bcrypt.hash(dummyPassword, 10);
+    const hashedPassword = await this.hashProv.hash(dummyPassword);
 
     const userData: any = {
       name: profile.displayName || profile.username || 'User',
@@ -256,7 +253,7 @@ export class AuthService {
     });
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-    
+
     const emailHtml = `
       <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
         <h1 style="color: #333; text-align: center;">Reset Your Password</h1>
@@ -275,7 +272,7 @@ export class AuthService {
       </div>
     `;
 
-    await sendEmail(email, 'Reset Your Password - Team Up', emailHtml);
+    await this.emailProv.sendEmail(email, 'Reset Your Password - Team Up', emailHtml);
 
     return { message: 'Password reset link has been sent to your email' };
   }
@@ -291,7 +288,7 @@ export class AuthService {
       throw new NotFoundError('User not found');
     }
 
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const hashedPassword = await this.hashProv.hash(newPassword);
     await this.userRepository.update(user._id.toString(), { password: hashedPassword });
 
     await this.passwordResetRepository.markAsUsed(token);

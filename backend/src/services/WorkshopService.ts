@@ -37,30 +37,19 @@ function getIdString(ref: any): string {
 }
 
 export class WorkshopService {
-  private workshopRepository: WorkshopRepository;
-  private membershipRepository: MembershipRepository;
-  private teamRepository: TeamRepository;
-  private roleRepository: RoleRepository;
-  private roleAssignmentRepository: RoleAssignmentRepository;
-  private projectRepository: WorkshopProjectRepository;
-  private auditService: AuditService;
-  private permissionService: PermissionService;
-  private socketService: SocketService | null = null;
-  private emailService: EmailService;
-  private chatService: ChatService;
-
-  constructor() {
-    this.workshopRepository = new WorkshopRepository();
-    this.membershipRepository = new MembershipRepository();
-    this.teamRepository = new TeamRepository();
-    this.roleRepository = new RoleRepository();
-    this.roleAssignmentRepository = new RoleAssignmentRepository();
-    this.projectRepository = new WorkshopProjectRepository();
-    this.auditService = new AuditService();
-    this.permissionService = PermissionService.getInstance();
-    this.emailService = new EmailService();
-    this.chatService = new ChatService();
-  }
+  constructor(
+    private workshopRepository: WorkshopRepository,
+    private membershipRepository: MembershipRepository,
+    private teamRepository: TeamRepository,
+    private roleRepository: RoleRepository,
+    private roleAssignmentRepository: RoleAssignmentRepository,
+    private projectRepository: WorkshopProjectRepository,
+    private auditService: AuditService,
+    private permissionService: PermissionService,
+    private emailService: EmailService,
+    private chatService: ChatService,
+    private socketService: SocketService | null = null
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
@@ -234,7 +223,6 @@ export class WorkshopService {
 
     const email = invitedEmail.toLowerCase();
 
-    // Check if already a member
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       const existingMembership = await this.membershipRepository.findByWorkshopAndUser(workshopId, existingUser._id.toString());
@@ -243,7 +231,6 @@ export class WorkshopService {
       }
     }
 
-    // If user exists, create a pending membership so it shows up in UI
     let membership: IMembership | undefined;
     if (existingUser) {
       const existing = await this.membershipRepository.findByWorkshopAndUser(workshopId, existingUser._id.toString());
@@ -260,10 +247,8 @@ export class WorkshopService {
       }
     }
 
-    // Generate token
     const token = crypto.randomBytes(32).toString('hex');
 
-    // Create invitation record
     await Invitation.create({
       token,
       email,
@@ -272,15 +257,12 @@ export class WorkshopService {
       invitedBy: new Types.ObjectId(actorId)
     });
 
-    // Log audit
     await this.auditService.logMemberInvited(workshopId, actorId, email);
 
-    // Emit socket event if we have a membership
     if (membership && this.socketService) {
       this.socketService.emitToWorkshop(workshopId, 'membership:invited', membership);
     }
 
-    // Send email
     const inviter = await User.findById(actorId);
     const workshop = await this.workshopRepository.findById(workshopId);
 
@@ -298,15 +280,12 @@ export class WorkshopService {
   async acceptInvitationByToken(invitation: IInvitation, userId: string): Promise<IMembership> {
     const workshopId = invitation.workshop.toString();
 
-    // Create membership
     const membership = await this.handleJoinRequest(workshopId, userId);
 
-    // If it was a pending request, auto-approve it because they have a valid invite
     if (membership.state === MembershipState.PENDING) {
       await this.approveJoinRequest(workshopId, invitation.invitedBy.toString(), membership._id.toString());
     }
 
-    // If there was a specific role assigned in the invitation, assign it
     if (invitation.role) {
       const roleId = invitation.role.toString();
       const role = await this.roleRepository.findById(roleId);
@@ -338,7 +317,6 @@ export class WorkshopService {
 
     let membership: IMembership;
     if (existing) {
-
       membership = await this.membershipRepository.updateState(
         existing._id.toString(),
         state,

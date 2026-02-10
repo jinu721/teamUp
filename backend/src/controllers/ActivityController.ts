@@ -4,11 +4,7 @@ import { AuthRequest } from '../types';
 import { ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
 
 export class ActivityController {
-    private activityService: ActivityHistoryService;
-
-    constructor() {
-        this.activityService = new ActivityHistoryService();
-    }
+    constructor(private activityService: ActivityHistoryService) { }
 
     getWorkshopActivity = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {

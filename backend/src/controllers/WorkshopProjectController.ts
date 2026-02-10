@@ -4,12 +4,9 @@ import { AuthRequest } from '../types';
 import { SocketService } from '../services/SocketService';
 
 export class WorkshopProjectController {
-  private projectService: WorkshopProjectService;
   private socketService: SocketService | null = null;
 
-  constructor(projectService?: WorkshopProjectService) {
-    this.projectService = projectService || new WorkshopProjectService();
-  }
+  constructor(private projectService: WorkshopProjectService) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;

@@ -10,24 +10,16 @@ import { AuditService } from './AuditService';
 import { PermissionService } from './PermissionService';
 
 export class WorkshopTaskService {
-  private taskRepo: WorkshopTaskRepository;
-  private projectRepo: WorkshopProjectRepository;
-  private membershipRepo: MembershipRepository;
-  private teamRepo: TeamRepository;
-  private notificationRepo: NotificationRepository;
-  private auditService: AuditService;
-  private permissionService: PermissionService;
-  private socketService: SocketService | null = null;
-
-  constructor() {
-    this.taskRepo = new WorkshopTaskRepository();
-    this.projectRepo = new WorkshopProjectRepository();
-    this.membershipRepo = new MembershipRepository();
-    this.teamRepo = new TeamRepository();
-    this.notificationRepo = new NotificationRepository();
-    this.auditService = new AuditService();
-    this.permissionService = PermissionService.getInstance();
-  }
+  constructor(
+    private taskRepo: WorkshopTaskRepository,
+    private projectRepo: WorkshopProjectRepository,
+    private membershipRepo: MembershipRepository,
+    private teamRepo: TeamRepository,
+    private notificationRepo: NotificationRepository,
+    private auditService: AuditService,
+    private permissionService: PermissionService,
+    private socketService: SocketService | null = null
+  ) { }
 
   setSocketService(socketService: SocketService): void {
     this.socketService = socketService;
@@ -38,7 +30,6 @@ export class WorkshopTaskService {
     userId: string,
     data: CreateWorkshopTaskDTO
   ): Promise<IWorkshopTask> {
-
     const project = await this.projectRepo.findById(projectId);
     if (!project) {
       throw new NotFoundError('Project');
@@ -650,7 +641,6 @@ export class WorkshopTaskService {
 
     if (mentions.length > 0) {
       for (const mentionedId of mentions) {
-
         if (mentionedId === userId) continue;
 
         const isMember = await this.membershipRepo.isActiveMember(workshopId, mentionedId);

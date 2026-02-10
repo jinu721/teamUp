@@ -1,7 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
-import { verifyToken } from '../config/jwt';
 import { UserRepository } from '../repositories/UserRepository';
+import { TokenProvider } from '../providers/TokenProvider';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
@@ -10,10 +10,13 @@ interface AuthenticatedSocket extends Socket {
 
 export class SocketService {
   private io: SocketIOServer;
-  private userRepository: UserRepository;
   private connectedUsers: Map<string, string[]> = new Map();
 
-  constructor(httpServer: HTTPServer) {
+  constructor(
+    httpServer: HTTPServer,
+    private userRepository: UserRepository,
+    private tokenProvider: TokenProvider
+  ) {
     this.io = new SocketIOServer(httpServer, {
       cors: {
         origin: process.env.FRONTEND_URL || 'http://localhost:3000',
@@ -22,7 +25,6 @@ export class SocketService {
       }
     });
 
-    this.userRepository = new UserRepository();
     this.setupMiddleware();
     this.setupConnectionHandlers();
   }
@@ -36,7 +38,7 @@ export class SocketService {
           return next(new Error('Authentication error: No token provided'));
         }
 
-        const decoded = verifyToken(token);
+        const decoded = this.tokenProvider.verifyToken(token);
         socket.userId = decoded.id;
         socket.email = decoded.email;
 
@@ -50,7 +52,7 @@ export class SocketService {
   private setupConnectionHandlers(): void {
     this.io.on('connection', async (socket: AuthenticatedSocket) => {
       const userId = socket.userId!;
-      console.log(`✅ User connected: ${userId} (${socket.id})`);
+      console.log(`User connected: ${userId} (${socket.id})`);
 
       if (!this.connectedUsers.has(userId)) {
         this.connectedUsers.set(userId, []);
@@ -142,7 +144,7 @@ export class SocketService {
       });
 
       socket.on('disconnect', async () => {
-        console.log(`❌ User disconnected: ${userId} (${socket.id})`);
+        console.log(`User disconnected: ${userId} (${socket.id})`);
 
         const userSockets = this.connectedUsers.get(userId);
         if (userSockets) {

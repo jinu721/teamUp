@@ -1,6 +1,5 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../types';
-import { PermissionService } from '../services/PermissionService';
 import { AuthorizationError } from '../utils/errors';
 
 export const requirePermission = (action: string, resource: string, scopeParam?: string) => {
@@ -13,7 +12,11 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
         throw new AuthorizationError('Workshop ID is required');
       }
 
-      const permissionService = PermissionService.getInstance();
+      if (!req.container) {
+        throw new Error('DI Container not found in request');
+      }
+
+      const permissionService = req.container.permissionSrv;
 
       const context: any = {};
 
@@ -27,7 +30,6 @@ export const requirePermission = (action: string, resource: string, scopeParam?:
           }
         }
       } else {
-
         if (req.params.projectId) {
           context.projectId = req.params.projectId;
         }
@@ -64,7 +66,11 @@ export const requireWorkshopMembership = async (req: AuthRequest, _res: Response
       throw new AuthorizationError('Workshop ID is required');
     }
 
-    const permissionService = PermissionService.getInstance();
+    if (!req.container) {
+      throw new Error('DI Container not found in request');
+    }
+
+    const permissionService = req.container.permissionSrv;
 
     const hasPermission = await permissionService.checkPermission(
       userId,
@@ -92,7 +98,11 @@ export const requireWorkshopOwner = async (req: AuthRequest, _res: Response, nex
       throw new AuthorizationError('Workshop ID is required');
     }
 
-    const permissionService = PermissionService.getInstance();
+    if (!req.container) {
+      throw new Error('DI Container not found in request');
+    }
+
+    const permissionService = req.container.permissionSrv;
     const hasPermission = await permissionService.checkPermission(
       userId,
       workshopId,
@@ -119,7 +129,11 @@ export const requireWorkshopManager = async (req: AuthRequest, _res: Response, n
       throw new AuthorizationError('Workshop ID is required');
     }
 
-    const permissionService = PermissionService.getInstance();
+    if (!req.container) {
+      throw new Error('DI Container not found in request');
+    }
+
+    const permissionService = req.container.permissionSrv;
     const hasPermission = await permissionService.checkPermission(
       userId,
       workshopId,

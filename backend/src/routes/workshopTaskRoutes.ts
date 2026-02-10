@@ -1,37 +1,49 @@
 import { Router } from 'express';
 import { authenticate } from '../middlewares/auth';
-import { taskController } from './workshopRoutes';
-const router = Router({ mergeParams: true });
+import { Container } from '../di/types';
 
-router.use(authenticate);
+export const createWorkshopTaskRoutes = (container: Container) => {
+    const router = Router({ mergeParams: true });
+    const taskController = container.workshopTaskCtrl;
 
-router.post('/', taskController.createTask);
-router.get('/', taskController.getProjectTasks);
-router.get('/board', taskController.getProjectTaskBoard);
+    router.use(authenticate);
 
-router.get('/:taskId', taskController.getTask);
-router.put('/:taskId', taskController.updateTask);
-router.delete('/:taskId', taskController.deleteTask);
+    router.post('/', taskController.createTask);
+    router.get('/', taskController.getProjectTasks);
+    router.get('/board', taskController.getProjectTaskBoard);
+    router.get('/:taskId', taskController.getTask);
+    router.put('/:taskId', taskController.updateTask);
+    router.delete('/:taskId', taskController.deleteTask);
+    router.put('/:taskId/status', taskController.updateTaskStatus);
+    router.post('/:taskId/comments', taskController.addComment);
+    router.post('/:taskId/attachments', taskController.addAttachment);
+    router.post('/:taskId/teams', taskController.assignTeam);
+    router.post('/:taskId/individuals', taskController.assignIndividual);
+    router.get('/:taskId/activity', taskController.getTaskActivities);
 
-router.put('/:taskId/status', taskController.updateTaskStatus);
+    return router;
+};
 
-router.post('/:taskId/comments', taskController.addComment);
+export const createTaskRouter = (_container: Container) => {
+    const router = Router({ mergeParams: true });
+    router.use(authenticate);
+    return router;
+};
 
-router.post('/:taskId/attachments', taskController.addAttachment);
+export const createUserTaskRouter = (container: Container) => {
+    const router = Router();
+    const taskController = container.workshopTaskCtrl;
+    router.use(authenticate);
+    router.get('/my-tasks', taskController.getMyTasks);
+    return router;
+};
 
-router.post('/:taskId/teams', taskController.assignTeam);
+export const createTeamTaskRouter = (container: Container) => {
+    const router = Router();
+    const taskController = container.workshopTaskCtrl;
+    router.use(authenticate);
+    router.get('/:teamId/tasks', taskController.getTeamTasks);
+    return router;
+};
 
-router.post('/:taskId/individuals', taskController.assignIndividual);
-
-router.get('/:taskId/activity', taskController.getTaskActivities);
-
-export const userTaskRouter = Router();
-userTaskRouter.use(authenticate);
-userTaskRouter.get('/my-tasks', taskController.getMyTasks);
-
-export const teamTaskRouter = Router();
-teamTaskRouter.use(authenticate);
-teamTaskRouter.get('/:teamId/tasks', taskController.getTeamTasks);
-
-export default router;
-export { router as taskRouter };
+export default createWorkshopTaskRoutes;
