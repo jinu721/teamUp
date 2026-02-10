@@ -6,6 +6,7 @@ import { EmailProvider } from '../../../shared/providers/EmailProvider';
 import { HashProvider } from '../../../shared/providers/HashProvider';
 import { AuthenticationError, ValidationError, NotFoundError } from '../../../shared/utils/errors';
 import crypto from 'crypto';
+import { verificationOtpTemplate, passwordResetTemplate } from '../../../shared/templates/email';
 
 export class AuthService {
   constructor(
@@ -63,17 +64,7 @@ export class AuthService {
   }
 
   private async sendVerificationOTP(email: string, otp: string) {
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h1 style="color: #333; text-align: center;">Welcome to Team Up!</h1>
-        <p>Your verification code is:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #007bff; background: #f0f7ff; padding: 10px 20px; border-radius: 5px; border: 1px dashed #007bff;">${otp}</span>
-        </div>
-        <p style="text-align: center; color: #666;">This code will expire in 10 minutes.</p>
-        <p style="color: #777; font-size: 12px; margin-top: 30px; text-align: center;">If you didn't request this, please ignore this email.</p>
-      </div>
-    `;
+    const emailHtml = verificationOtpTemplate(otp);
 
     await this.emailProv.sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
   }
@@ -260,23 +251,7 @@ export class AuthService {
 
     const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
 
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-        <h1 style="color: #333; text-align: center;">Reset Your Password</h1>
-        <p>Hi ${user.name},</p>
-        <p>You requested to reset your password for your Team Up account. Click the button below to reset it:</p>
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
-        </div>
-        <p style="color: #666;">This link will expire in 1 hour for security reasons.</p>
-        <p style="color: #666;">If you didn't request this password reset, please ignore this email.</p>
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-        <p style="color: #777; font-size: 12px; text-align: center;">
-          If the button doesn't work, copy and paste this link into your browser:<br>
-          <a href="${resetUrl}" style="color: #007bff;">${resetUrl}</a>
-        </p>
-      </div>
-    `;
+    const emailHtml = passwordResetTemplate(user.name, resetUrl);
 
     await this.emailProv.sendEmail(email, 'Reset Your Password - Team Up', emailHtml);
 
