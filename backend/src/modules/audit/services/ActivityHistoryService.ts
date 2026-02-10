@@ -1,7 +1,8 @@
-import { IActivityHistory, ActivityEntityType } from '../models/ActivityHistory';
+import { IActivityHistory, ActivityEntityType } from '../types/index';
 import { Types } from 'mongoose';
 import { IActivityHistoryRepository } from '../interfaces/IActivityHistoryRepository';
-import { IActivityHistoryService, LogActivityData, ActivityFilters } from '../interfaces/IActivityHistoryService';
+import { IActivityHistoryService } from '../interfaces/IActivityHistoryService';
+import { LogActivityData, ActivityFilters } from '../types/index';
 
 export class ActivityHistoryService implements IActivityHistoryService {
     constructor(private activityRepository: IActivityHistoryRepository) { }

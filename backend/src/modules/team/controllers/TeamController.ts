@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { ITeamService } from '../interfaces/ITeamService';
 import { AuthRequest } from '../../../shared/types/index';
-import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class TeamController {

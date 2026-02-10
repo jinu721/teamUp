@@ -1,4 +1,4 @@
-import { IActivityHistory } from '../models/ActivityHistory';
+import { IActivityHistory } from '../types/index';
 import { FilterQuery } from 'mongoose';
 
 export interface IActivityHistoryRepository {

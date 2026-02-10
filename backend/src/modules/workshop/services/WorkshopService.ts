@@ -19,7 +19,8 @@ import { NotFoundError, AuthorizationError, ValidationError } from '../../../sha
 import { Types } from 'mongoose';
 import { Membership } from '../../team/models/Membership';
 import { User } from '../../user/models/User';
-import { Invitation, IInvitation } from '../../invitation/models/Invitation';
+import { Invitation } from '../../invitation/models/Invitation';
+import { IInvitation } from '../../invitation/types/index';
 import crypto from 'crypto';
 
 function getIdString(ref: any): string {

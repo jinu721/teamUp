@@ -1,7 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { IWorkshopTaskService } from '../interfaces/IWorkshopTaskService';
 import { AuthRequest } from '../../../shared/types/index';
-import { CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO } from '../types/index';
 import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class WorkshopTaskController {

@@ -1,4 +1,4 @@
-import { IActivityHistory, ActivityEntityType, ActivityAction } from '../models/ActivityHistory';
+import { IActivityHistory, ActivityEntityType } from '../types/index';
 import { LogActivityData, ActivityFilters } from '../types/index';
 
 

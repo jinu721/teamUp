@@ -42,7 +42,7 @@ export interface ITeam extends Document {
     name: string;
     description?: string;
     workshop: Types.ObjectId;
-    members: IMembership[];
+    members: Types.ObjectId[];
     roles?: ITeamRole[];
     internalRoles?: ITeamRole[];
     createdAt: Date;
