@@ -17,6 +17,12 @@ export class AuthService {
     private hashProv: HashProvider
   ) { }
 
+  generateTokens(user: any): { token: string; refreshToken: string } {
+    const token = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: user._id.toString(), email: user.email });
+    return { token, refreshToken };
+  }
+
   async register(name: string, email: string, password: string): Promise<{ message: string }> {
     const existingUser = await this.userRepository.findByEmail(email);
     if (existingUser) {

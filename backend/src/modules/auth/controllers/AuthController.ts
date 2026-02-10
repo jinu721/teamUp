@@ -2,6 +2,8 @@ import { Response, NextFunction } from 'express';
 import { AuthService } from '../services/AuthService';
 import { AuthRequest } from '../../../shared/types/index';
 import { ValidationError } from '../../../shared/utils/errors';
+import passport from 'passport';
+import { isStrategyEnabled } from '../../../config/passport';
 
 export class AuthController {
   constructor(private authService: AuthService) { }
@@ -173,5 +175,50 @@ export class AuthController {
     } catch (error) {
       next(error);
     }
+  };
+
+  completeSocialLogin = (req: AuthRequest, res: Response): void => {
+    const user = req.user as any;
+    const { token, refreshToken } = this.authService.generateTokens(user);
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    res.redirect(`${frontendUrl}/social-callback?token=${token}&refreshToken=${refreshToken}`);
+  };
+
+  initiateGoogleAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!isStrategyEnabled('google')) {
+      res.status(400).json({
+        success: false,
+        message: 'Google authentication is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in the backend .env file.'
+      });
+      return;
+    }
+    passport.authenticate('google', { scope: ['profile', 'email'] })(req, res, next);
+  };
+
+  handleGoogleCallback = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!isStrategyEnabled('google')) {
+      res.redirect((process.env.FRONTEND_URL || 'http://localhost:3000') + '/login?error=google_not_configured');
+      return;
+    }
+    passport.authenticate('google', { session: false, failureRedirect: '/login' })(req, res, next);
+  };
+
+  initiateGithubAuth = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!isStrategyEnabled('github')) {
+      res.status(400).json({
+        success: false,
+        message: 'GitHub authentication is not configured. Please set GITHUB_CLIENT_ID and GITHUB_CLIENT_SECRET in the backend .env file.'
+      });
+      return;
+    }
+    passport.authenticate('github', { scope: ['user:email'] })(req, res, next);
+  };
+
+  handleGithubCallback = (req: AuthRequest, res: Response, next: NextFunction): void => {
+    if (!isStrategyEnabled('github')) {
+      res.redirect((process.env.FRONTEND_URL || 'http://localhost:3000') + '/login?error=github_not_configured');
+      return;
+    }
+    passport.authenticate('github', { session: false, failureRedirect: '/login' })(req, res, next);
   };
 }
