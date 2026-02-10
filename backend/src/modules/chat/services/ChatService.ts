@@ -6,6 +6,10 @@ import { ActivityHistoryService } from '../../audit/services/ActivityHistoryServ
 import { ActivityAction, ActivityEntityType } from '../../audit/models/ActivityHistory';
 import { SocketService } from '../../../socket/SocketService';
 import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
+import { TeamRepository } from '../../team/repositories/TeamRepository';
+import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
+import { MembershipRepository } from '../../team/repositories/MembershipRepository';
+import { MembershipState } from '../../../shared/types/index';
 
 export interface CreateChatRoomData {
     roomType: ChatRoomType;
@@ -39,6 +43,9 @@ export class ChatService {
     constructor(
         private activityService: ActivityHistoryService,
         private workshopRepository: WorkshopRepository,
+        private teamRepository: TeamRepository,
+        private projectRepository: WorkshopProjectRepository,
+        private membershipRepository: MembershipRepository,
         private socketService: SocketService | null = null
     ) { }
 
@@ -54,7 +61,17 @@ export class ChatService {
     async createChatRoom(data: CreateChatRoomData): Promise<IChatRoom> {
         const workshop = await this.workshopRepository.findById(data.workshopId);
 
-        const participants = [...data.participants];
+        let participants = data.participants;
+
+        if (!participants || participants.length === 0) {
+            participants = await this.getParticipantsForRoom(data.workshopId, data.roomType, data.projectId, data.teamId);
+        }
+
+        const userIdStr = data.createdBy;
+        if (!participants.includes(userIdStr)) {
+            participants.push(userIdStr);
+        }
+
         if (data.roomType !== ChatRoomType.DIRECT && workshop) {
             const ownerIdStr = workshop.owner.toString();
             if (!participants.includes(ownerIdStr)) {
@@ -87,6 +104,41 @@ export class ChatService {
         return chatRoom.populate(['participants', 'createdBy', 'workshop', 'project', 'team']);
     }
 
+    private async getParticipantsForRoom(
+        workshopId: string,
+        roomType: ChatRoomType,
+        projectId?: string,
+        teamId?: string
+    ): Promise<string[]> {
+        const pList = new Set<string>();
+
+        if (roomType === ChatRoomType.PROJECT && projectId) {
+            const project = await this.projectRepository.findById(projectId);
+            if (project) {
+                project.assignedIndividuals.forEach((id: any) => pList.add(id.toString()));
+                if (project.projectManager) pList.add(project.projectManager.toString());
+                project.maintainers.forEach((id: any) => pList.add(id.toString()));
+
+                if (project.assignedTeams && project.assignedTeams.length > 0) {
+                    const teams = await this.teamRepository.find({ _id: { $in: project.assignedTeams } });
+                    teams.forEach((team: any) => {
+                        team.members.forEach((memberId: any) => pList.add(memberId.toString()));
+                    });
+                }
+            }
+        } else if (roomType === ChatRoomType.TEAM && teamId) {
+            const team = await this.teamRepository.findById(teamId);
+            if (team) {
+                team.members.forEach((id: any) => pList.add(id.toString()));
+            }
+        } else if (roomType === ChatRoomType.WORKSHOP || !roomType) {
+            const members = await this.membershipRepository.getActiveMembers(workshopId);
+            members.forEach((m: any) => pList.add(m.user.toString()));
+        }
+
+        return Array.from(pList);
+    }
+
     async getChatRoom(roomId: string): Promise<IChatRoom> {
         const chatRoom = await ChatRoom.findById(roomId)
             .populate(['participants', 'createdBy', 'lastMessage', 'workshop', 'project', 'team']);
@@ -117,11 +169,7 @@ export class ChatService {
     }
 
     async syncAllWorkshopMembers(workshopId: string): Promise<void> {
-        const MembershipModel = require('../models/Membership').Membership;
-        const activeMemberships = await MembershipModel.find({
-            workshop: new Types.ObjectId(workshopId),
-            state: 'active'
-        });
+        const activeMemberships = await this.membershipRepository.getActiveMembers(workshopId);
 
         for (const membership of activeMemberships) {
             await this.syncUserToWorkshopRooms(membership.user.toString(), workshopId);
@@ -202,13 +250,7 @@ export class ChatService {
         const uId = new Types.ObjectId(userId);
         const workshopObjectId = new Types.ObjectId(workshopId);
 
-        const MembershipModel = require('../models/Membership').Membership;
-        const membership = await MembershipModel.findOne({
-            workshop: workshopObjectId,
-            user: uId,
-            state: 'active'
-        });
-
+        const membership = await this.membershipRepository.findActive(workshopId, userId);
         const workshop = await this.workshopRepository.findById(workshopId);
 
         if (!membership) {
@@ -244,8 +286,7 @@ export class ChatService {
             { $pull: { participants: uId } }
         );
 
-        const TeamModel = require('../models/Team').Team;
-        const teams = await TeamModel.find({ workshop: workshopObjectId, members: uId });
+        const teams = await this.teamRepository.findByUser(userId, workshopId);
         if (teams.length > 0) {
             const teamIds = teams.map((t: any) => t._id);
             await ChatRoom.updateMany(
@@ -254,16 +295,7 @@ export class ChatService {
             );
         }
 
-        const ProjectModel = require('../models/WorkshopProject').WorkshopProject;
-        const projects = await ProjectModel.find({
-            workshop: workshopObjectId,
-            $or: [
-                { assignedIndividuals: uId },
-                { projectManager: uId },
-                { maintainers: uId },
-                { assignedTeams: { $in: teams.map((t: any) => t._id) } }
-            ]
-        });
+        const projects = await this.projectRepository.findAccessible(userId, workshopId);
         if (projects.length > 0) {
             const projectIds = projects.map((p: any) => p._id);
             await ChatRoom.updateMany(

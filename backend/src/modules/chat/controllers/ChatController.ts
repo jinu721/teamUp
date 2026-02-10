@@ -47,52 +47,12 @@ export class ChatController {
                 throw new AuthorizationError(permission.reason || 'You do not have permission to create chat rooms');
             }
 
-            let roomParticipants = participants;
-
-            if (!roomParticipants || roomParticipants.length === 0) {
-                const pList = new Set<string>();
-                pList.add(userId);
-
-                if (roomType === ChatRoomType.PROJECT && projectId) {
-                    const project = await require('../models/WorkshopProject').WorkshopProject.findById(projectId);
-                    if (project) {
-                        project.assignedIndividuals.forEach((id: any) => pList.add(id.toString()));
-                        if (project.projectManager) pList.add(project.projectManager.toString());
-                        project.maintainers.forEach((id: any) => pList.add(id.toString()));
-
-                        if (project.assignedTeams && project.assignedTeams.length > 0) {
-                            const TeamModel = require('../models/Team').Team;
-                            const teams = await TeamModel.find({ _id: { $in: project.assignedTeams } });
-                            teams.forEach((team: any) => {
-                                team.members.forEach((memberId: any) => pList.add(memberId.toString()));
-                            });
-                        }
-                    }
-                } else if (roomType === ChatRoomType.TEAM && teamId) {
-                    const team = await require('../models/Team').Team.findById(teamId);
-                    if (team) {
-                        team.members.forEach((id: any) => pList.add(id.toString()));
-                    }
-                } else if (roomType === ChatRoomType.WORKSHOP || !roomType) {
-                    const MembershipModel = require('../models/Membership').Membership;
-                    const members = await MembershipModel.find({
-                        workshop: workshopId,
-                        state: 'active'
-                    });
-                    members.forEach((m: any) => pList.add(m.user.toString()));
-                }
-
-                roomParticipants = Array.from(pList);
-            } else if (!roomParticipants.includes(userId)) {
-                roomParticipants.push(userId);
-            }
-
             const chatRoom = await this.chatService.createChatRoom({
                 roomType: roomType || ChatRoomType.WORKSHOP,
                 workshopId,
                 projectId,
                 teamId,
-                participants: roomParticipants,
+                participants: participants || [],
                 name,
                 description,
                 createdBy: userId

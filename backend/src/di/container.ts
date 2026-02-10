@@ -128,6 +128,9 @@ export class DIContainer implements Container {
         this.chatSrv = new ChatService(
             this.activityHistorySrv,
             this.workshopRepo,
+            this.teamRepo,
+            this.workshopProjectRepo,
+            this.membershipRepo,
             this.socketSrv
         );
         this.cloudinarySrv = new CloudinaryService();
@@ -158,7 +161,7 @@ export class DIContainer implements Container {
             this.teamRepo,
             this.auditSrv,
             this.permissionSrv,
-            this.chatSrv, 
+            this.chatSrv,
             this.socketSrv
         );
         this.workshopSrv = new WorkshopService(
