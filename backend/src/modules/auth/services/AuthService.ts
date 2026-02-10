@@ -1,0 +1,280 @@
+import { IUserRepository } from '../../user/interfaces/IUserRepository';
+import { IPendingUserRepository } from '../interfaces/IPendingUserRepository';
+import { IPasswordResetRepository } from '../interfaces/IPasswordResetRepository';
+import { ITokenProvider } from '../../../shared/interfaces/ITokenProvider';
+import { IEmailProvider } from '../../../shared/interfaces/IEmailProvider';
+import { IHashProvider } from '../../../shared/interfaces/IHashProvider';
+import { IAuthService } from '../interfaces/IAuthService';
+import { AuthenticationError, ValidationError, NotFoundError } from '../../../shared/utils/errors';
+import crypto from 'crypto';
+import { verificationOtpTemplate, passwordResetTemplate } from '../../../shared/templates/email';
+
+export class AuthService implements IAuthService {
+  constructor(
+    private userRepository: IUserRepository,
+    private pendingUserRepository: IPendingUserRepository,
+    private passwordResetRepository: IPasswordResetRepository,
+    private tokenProv: ITokenProvider,
+    private emailProv: IEmailProvider,
+    private hashProv: IHashProvider
+  ) { }
+
+  generateTokens(user: any): { token: string; refreshToken: string } {
+    const token = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: user._id.toString(), email: user.email });
+    return { token, refreshToken };
+  }
+
+  async register(name: string, email: string, password: string): Promise<{ message: string }> {
+    const existingUser = await this.userRepository.findByEmail(email);
+    if (existingUser) {
+      throw new ValidationError('Email already registered');
+    }
+
+    const existingPending = await this.pendingUserRepository.findByEmail(email);
+    if (existingPending) {
+      const hashedPassword = await this.hashProv.hash(password);
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+      existingPending.name = name;
+      existingPending.password = hashedPassword;
+      existingPending.otp = otp;
+      existingPending.otpExpires = otpExpires;
+      await existingPending.save();
+
+      await this.sendVerificationOTP(email, otp);
+      return { message: 'Verification code re-sent. Please check your email.' };
+    }
+
+    const hashedPassword = await this.hashProv.hash(password);
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.pendingUserRepository.create({
+      name,
+      email,
+      password: hashedPassword,
+      otp,
+      otpExpires
+    } as any);
+
+    await this.sendVerificationOTP(email, otp);
+
+    return { message: 'Registration successful. Please check your email for the verification code.' };
+  }
+
+  private async sendVerificationOTP(email: string, otp: string) {
+    const emailHtml = verificationOtpTemplate(otp);
+
+    await this.emailProv.sendEmail(email, 'Your Verification Code - Team Up', emailHtml);
+  }
+
+  async verifyOTP(email: string, otp: string): Promise<{ user: any; token: string; refreshToken: string }> {
+    const pendingUser = await this.pendingUserRepository.findByEmail(email);
+
+    if (!pendingUser) {
+      throw new ValidationError('Registration not found or expired');
+    }
+
+    if (pendingUser.otp !== otp) {
+      throw new ValidationError('Invalid verification code');
+    }
+
+    if (new Date() > pendingUser.otpExpires) {
+      throw new ValidationError('Verification code has expired');
+    }
+
+    const newUser = await this.userRepository.create({
+      name: pendingUser.name,
+      email: pendingUser.email,
+      password: pendingUser.password,
+      isVerified: true,
+      skills: [],
+      interests: [],
+      isOnline: true,
+      lastActive: new Date(),
+    } as any);
+
+    await this.pendingUserRepository.deleteById(pendingUser._id.toString());
+
+    const authToken = this.tokenProv.generateToken({ id: newUser._id.toString(), email: newUser.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: newUser._id.toString(), email: newUser.email });
+
+    const userResponse = JSON.parse(JSON.stringify(newUser));
+    delete userResponse.password;
+
+    return { user: userResponse, token: authToken, refreshToken };
+  }
+
+  async resendOTP(email: string): Promise<{ message: string }> {
+    const pendingUser = await this.pendingUserRepository.findByEmail(email);
+    if (!pendingUser) {
+      throw new ValidationError('Registration not found or expired. Please register again.');
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpExpires = new Date(Date.now() + 10 * 60 * 1000);
+
+    pendingUser.otp = otp;
+    pendingUser.otpExpires = otpExpires;
+    await pendingUser.save();
+
+    await this.sendVerificationOTP(email, otp);
+    return { message: 'New verification code sent to your email.' };
+  }
+
+  async login(email: string, password: string): Promise<{ user: any; token: string; refreshToken: string }> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new ValidationError('Invalid email or password');
+    }
+
+    if (!user.isVerified) {
+      throw new ValidationError('Please verify your email before logging in.');
+    }
+
+    const isPasswordValid = await this.hashProv.compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new ValidationError('Invalid email or password');
+    }
+
+    await this.userRepository.updatePresence(user._id.toString(), true);
+
+    const token = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
+    const refreshToken = this.tokenProv.generateRefreshToken({ id: user._id.toString(), email: user.email });
+
+    const userResponse = JSON.parse(JSON.stringify(user));
+    delete userResponse.password;
+
+    return { user: userResponse, token, refreshToken };
+  }
+
+  async refreshToken(token: string): Promise<{ token: string }> {
+    try {
+      const decoded = this.tokenProv.verifyRefreshToken(token);
+      const user = await this.userRepository.findById(decoded.id);
+
+      if (!user) {
+        throw new AuthenticationError('User not found');
+      }
+
+      const newToken = this.tokenProv.generateToken({ id: user._id.toString(), email: user.email });
+      return { token: newToken };
+    } catch (error) {
+      throw new AuthenticationError('Invalid or expired refresh token');
+    }
+  }
+
+  async getProfile(userId: string): Promise<any> {
+    const user = await this.userRepository.findById(userId);
+    if (!user) {
+      throw new AuthenticationError('User not found');
+    }
+    return user;
+  }
+
+  async socialLogin(profile: any, type: 'google' | 'github'): Promise<any> {
+    const idField = type === 'google' ? 'googleId' : 'githubId';
+    let user = type === 'google'
+      ? await this.userRepository.findByGoogleId(profile.id)
+      : await this.userRepository.findByGithubId(profile.id);
+
+    if (user) {
+      return user;
+    }
+
+    const email = profile.emails?.[0]?.value;
+    if (email) {
+      user = await this.userRepository.findByEmail(email);
+      if (user) {
+        (user as any)[idField] = profile.id;
+        if (!user.isVerified) user.isVerified = true;
+        await user.save();
+        return user;
+      }
+    }
+
+    const dummyPassword = crypto.randomBytes(32).toString('hex');
+    const hashedPassword = await this.hashProv.hash(dummyPassword);
+
+    const userData: any = {
+      name: profile.displayName || profile.username || 'User',
+      email: email || `${profile.id}@${type}.com`,
+      password: hashedPassword,
+      isVerified: true,
+      profilePhoto: profile.photos?.[0]?.value || '',
+      skills: [],
+      interests: [],
+      isOnline: true,
+      lastActive: new Date()
+    };
+    userData[idField] = profile.id;
+
+    user = await this.userRepository.create(userData);
+    return user;
+  }
+
+  async updateProfile(userId: string, data: any): Promise<any> {
+    const allowedFields = ['name', 'profilePhoto', 'skills', 'interests'];
+    const updates: any = {};
+
+    allowedFields.forEach(field => {
+      if (data[field] !== undefined) {
+        updates[field] = data[field];
+      }
+    });
+
+    const user = await this.userRepository.update(userId, updates);
+    if (!user) {
+      throw new AuthenticationError('User not found');
+    }
+
+    return user;
+  }
+
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.userRepository.findByEmail(email);
+    if (!user) {
+      throw new NotFoundError('No account found with this email address');
+    }
+
+    await this.passwordResetRepository.deleteByEmail(email);
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+    await this.passwordResetRepository.create({
+      email,
+      token: resetToken,
+      expiresAt
+    });
+
+    const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const emailHtml = passwordResetTemplate(user.name, resetUrl);
+
+    await this.emailProv.sendEmail(email, 'Reset Your Password - Team Up', emailHtml);
+
+    return { message: 'Password reset link has been sent to your email' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const passwordReset = await this.passwordResetRepository.findByToken(token);
+    if (!passwordReset) {
+      throw new ValidationError('Invalid or expired password reset token');
+    }
+
+    const user = await this.userRepository.findByEmail(passwordReset.email);
+    if (!user) {
+      throw new NotFoundError('User not found');
+    }
+
+    const hashedPassword = await this.hashProv.hash(newPassword);
+    await this.userRepository.update(user._id.toString(), { password: hashedPassword });
+
+    await this.passwordResetRepository.markAsUsed(token);
+
+    return { message: 'Password has been reset successfully' };
+  }
+}

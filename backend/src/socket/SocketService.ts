@@ -1,0 +1,206 @@
+import { Server as SocketIOServer, Socket } from 'socket.io';
+import { Server as HTTPServer } from 'http';
+import { IUserRepository } from '../modules/user/interfaces/IUserRepository';
+import { ITokenProvider } from '../shared/interfaces/ITokenProvider';
+import { ISocketService } from '../shared/interfaces/ISocketService';
+
+interface AuthenticatedSocket extends Socket {
+  userId?: string;
+  email?: string;
+}
+
+export class SocketService implements ISocketService {
+  private io: SocketIOServer;
+  private connectedUsers: Map<string, string[]> = new Map();
+
+  constructor(
+    httpServer: HTTPServer,
+    private userRepository: IUserRepository,
+    private tokenProvider: ITokenProvider
+  ) {
+    this.io = new SocketIOServer(httpServer, {
+      cors: {
+        origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+        methods: ['GET', 'POST'],
+        credentials: true
+      }
+    });
+
+    this.setupMiddleware();
+    this.setupConnectionHandlers();
+  }
+
+  private setupMiddleware(): void {
+    this.io.use(async (socket: AuthenticatedSocket, next) => {
+      try {
+        const token = socket.handshake.auth.token || socket.handshake.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+          return next(new Error('Authentication error: No token provided'));
+        }
+
+        const decoded = this.tokenProvider.verifyToken(token);
+        socket.userId = decoded.id;
+        socket.email = decoded.email;
+
+        next();
+      } catch (error) {
+        next(new Error('Authentication error: Invalid token'));
+      }
+    });
+  }
+
+  private setupConnectionHandlers(): void {
+    this.io.on('connection', async (socket: AuthenticatedSocket) => {
+      const userId = socket.userId!;
+      console.log(`User connected: ${userId} (${socket.id})`);
+
+      if (!this.connectedUsers.has(userId)) {
+        this.connectedUsers.set(userId, []);
+      }
+      this.connectedUsers.get(userId)!.push(socket.id);
+
+      await this.userRepository.updatePresence(userId, true);
+
+      socket.join(`user:${userId}`);
+
+      this.io.emit('user:online', { userId, isOnline: true });
+
+      socket.on('workshop:join', (workshopId: string) => {
+        socket.join(`workshop:${workshopId}`);
+        console.log(`User ${userId} joined workshop room: ${workshopId}`);
+      });
+
+      socket.on('workshop:leave', (workshopId: string) => {
+        socket.leave(`workshop:${workshopId}`);
+        console.log(`User ${userId} left workshop room: ${workshopId}`);
+      });
+
+      socket.on('team:join', (teamId: string) => {
+        socket.join(`team:${teamId}`);
+        console.log(`User ${userId} joined team room: ${teamId}`);
+      });
+
+      socket.on('team:leave', (teamId: string) => {
+        socket.leave(`team:${teamId}`);
+        console.log(`User ${userId} left team room: ${teamId}`);
+      });
+
+      socket.on('project:join', (projectId: string) => {
+        socket.join(`project:${projectId}`);
+        console.log(`User ${userId} joined project room: ${projectId}`);
+      });
+
+      socket.on('project:leave', (projectId: string) => {
+        socket.leave(`project:${projectId}`);
+        console.log(`User ${userId} left project room: ${projectId}`);
+      });
+
+      socket.on('community:join', () => {
+        socket.join('community');
+        console.log(`User ${userId} joined community room`);
+      });
+
+      socket.on('community:leave', () => {
+        socket.leave('community');
+        console.log(`User ${userId} left community room`);
+      });
+
+      socket.on('typing:start', (data: { projectId: string }) => {
+        socket.to(`project:${data.projectId}`).emit('typing:start', {
+          userId,
+          projectId: data.projectId
+        });
+      });
+
+      socket.on('typing:stop', (data: { projectId: string }) => {
+        socket.to(`project:${data.projectId}`).emit('typing:stop', {
+          userId,
+          projectId: data.projectId
+        });
+      });
+
+      socket.on('chat:join', (roomId: string) => {
+        socket.join(`chat:${roomId}`);
+        console.log(`User ${userId} joined chat room: ${roomId}`);
+      });
+
+      socket.on('chat:leave', (roomId: string) => {
+        socket.leave(`chat:${roomId}`);
+        console.log(`User ${userId} left chat room: ${roomId}`);
+      });
+
+      socket.on('chat:typing:start', (data: { roomId: string }) => {
+        socket.to(`chat:${data.roomId}`).emit('chat:typing:start', {
+          userId,
+          roomId: data.roomId
+        });
+      });
+
+      socket.on('chat:typing:stop', (data: { roomId: string }) => {
+        socket.to(`chat:${data.roomId}`).emit('chat:typing:stop', {
+          userId,
+          roomId: data.roomId
+        });
+      });
+
+      socket.on('disconnect', async () => {
+        console.log(`User disconnected: ${userId} (${socket.id})`);
+
+        const userSockets = this.connectedUsers.get(userId);
+        if (userSockets) {
+          const index = userSockets.indexOf(socket.id);
+          if (index > -1) {
+            userSockets.splice(index, 1);
+          }
+
+          if (userSockets.length === 0) {
+            this.connectedUsers.delete(userId);
+            await this.userRepository.updatePresence(userId, false);
+            this.io.emit('user:offline', { userId, isOnline: false });
+          }
+        }
+      });
+    });
+  }
+
+  public emitToWorkshop(workshopId: string, event: string, data: any): void {
+    this.io.to(`workshop:${workshopId}`).emit(event, data);
+  }
+
+  public emitToTeam(teamId: string, event: string, data: any): void {
+    this.io.to(`team:${teamId}`).emit(event, data);
+  }
+
+  public emitToUser(userId: string, event: string, data: any): void {
+    this.io.to(`user:${userId}`).emit(event, data);
+  }
+
+  public emitToProject(projectId: string, event: string, data: any): void {
+    this.io.to(`project:${projectId}`).emit(event, data);
+  }
+
+  public emitToChatRoom(roomId: string, event: string, data: any): void {
+    this.io.to(`chat:${roomId}`).emit(event, data);
+  }
+
+  public emitToCommunity(event: string, data: any): void {
+    this.io.to('community').emit(event, data);
+  }
+
+  public emitToAll(event: string, data: any): void {
+    this.io.emit(event, data);
+  }
+
+  public getIO(): SocketIOServer {
+    return this.io;
+  }
+
+  public isUserOnline(userId: string): boolean {
+    return this.connectedUsers.has(userId);
+  }
+
+  public getOnlineUsersCount(): number {
+    return this.connectedUsers.size;
+  }
+}

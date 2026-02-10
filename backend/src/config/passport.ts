@@ -1,9 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as GitHubStrategy } from 'passport-github2';
-import { AuthService } from '../services/AuthService';
-
-const authService = new AuthService();
+import { Container } from '../di/types';
 
 export const isStrategyEnabled = (strategy: string): boolean => {
     switch (strategy) {
@@ -22,7 +20,8 @@ export const isStrategyEnabled = (strategy: string): boolean => {
     }
 };
 
-export const configurePassport = () => {
+export const configurePassport = (container: Container) => {
+    const authService = container.authSrv;
 
     if (isStrategyEnabled('google')) {
         console.log('Initializing Google Strategy...');
