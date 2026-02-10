@@ -24,6 +24,11 @@ export class TeamRepository {
       .populate(this.populateWorkshop);
   }
 
+  async findByIds(ids: string[]): Promise<ITeam[]> {
+    return await Team.find({ _id: { $in: ids.map(id => new Types.ObjectId(id)) } })
+      .populate(this.populateMembers);
+  }
+
   async findByWorkshop(workshopId: string): Promise<ITeam[]> {
     return await Team.find({ workshop: new Types.ObjectId(workshopId) })
       .populate(this.populateMembers)

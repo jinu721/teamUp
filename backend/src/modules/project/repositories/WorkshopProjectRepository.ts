@@ -242,6 +242,27 @@ export class WorkshopProjectRepository {
       .sort({ updatedAt: -1 });
   }
 
+  async findAccessible(userId: string, workshopId: string, teamIds: string[] = []): Promise<IWorkshopProject[]> {
+    const uId = new Types.ObjectId(userId);
+    const wId = new Types.ObjectId(workshopId);
+    const tIds = teamIds.map(id => new Types.ObjectId(id));
+
+    return await WorkshopProject.find({
+      workshop: wId,
+      $or: [
+        { assignedIndividuals: uId },
+        { projectManager: uId },
+        { maintainers: uId },
+        { assignedTeams: { $in: tIds } }
+      ]
+    })
+      .populate(this.populateAssignedTeams)
+      .populate(this.populateAssignedIndividuals)
+      .populate(this.populateProjectManager)
+      .populate(this.populateMaintainers)
+      .sort({ updatedAt: -1 });
+  }
+
   async countByWorkshop(workshopId: string): Promise<number> {
     return await WorkshopProject.countDocuments({ workshop: new Types.ObjectId(workshopId) });
   }

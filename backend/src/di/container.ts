@@ -7,6 +7,7 @@ import { HashProvider } from '../shared/providers/HashProvider';
 import { ActivityHistoryRepository } from '../modules/audit/repositories/ActivityHistoryRepository';
 import { AuditLogRepository } from '../modules/audit/repositories/AuditLogRepository';
 import { MembershipRepository } from '../modules/team/repositories/MembershipRepository';
+import { InvitationRepository } from '../modules/invitation/repositories/InvitationRepository';
 import { NotificationRepository } from '../modules/notification/repositories/NotificationRepository';
 import { PasswordResetRepository } from '../modules/auth/repositories/PasswordResetRepository';
 import { PendingUserRepository } from '../modules/auth/repositories/PendingUserRepository';
@@ -23,6 +24,7 @@ import { AuthService } from '../modules/auth/services/AuthService';
 import { ChatService } from '../modules/chat/services/ChatService';
 import { CloudinaryService } from '../shared/services/CloudinaryService';
 import { EmailService } from '../shared/services/EmailService';
+import { InvitationService } from '../modules/invitation/services/InvitationService';
 import { NotificationService } from '../modules/notification/services/NotificationService';
 import { PermissionService } from '../modules/access-control/services/PermissionService';
 import { SocketService } from '../socket/SocketService';
@@ -55,6 +57,7 @@ export class DIContainer implements Container {
     public passwordResetRepo: PasswordResetRepository;
     public pendingUserRepo: PendingUserRepository;
     public roleAssignmentRepo: RoleAssignmentRepository;
+    public invitationRepo: InvitationRepository;
     public roleRepo: RoleRepository;
     public teamRepo: TeamRepository;
     public userRepo: UserRepository;
@@ -68,6 +71,7 @@ export class DIContainer implements Container {
     public chatSrv: ChatService;
     public cloudinarySrv: CloudinaryService;
     public emailSrv: EmailService;
+    public invitationSrv: InvitationService;
     public notificationSrv: NotificationService;
     public permissionSrv: PermissionService;
     public socketSrv: SocketService;
@@ -101,6 +105,7 @@ export class DIContainer implements Container {
         this.passwordResetRepo = new PasswordResetRepository();
         this.pendingUserRepo = new PendingUserRepository();
         this.roleAssignmentRepo = new RoleAssignmentRepository();
+        this.invitationRepo = new InvitationRepository();
         this.roleRepo = new RoleRepository();
         this.teamRepo = new TeamRepository();
         this.userRepo = new UserRepository();
@@ -125,14 +130,6 @@ export class DIContainer implements Container {
             this.tokenProv
         );
 
-        this.chatSrv = new ChatService(
-            this.activityHistorySrv,
-            this.workshopRepo,
-            this.teamRepo,
-            this.workshopProjectRepo,
-            this.membershipRepo,
-            this.socketSrv
-        );
         this.cloudinarySrv = new CloudinaryService();
         this.emailSrv = new EmailService(this.emailProv);
         this.notificationSrv = new NotificationService(
@@ -145,6 +142,14 @@ export class DIContainer implements Container {
             this.teamRepo,
             this.membershipRepo,
             this.workshopProjectRepo
+        );
+        this.chatSrv = new ChatService(
+            this.activityHistorySrv,
+            this.workshopRepo,
+            this.teamRepo,
+            this.workshopProjectRepo,
+            this.membershipRepo,
+            this.socketSrv
         );
         this.teamSrv = new TeamService(
             this.teamRepo,
@@ -189,6 +194,12 @@ export class DIContainer implements Container {
             this.socketSrv
         );
 
+        this.invitationSrv = new InvitationService(
+            this.invitationRepo,
+            this.workshopSrv,
+            this.userRepo
+        );
+
         this.activityCtrl = new ActivityController(this.activityHistorySrv);
         this.auditCtrl = new AuditController(this.auditSrv, this.workshopRepo);
         this.authCtrl = new AuthController(this.authSrv);
@@ -200,8 +211,7 @@ export class DIContainer implements Container {
         this.chatCtrl.setSocketService(this.socketSrv);
 
         this.inviteCtrl = new InviteController(
-            this.workshopSrv,
-            this.userRepo
+            this.invitationSrv
         );
         this.notificationCtrl = new NotificationController(this.notificationSrv);
         this.permissionCtrl = new PermissionController(this.permissionSrv);

@@ -9,7 +9,6 @@ import { WorkshopRepository } from '../../workshop/repositories/WorkshopReposito
 import { TeamRepository } from '../../team/repositories/TeamRepository';
 import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
 import { MembershipRepository } from '../../team/repositories/MembershipRepository';
-import { MembershipState } from '../../../shared/types/index';
 
 export interface CreateChatRoomData {
     roomType: ChatRoomType;
@@ -115,12 +114,12 @@ export class ChatService {
         if (roomType === ChatRoomType.PROJECT && projectId) {
             const project = await this.projectRepository.findById(projectId);
             if (project) {
-                project.assignedIndividuals.forEach((id: any) => pList.add(id.toString()));
+                project.assignedIndividuals?.forEach((id: any) => pList.add(id.toString()));
                 if (project.projectManager) pList.add(project.projectManager.toString());
-                project.maintainers.forEach((id: any) => pList.add(id.toString()));
+                project.maintainers?.forEach((id: any) => pList.add(id.toString()));
 
                 if (project.assignedTeams && project.assignedTeams.length > 0) {
-                    const teams = await this.teamRepository.find({ _id: { $in: project.assignedTeams } });
+                    const teams = await this.teamRepository.findByIds(project.assignedTeams.map((id: any) => id.toString()));
                     teams.forEach((team: any) => {
                         team.members.forEach((memberId: any) => pList.add(memberId.toString()));
                     });
@@ -286,16 +285,17 @@ export class ChatService {
             { $pull: { participants: uId } }
         );
 
-        const teams = await this.teamRepository.findByUser(userId, workshopId);
+        const teams = await this.teamRepository.findByMemberInWorkshop(workshopId, userId);
+        const teamIds = teams.map((t: any) => t._id.toString());
+
         if (teams.length > 0) {
-            const teamIds = teams.map((t: any) => t._id);
             await ChatRoom.updateMany(
-                { workshop: workshopObjectId, roomType: ChatRoomType.TEAM, team: { $in: teamIds } },
+                { workshop: workshopObjectId, roomType: ChatRoomType.TEAM, team: { $in: teams.map((t: any) => t._id) } },
                 { $addToSet: { participants: uId } }
             );
         }
 
-        const projects = await this.projectRepository.findAccessible(userId, workshopId);
+        const projects = await this.projectRepository.findAccessible(userId, workshopId, teamIds);
         if (projects.length > 0) {
             const projectIds = projects.map((p: any) => p._id);
             await ChatRoom.updateMany(
