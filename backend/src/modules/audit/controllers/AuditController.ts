@@ -11,15 +11,19 @@ export class AuditController {
     private workshopRepository: WorkshopRepository
   ) { }
 
+  private async checkAccess(workshopId: string, userId: string): Promise<void> {
+    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
+    if (!canView) {
+      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
+    }
+  }
+
   getAuditLogs = asyncHandler(async (req: AuthRequest, res: Response): Promise<void> => {
     const userId = req.user!.id;
     const { workshopId } = req.params;
     const { action, actor, target, targetType, startDate, endDate, page, limit } = req.query;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const filters = {
       action: action as AuditAction | undefined,
@@ -43,7 +47,7 @@ export class AuditController {
       total: result.total,
       page: pagination.page,
       limit: pagination.limit,
-      totalPages: Math.ceil(result.total / pagination.limit)
+      totalPages: result.totalPages
     });
   });
 
@@ -52,10 +56,7 @@ export class AuditController {
     const { workshopId } = req.params;
     const { limit } = req.query;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const logs = await this.auditService.getRecentLogs(
       workshopId,
@@ -73,10 +74,7 @@ export class AuditController {
     const { workshopId, targetUserId } = req.params;
     const { page, limit } = req.query;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const pagination = {
       page: page ? parseInt(page as string) : 1,
@@ -90,7 +88,8 @@ export class AuditController {
       data: result.logs,
       total: result.total,
       page: pagination.page,
-      limit: pagination.limit
+      limit: pagination.limit,
+      totalPages: result.totalPages
     });
   });
 
@@ -99,10 +98,7 @@ export class AuditController {
     const { workshopId, targetId } = req.params;
     const { targetType, page, limit } = req.query;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const pagination = {
       page: page ? parseInt(page as string) : 1,
@@ -121,7 +117,8 @@ export class AuditController {
       data: result.logs,
       total: result.total,
       page: pagination.page,
-      limit: pagination.limit
+      limit: pagination.limit,
+      totalPages: result.totalPages
     });
   });
 
@@ -129,10 +126,7 @@ export class AuditController {
     const userId = req.user!.id;
     const { workshopId } = req.params;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const stats = await this.auditService.getAuditStats(workshopId);
 
@@ -147,10 +141,7 @@ export class AuditController {
     const { workshopId, targetUserId } = req.params;
     const { days } = req.query;
 
-    const canView = await this.workshopRepository.isOwnerOrManager(workshopId, userId);
-    if (!canView) {
-      throw new AuthorizationError('Only workshop owner or managers can view audit logs');
-    }
+    await this.checkAccess(workshopId, userId);
 
     const summary = await this.auditService.getUserActivitySummary(
       workshopId,

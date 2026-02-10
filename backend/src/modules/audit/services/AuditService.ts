@@ -334,26 +334,38 @@ export class AuditService {
   async getWorkshopAuditLogs(
     workshopId: string,
     filters?: AuditLogFilters,
-    pagination?: Pagination
-  ): Promise<{ logs: IAuditLog[]; total: number }> {
-    return await this.auditLogRepository.findByWorkshop(workshopId, filters, pagination);
+    pagination: Pagination = { page: 1, limit: 50 }
+  ): Promise<{ logs: IAuditLog[]; total: number; totalPages: number }> {
+    const result = await this.auditLogRepository.findByWorkshop(workshopId, filters, pagination);
+    return {
+      ...result,
+      totalPages: Math.ceil(result.total / pagination.limit)
+    };
   }
 
   async getUserActivityLogs(
     workshopId: string,
     userId: string,
-    pagination?: Pagination
-  ): Promise<{ logs: IAuditLog[]; total: number }> {
-    return await this.auditLogRepository.findByActor(workshopId, userId, pagination);
+    pagination: Pagination = { page: 1, limit: 50 }
+  ): Promise<{ logs: IAuditLog[]; total: number; totalPages: number }> {
+    const result = await this.auditLogRepository.findByActor(workshopId, userId, pagination);
+    return {
+      ...result,
+      totalPages: Math.ceil(result.total / pagination.limit)
+    };
   }
 
   async getTargetAuditLogs(
     workshopId: string,
     targetId: string,
     targetType?: string,
-    pagination?: Pagination
-  ): Promise<{ logs: IAuditLog[]; total: number }> {
-    return await this.auditLogRepository.findByTarget(workshopId, targetId, targetType, pagination);
+    pagination: Pagination = { page: 1, limit: 50 }
+  ): Promise<{ logs: IAuditLog[]; total: number; totalPages: number }> {
+    const result = await this.auditLogRepository.findByTarget(workshopId, targetId, targetType, pagination);
+    return {
+      ...result,
+      totalPages: Math.ceil(result.total / pagination.limit)
+    };
   }
 
   async getRecentLogs(workshopId: string, limit: number = 50): Promise<IAuditLog[]> {
