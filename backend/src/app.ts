@@ -9,26 +9,26 @@ import Database from './config/db.config';
 import { Container } from './di/types';
 import { env } from './config/env';
 
-import createAuthRoutes from './routes/authRoutes';
-import createNotificationRoutes from './routes/notificationRoutes';
-import createWorkshopRoutes from './routes/workshopRoutes';
-import createTeamRoutes from './routes/teamRoutes';
-import createRoleRoutes from './routes/roleRoutes';
-import createWorkshopProjectRoutes from './routes/workshopProjectRoutes';
+import createAuthRoutes from './modules/auth/routes/authRoutes';
+import createNotificationRoutes from './modules/notification/routes/notificationRoutes';
+import createWorkshopRoutes from './modules/workshop/routes/workshopRoutes';
+import createTeamRoutes from './modules/team/routes/teamRoutes';
+import createRoleRoutes from './modules/access-control/routes/roleRoutes';
+import createWorkshopProjectRoutes from './modules/project/routes/workshopProjectRoutes';
 import createWorkshopTaskRoutes, {
   createTaskRouter,
   createUserTaskRouter,
   createTeamTaskRouter
-} from './routes/workshopTaskRoutes';
-import createAuditRoutes from './routes/auditRoutes';
-import createPermissionRoutes from './routes/permissionRoutes';
-import createChatRoutes from './routes/chatRoutes';
-import createActivityRoutes from './routes/activityRoutes';
-import createInviteRoutes from './routes/inviteRoutes';
+} from './modules/task/routes/workshopTaskRoutes';
+import createAuditRoutes from './modules/audit/routes/auditRoutes';
+import createPermissionRoutes from './modules/access-control/routes/permissionRoutes';
+import createChatRoutes from './modules/chat/routes/chatRoutes';
+import createActivityRoutes from './modules/audit/routes/activityRoutes';
+import createInviteRoutes from './modules/invitation/routes/inviteRoutes';
 
-import { errorHandler } from './middlewares/errorMiddleware';
+import { errorHandler } from './shared/middlewares/errorMiddleware';
 import { configurePassport } from './config/passport';
-import { injectContainer } from './middlewares/di';
+import { injectContainer } from './shared/middlewares/di';
 
 export const createApp = (container: Container) => {
   const app = express();
