@@ -6,7 +6,7 @@ import cookieParser from 'cookie-parser';
 import passport from 'passport';
 
 import Database from './config/db.config';
-import { Container } from './di/types';
+import { Container } from '@di/types';
 import { env } from './config/env';
 
 import createAuthRoutes from './modules/auth/routes/authRoutes';
@@ -26,9 +26,9 @@ import createChatRoutes from './modules/chat/routes/chatRoutes';
 import createActivityRoutes from './modules/audit/routes/activityRoutes';
 import createInviteRoutes from './modules/invitation/routes/inviteRoutes';
 
-import { errorHandler } from './shared/middlewares/errorMiddleware';
+import { errorHandler, injectContainer } from '@middlewares';
 import { configurePassport } from './config/passport';
-import { injectContainer } from './shared/middlewares/di';
+import { API_PREFIX, MODULE_BASE } from '@constants';
 
 export const createApp = (container: Container) => {
   const app = express();
@@ -50,23 +50,23 @@ export const createApp = (container: Container) => {
   app.use(passport.initialize());
   configurePassport(container);
 
-  app.use('/api/auth', createAuthRoutes(container));
-  app.use('/api/notifications', createNotificationRoutes(container));
-  app.use('/api/workshops', createWorkshopRoutes(container));
-  app.use('/api/workshops/:workshopId/teams', createTeamRoutes(container));
-  app.use('/api/workshops/:workshopId/roles', createRoleRoutes(container));
-  app.use('/api/workshops/:workshopId/projects', createWorkshopProjectRoutes(container));
-  app.use('/api/workshops/:workshopId/projects/:projectId/tasks', createWorkshopTaskRoutes(container));
-  app.use('/api/workshops/:workshopId/audit', createAuditRoutes(container));
-  app.use('/api/workshops/:workshopId/permissions', createPermissionRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.AUTH}`, createAuthRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.NOTIFICATIONS}`, createNotificationRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.WORKSHOPS}`, createWorkshopRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.TEAMS}`, createTeamRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.ROLES}`, createRoleRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.PROJECTS}`, createWorkshopProjectRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.PROJECT_TASKS}`, createWorkshopTaskRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.AUDIT}`, createAuditRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.PERMISSION_CHECK}`, createPermissionRoutes(container));
 
-  app.use('/api/workshop-tasks', createTaskRouter(container));
-  app.use('/api/users', createUserTaskRouter(container));
-  app.use('/api/teams', createTeamTaskRouter(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.TASKS}`, createTaskRouter(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.USER_TASKS}`, createUserTaskRouter(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.TEAM_TASKS}`, createTeamTaskRouter(container));
 
-  app.use('/api/chat', createChatRoutes(container));
-  app.use('/api/invites', createInviteRoutes(container));
-  app.use('/api', createActivityRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.CHAT}`, createChatRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.INVITES}`, createInviteRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.ACTIVITY}`, createActivityRoutes(container));
 
   app.use(errorHandler);
 

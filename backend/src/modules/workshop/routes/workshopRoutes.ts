@@ -1,7 +1,7 @@
 import { Router } from 'express';
-import { authenticate, optionalAuthenticate } from '../../../shared/middlewares/auth';
-import { requireWorkshopMembership, requirePermission } from '../../../shared/middlewares/permission';
-import { Container } from '../../../di/types';
+import { authMiddleware, optionalAuthenticate, requireWorkshopMembership, requirePermission } from '@middlewares';
+import { WORKSHOP_ROUTES, TEAM_ROUTES, PROJECT_ROUTES, TASK_ROUTES } from '@constants';
+import { Container } from '@di/types';
 
 export const createWorkshopRoutes = (container: Container) => {
     const router = Router();
@@ -10,65 +10,66 @@ export const createWorkshopRoutes = (container: Container) => {
     const taskController = container.workshopTaskCtrl;
     const teamController = container.teamCtrl;
 
-    router.post('/', authenticate, workshopController.createWorkshop);
-    router.get('/my-workshops', authenticate, workshopController.getUserWorkshops);
-    router.get('/public', optionalAuthenticate, workshopController.getPublicWorkshops);
-    router.post('/:workshopId/upvote', authenticate, workshopController.upvoteWorkshop);
-    router.post('/:workshopId/downvote', authenticate, workshopController.downvoteWorkshop);
-    router.get('/:workshopId/permissions/check', authenticate, workshopController.checkPermission);
-    router.get('/:workshopId', authenticate, requireWorkshopMembership, workshopController.getWorkshop);
-    router.put('/:workshopId', authenticate, requirePermission('update', 'workshop'), workshopController.updateWorkshop);
-    router.delete('/:workshopId', authenticate, requirePermission('delete', 'workshop'), workshopController.deleteWorkshop);
+    router.post(WORKSHOP_ROUTES.BASE, authMiddleware, workshopController.createWorkshop);
+    router.get(WORKSHOP_ROUTES.MY_WORKSHOPS, authMiddleware, workshopController.getUserWorkshops);
+    router.get(WORKSHOP_ROUTES.PUBLIC, optionalAuthenticate, workshopController.getPublicWorkshops);
+    router.post(WORKSHOP_ROUTES.UPVOTE, authMiddleware, workshopController.upvoteWorkshop);
+    router.post(WORKSHOP_ROUTES.DOWNVOTE, authMiddleware, workshopController.downvoteWorkshop);
+    router.get(WORKSHOP_ROUTES.CHECK_PERMISSION, authMiddleware, workshopController.checkPermission);
+    router.get(WORKSHOP_ROUTES.BY_ID, authMiddleware, requireWorkshopMembership, workshopController.getWorkshop);
+    router.put(WORKSHOP_ROUTES.BY_ID, authMiddleware, requirePermission('update', 'workshop'), workshopController.updateWorkshop);
+    router.delete(WORKSHOP_ROUTES.BY_ID, authMiddleware, requirePermission('delete', 'workshop'), workshopController.deleteWorkshop);
 
-    router.get('/:workshopId/members', authenticate, requireWorkshopMembership, workshopController.getMembers);
-    router.get('/:workshopId/pending-requests', authenticate, requirePermission('manage', 'membership'), workshopController.getPendingRequests);
-    router.post('/:workshopId/invite', authenticate, requirePermission('invite', 'membership'), workshopController.inviteMember);
-    router.post('/:workshopId/join', authenticate, workshopController.handleJoinRequest);
-    router.post('/:workshopId/approve/:membershipId', authenticate, requirePermission('approve', 'membership'), workshopController.approveJoinRequest);
-    router.post('/:workshopId/reject/:membershipId', authenticate, requirePermission('reject', 'membership'), workshopController.rejectJoinRequest);
-    router.delete('/:workshopId/members/:userId', authenticate, requirePermission('revoke', 'membership'), workshopController.revokeMembership);
-    router.post('/:workshopId/leave', authenticate, requireWorkshopMembership, workshopController.leaveWorkshop);
+    router.get(WORKSHOP_ROUTES.MEMBERS, authMiddleware, requireWorkshopMembership, workshopController.getMembers);
+    router.get(WORKSHOP_ROUTES.PENDING_REQUESTS, authMiddleware, requirePermission('manage', 'membership'), workshopController.getPendingRequests);
+    router.post(WORKSHOP_ROUTES.INVITE, authMiddleware, requirePermission('invite', 'membership'), workshopController.inviteMember);
+    router.post(WORKSHOP_ROUTES.JOIN, authMiddleware, workshopController.handleJoinRequest);
+    router.post(WORKSHOP_ROUTES.APPROVE_REQUEST, authMiddleware, requirePermission('approve', 'membership'), workshopController.approveJoinRequest);
+    router.post(WORKSHOP_ROUTES.REJECT_REQUEST, authMiddleware, requirePermission('reject', 'membership'), workshopController.rejectJoinRequest);
+    router.delete(WORKSHOP_ROUTES.REVOKE_MEMBERSHIP, authMiddleware, requirePermission('revoke', 'membership'), workshopController.revokeMembership);
+    router.post(WORKSHOP_ROUTES.LEAVE, authMiddleware, requireWorkshopMembership, workshopController.leaveWorkshop);
 
-    router.post('/:workshopId/managers/:managerId', authenticate, requirePermission('assign_manager', 'workshop'), workshopController.assignManager);
-    router.delete('/:workshopId/managers/:managerId', authenticate, requirePermission('remove_manager', 'workshop'), workshopController.removeManager);
+    router.post(WORKSHOP_ROUTES.ASSIGN_MANAGER, authMiddleware, requirePermission('assign_manager', 'workshop'), workshopController.assignManager);
+    router.delete(WORKSHOP_ROUTES.REMOVE_MANAGER, authMiddleware, requirePermission('remove_manager', 'workshop'), workshopController.removeManager);
 
-    router.get('/:workshopId/teams', authenticate, requireWorkshopMembership, teamController.getWorkshopTeams);
-    router.post('/:workshopId/teams', authenticate, requirePermission('create', 'team'), teamController.createTeam);
-    router.get('/:workshopId/teams/:teamId', authenticate, requireWorkshopMembership, teamController.getTeam);
-    router.put('/:workshopId/teams/:teamId', authenticate, requirePermission('update', 'team'), teamController.updateTeam);
-    router.delete('/:workshopId/teams/:teamId', authenticate, requirePermission('delete', 'team'), teamController.deleteTeam);
-    router.post('/:workshopId/teams/:teamId/members/:userId', authenticate, requirePermission('manage', 'team'), teamController.addMember);
-    router.delete('/:workshopId/teams/:teamId/members/:userId', authenticate, requirePermission('manage', 'team'), teamController.removeMember);
-    router.get('/:workshopId/teams/:teamId/tasks', authenticate, requireWorkshopMembership, taskController.getTeamTasks);
+    router.get(TEAM_ROUTES.USER_TEAMS, authMiddleware, requireWorkshopMembership, teamController.getUserTeams); // Adjusted as it's /user/:userId
+    router.get(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BASE, authMiddleware, requireWorkshopMembership, teamController.getWorkshopTeams);
+    router.post(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BASE, authMiddleware, requirePermission('create', 'team'), teamController.createTeam);
+    router.get(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BY_ID, authMiddleware, requireWorkshopMembership, teamController.getTeam);
+    router.put(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BY_ID, authMiddleware, requirePermission('update', 'team'), teamController.updateTeam);
+    router.delete(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BY_ID, authMiddleware, requirePermission('delete', 'team'), teamController.deleteTeam);
+    router.post(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.MEMBERS, authMiddleware, requirePermission('manage', 'team'), teamController.addMember);
+    router.delete(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.MEMBER_BY_ID, authMiddleware, requirePermission('manage', 'team'), teamController.removeMember);
+    router.get(WORKSHOP_ROUTES.BY_ID + TEAM_ROUTES.BY_ID + '/tasks', authMiddleware, requireWorkshopMembership, taskController.getTeamTasks);
 
-    router.get('/:workshopId/projects', authenticate, requireWorkshopMembership, projectController.getProjects);
-    router.post('/:workshopId/projects', authenticate, requirePermission('create', 'project'), projectController.createProject);
-    router.get('/:workshopId/projects/:projectId', authenticate, requireWorkshopMembership, projectController.getProject);
-    router.put('/:workshopId/projects/:projectId', authenticate, requirePermission('update', 'project'), projectController.updateProject);
-    router.delete('/:workshopId/projects/:projectId', authenticate, requirePermission('delete', 'project'), projectController.deleteProject);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BASE, authMiddleware, requireWorkshopMembership, projectController.getProjects);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BASE, authMiddleware, requirePermission('create', 'project'), projectController.createProject);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID, authMiddleware, requireWorkshopMembership, projectController.getProject);
+    router.put(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID, authMiddleware, requirePermission('update', 'project'), projectController.updateProject);
+    router.delete(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID, authMiddleware, requirePermission('delete', 'project'), projectController.deleteProject);
 
-    router.post('/:workshopId/projects/:projectId/teams', authenticate, requirePermission('assign', 'project'), projectController.assignTeam);
-    router.delete('/:workshopId/projects/:projectId/teams/:teamId', authenticate, requirePermission('assign', 'project'), projectController.removeTeam);
-    router.post('/:workshopId/projects/:projectId/individuals', authenticate, requirePermission('assign', 'project'), projectController.assignIndividual);
-    router.delete('/:workshopId/projects/:projectId/individuals/:individualId', authenticate, requirePermission('assign', 'project'), projectController.removeIndividual);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.TEAMS, authMiddleware, requirePermission('assign', 'project'), projectController.assignTeam);
+    router.delete(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.TEAM_BY_ID, authMiddleware, requirePermission('assign', 'project'), projectController.removeTeam);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.INDIVIDUALS, authMiddleware, requirePermission('assign', 'project'), projectController.assignIndividual);
+    router.delete(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.INDIVIDUAL_BY_ID, authMiddleware, requirePermission('assign', 'project'), projectController.removeIndividual);
 
-    router.post('/:workshopId/projects/:projectId/manager', authenticate, requirePermission('manage', 'project'), projectController.assignProjectManager);
-    router.post('/:workshopId/projects/:projectId/maintainers', authenticate, requirePermission('manage', 'project'), projectController.addMaintainer);
-    router.delete('/:workshopId/projects/:projectId/maintainers/:maintainerId', authenticate, requirePermission('manage', 'project'), projectController.removeMaintainer);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.MANAGER, authMiddleware, requirePermission('manage', 'project'), projectController.assignProjectManager);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.MAINTAINERS, authMiddleware, requirePermission('manage', 'project'), projectController.addMaintainer);
+    router.delete(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.MAINTAINER_BY_ID, authMiddleware, requirePermission('manage', 'project'), projectController.removeMaintainer);
 
-    router.get('/:workshopId/projects/:projectId/tasks', authenticate, requireWorkshopMembership, taskController.getProjectTasks);
-    router.get('/:workshopId/projects/:projectId/tasks/board', authenticate, requireWorkshopMembership, taskController.getProjectTaskBoard);
-    router.post('/:workshopId/projects/:projectId/tasks', authenticate, requirePermission('create', 'task'), taskController.createTask);
-    router.get('/:workshopId/projects/:projectId/tasks/:taskId', authenticate, requireWorkshopMembership, taskController.getTask);
-    router.put('/:workshopId/projects/:projectId/tasks/:taskId', authenticate, requirePermission('update', 'task'), taskController.updateTask);
-    router.put('/:workshopId/projects/:projectId/tasks/:taskId/status', authenticate, requirePermission('update', 'task'), taskController.updateTaskStatus);
-    router.delete('/:workshopId/projects/:projectId/tasks/:taskId', authenticate, requirePermission('delete', 'task'), taskController.deleteTask);
-    router.get('/:workshopId/projects/:projectId/tasks/:taskId/activity', authenticate, requireWorkshopMembership, taskController.getTaskActivities);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BASE, authMiddleware, requireWorkshopMembership, taskController.getProjectTasks);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BOARD, authMiddleware, requireWorkshopMembership, taskController.getProjectTaskBoard);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BASE, authMiddleware, requirePermission('create', 'task'), taskController.createTask);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BY_ID, authMiddleware, requireWorkshopMembership, taskController.getTask);
+    router.put(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BY_ID, authMiddleware, requirePermission('update', 'task'), taskController.updateTask);
+    router.put(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.STATUS, authMiddleware, requirePermission('update', 'task'), taskController.updateTaskStatus);
+    router.delete(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.BY_ID, authMiddleware, requirePermission('delete', 'task'), taskController.deleteTask);
+    router.get(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.ACTIVITY, authMiddleware, requireWorkshopMembership, taskController.getTaskActivities);
 
-    router.post('/:workshopId/projects/:projectId/tasks/:taskId/teams', authenticate, requirePermission('assign', 'task'), taskController.assignTeam);
-    router.post('/:workshopId/projects/:projectId/tasks/:taskId/individuals', authenticate, requirePermission('assign', 'task'), taskController.assignIndividual);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.TEAMS, authMiddleware, requirePermission('assign', 'task'), taskController.assignTeam);
+    router.post(WORKSHOP_ROUTES.BY_ID + PROJECT_ROUTES.BY_ID + TASK_ROUTES.INDIVIDUALS, authMiddleware, requirePermission('assign', 'task'), taskController.assignIndividual);
 
-    router.get('/:workshopId/my-tasks', authenticate, requireWorkshopMembership, taskController.getMyTasks);
+    router.get(WORKSHOP_ROUTES.BY_ID + TASK_ROUTES.MY_TASKS, authMiddleware, requireWorkshopMembership, taskController.getMyTasks);
 
     return router;
 };

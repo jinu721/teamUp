@@ -1,36 +1,37 @@
 import { Router } from 'express';
-import { authenticate } from '../../../shared/middlewares/auth';
-import { Container } from '../../../di/types';
+import { authMiddleware } from '@middlewares';
+import { CHAT_ROUTES } from '@constants';
+import { Container } from '@di/types';
 
 export const createChatRoutes = (container: Container) => {
     const router = Router();
     const chatController = container.chatCtrl;
 
-    router.post('/workshops/:workshopId/chat/rooms', authenticate, chatController.createRoom);
-    router.get('/workshops/:workshopId/chat/rooms', authenticate, chatController.getRooms);
-    router.post('/workshops/:workshopId/chat/direct', authenticate, chatController.getOrCreateDirectRoom);
+    router.post(CHAT_ROUTES.WORKSHOP_ROOMS, authMiddleware, chatController.createRoom);
+    router.get(CHAT_ROUTES.WORKSHOP_ROOMS, authMiddleware, chatController.getRooms);
+    router.post(CHAT_ROUTES.DIRECT, authMiddleware, chatController.getOrCreateDirectRoom);
 
-    router.get('/rooms/:roomId', authenticate, chatController.getRoom);
-    router.put('/rooms/:roomId', authenticate, chatController.updateRoom);
-    router.delete('/rooms/:roomId', authenticate, chatController.deleteRoom);
+    router.get(CHAT_ROUTES.BY_ID, authMiddleware, chatController.getRoom);
+    router.put(CHAT_ROUTES.BY_ID, authMiddleware, chatController.updateRoom);
+    router.delete(CHAT_ROUTES.BY_ID, authMiddleware, chatController.deleteRoom);
 
-    router.post('/rooms/:roomId/messages', authenticate, chatController.sendMessage);
-    router.get('/rooms/:roomId/messages', authenticate, chatController.getMessages);
+    router.post(CHAT_ROUTES.MESSAGES, authMiddleware, chatController.sendMessage);
+    router.get(CHAT_ROUTES.MESSAGES, authMiddleware, chatController.getMessages);
 
-    router.put('/messages/:messageId', authenticate, chatController.editMessage);
-    router.delete('/messages/:messageId', authenticate, chatController.deleteMessage);
+    router.put(CHAT_ROUTES.MESSAGE_BY_ID, authMiddleware, chatController.editMessage);
+    router.delete(CHAT_ROUTES.MESSAGE_BY_ID, authMiddleware, chatController.deleteMessage);
 
-    router.put('/messages/:messageId/seen', authenticate, chatController.markAsSeen);
-    router.put('/rooms/:roomId/seen', authenticate, chatController.markAllAsSeen);
-    router.get('/rooms/:roomId/unread', authenticate, chatController.getUnreadCount);
+    router.put(CHAT_ROUTES.MESSAGE_SEEN, authMiddleware, chatController.markAsSeen);
+    router.put(CHAT_ROUTES.ROOM_SEEN, authMiddleware, chatController.markAllAsSeen);
+    router.get(CHAT_ROUTES.ROOM_UNREAD, authMiddleware, chatController.getUnreadCount);
 
-    router.post('/messages/:messageId/reactions', authenticate, chatController.addReaction);
-    router.delete('/messages/:messageId/reactions', authenticate, chatController.removeReaction);
+    router.post(CHAT_ROUTES.REACTIONS, authMiddleware, chatController.addReaction);
+    router.delete(CHAT_ROUTES.REACTIONS, authMiddleware, chatController.removeReaction);
 
-    router.get('/rooms/:roomId/search', authenticate, chatController.searchMessages);
+    router.get(CHAT_ROUTES.SEARCH, authMiddleware, chatController.searchMessages);
 
-    router.post('/upload', authenticate, chatController.uploadMiddleware, chatController.uploadMedia);
-    router.post('/upload-only', authenticate, chatController.uploadMiddleware, chatController.uploadOnly);
+    router.post(CHAT_ROUTES.UPLOAD, authMiddleware, chatController.uploadMiddleware, chatController.uploadMedia);
+    router.post(CHAT_ROUTES.UPLOAD_ONLY, authMiddleware, chatController.uploadMiddleware, chatController.uploadOnly);
 
     return router;
 };

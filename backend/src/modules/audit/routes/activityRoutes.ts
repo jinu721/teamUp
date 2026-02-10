@@ -1,17 +1,17 @@
 import { Router } from 'express';
-import { authenticate } from '../../../shared/middlewares/auth';
-import { requireWorkshopMembership } from '../../../shared/middlewares/permission';
-import { Container } from '../../../di/types';
+import { authMiddleware, requireWorkshopMembership } from '@middlewares';
+import { ACTIVITY_ROUTES } from '@constants';
+import { Container } from '@di/types';
 
 export const createActivityRoutes = (container: Container) => {
     const router = Router();
     const activityController = container.activityCtrl;
 
-    router.get('/workshops/:workshopId/activity', authenticate, requireWorkshopMembership, activityController.getWorkshopActivity);
-    router.get('/workshops/:workshopId/activity/stats', authenticate, requireWorkshopMembership, activityController.getWorkshopActivityStats);
-    router.get('/users/:userId/activity', authenticate, activityController.getUserActivity);
-    router.get('/activity/:entityType/:entityId', authenticate, activityController.getEntityActivity);
-    router.get('/activity/recent', authenticate, activityController.getRecentActivities);
+    router.get(ACTIVITY_ROUTES.WORKSHOP_ACTIVITY, authMiddleware, requireWorkshopMembership, activityController.getWorkshopActivity);
+    router.get(ACTIVITY_ROUTES.WORKSHOP_STATS, authMiddleware, requireWorkshopMembership, activityController.getWorkshopActivityStats);
+    router.get(ACTIVITY_ROUTES.USER_ACTIVITY, authMiddleware, activityController.getUserActivity);
+    router.get(ACTIVITY_ROUTES.ENTITY_ACTIVITY, authMiddleware, activityController.getEntityActivity);
+    router.get(ACTIVITY_ROUTES.RECENT, authMiddleware, activityController.getRecentActivities);
 
     return router;
 };

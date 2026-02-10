@@ -1,19 +1,20 @@
 import { Router } from 'express';
-import { authenticate } from '../../../shared/middlewares/auth';
-import { Container } from '../../../di/types';
+import { authMiddleware } from '@middlewares';
+import { NOTIFICATION_ROUTES } from '@constants';
+import { Container } from '@di/types';
 
 export const createNotificationRoutes = (container: Container) => {
     const router = Router();
     const notificationController = container.notificationCtrl;
 
-    router.use(authenticate);
+    router.use(authMiddleware);
 
-    router.get('/', notificationController.getNotifications);
-    router.get('/unread', notificationController.getUnreadNotifications);
-    router.get('/count', notificationController.getUnreadCount);
-    router.put('/:id/read', notificationController.markAsRead);
-    router.put('/read-all', notificationController.markAllAsRead);
-    router.delete('/:id', notificationController.deleteNotification);
+    router.get(NOTIFICATION_ROUTES.BASE, notificationController.getNotifications);
+    router.get(NOTIFICATION_ROUTES.UNREAD, notificationController.getUnreadNotifications);
+    router.get(NOTIFICATION_ROUTES.COUNT, notificationController.getUnreadCount);
+    router.put(NOTIFICATION_ROUTES.MARK_READ, notificationController.markAsRead);
+    router.put(NOTIFICATION_ROUTES.MARK_ALL_READ, notificationController.markAllAsRead);
+    router.delete(NOTIFICATION_ROUTES.DELETE, notificationController.deleteNotification);
 
     return router;
 };
