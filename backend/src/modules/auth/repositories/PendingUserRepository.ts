@@ -1,7 +1,8 @@
 import { PendingUser } from '../models/PendingUser';
 import { IPendingUser } from '../../../shared/types/index';
+import { IPendingUserRepository } from '../interfaces/IPendingUserRepository';
 
-export class PendingUserRepository {
+export class PendingUserRepository implements IPendingUserRepository {
     async create(userData: Partial<IPendingUser>): Promise<IPendingUser> {
         const pendingUser = new PendingUser(userData);
         return await pendingUser.save();

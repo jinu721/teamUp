@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../../shared/types/index';
-import { InvitationService } from '../services/InvitationService';
+import { IInvitationService } from '../interfaces/IInvitationService';
 import { ValidationError } from '../../../shared/utils/errors';
 export class InviteController {
     constructor(
-        private invitationService: InvitationService
+        private invitationService: IInvitationService
     ) { }
 
     getInviteDetails = async (req: AuthRequest, res: Response, next: NextFunction) => {

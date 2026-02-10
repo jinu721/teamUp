@@ -7,11 +7,12 @@ import {
   MembershipState,
   WorkshopVisibility
 } from '../../../shared/types/index';
-import { RoleAssignmentRepository } from '../repositories/RoleAssignmentRepository';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
-import { TeamRepository } from '../../team/repositories/TeamRepository';
-import { MembershipRepository } from '../../team/repositories/MembershipRepository';
-import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
+import { IRoleAssignmentRepository } from '../interfaces/IRoleAssignmentRepository';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
+import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
+import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
+import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopProjectRepository';
+import { IPermissionService } from '../interfaces/IPermissionService';
 import { Types } from 'mongoose';
 
 interface CacheEntry {
@@ -27,16 +28,16 @@ function getIdString(ref: any): string {
   return ref.toString();
 }
 
-export class PermissionService {
+export class PermissionService implements IPermissionService {
   private cache: Map<string, CacheEntry>;
   private readonly CACHE_TTL_MS = 60000;
 
   constructor(
-    private roleAssignmentRepository: RoleAssignmentRepository,
-    private workshopRepository: WorkshopRepository,
-    private teamRepository: TeamRepository,
-    private membershipRepository: MembershipRepository,
-    private projectRepository: WorkshopProjectRepository
+    private roleAssignmentRepository: IRoleAssignmentRepository,
+    private workshopRepository: IWorkshopRepository,
+    private teamRepository: ITeamRepository,
+    private membershipRepository: IMembershipRepository,
+    private projectRepository: IWorkshopProjectRepository
   ) {
     this.cache = new Map();
   }

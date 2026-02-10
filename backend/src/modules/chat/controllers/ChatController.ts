@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
-import { ChatService } from '../services/ChatService';
-import { CloudinaryService } from '../../../shared/services/CloudinaryService';
+import { IChatService } from '../interfaces/IChatService';
+import { ICloudinaryService } from '../../../shared/interfaces/ICloudinaryService';
 import { AuthRequest } from '../../../shared/types/index';
 import { MessageType } from '../models/Message';
 import { ChatRoomType } from '../models/ChatRoom';
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import multer from 'multer';
-import { PermissionService } from '../../access-control/services/PermissionService';
+import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
 import { AuthorizationError } from '../../../shared/utils/errors';
 
 const storage = multer.memoryStorage();
@@ -18,16 +18,16 @@ const upload = multer({
 });
 
 export class ChatController {
-    private socketService: SocketService | null = null;
+    private socketService: ISocketService | null = null;
     public uploadMiddleware = upload.single('file');
 
     constructor(
-        private chatService: ChatService,
-        private cloudinaryService: CloudinaryService,
-        private permissionService: PermissionService
+        private chatService: IChatService,
+        private cloudinaryService: ICloudinaryService,
+        private permissionService: IPermissionService
     ) { }
 
-    setSocketService(socketService: SocketService): void {
+    setSocketService(socketService: ISocketService): void {
         this.socketService = socketService;
         this.chatService.setSocketService(socketService);
     }

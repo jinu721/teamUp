@@ -1,8 +1,9 @@
 import { Notification } from '../models/Notification';
 import { INotification } from '../../../shared/types/index';
 import { Types } from 'mongoose';
+import { INotificationRepository } from '../interfaces/INotificationRepository';
 
-export class NotificationRepository {
+export class NotificationRepository implements INotificationRepository {
   async create(notificationData: Partial<INotification>): Promise<INotification> {
     const notification = new Notification(notificationData);
     return await notification.save();

@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
+import { IEmailProvider } from '../interfaces/IEmailProvider';
 
-export class EmailProvider {
+export class EmailProvider implements IEmailProvider {
     private transporter;
 
     constructor() {

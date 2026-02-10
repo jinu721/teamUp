@@ -1,12 +1,8 @@
 import jwt from 'jsonwebtoken';
 import { env } from '../../config/env';
+import { ITokenProvider, JwtPayload } from '../interfaces/ITokenProvider';
 
-export interface JwtPayload {
-    id: string;
-    email: string;
-}
-
-export class TokenProvider {
+export class TokenProvider implements ITokenProvider {
     private readonly secret = env.JWT_SECRET;
     private readonly refreshSecret = process.env.REFRESH_TOKEN_SECRET || 'refresh_secret';
 

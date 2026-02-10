@@ -2,17 +2,18 @@ import { Types } from 'mongoose';
 import {
   IWorkshopProject,
   CreateWorkshopProjectDTO,
-  UpdateWorkshopProjectDTO
+  UpdateWorkshopProjectDTO,
+  AuditAction
 } from '../../../shared/types/index';
-import { WorkshopProjectRepository } from '../repositories/WorkshopProjectRepository';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
-import { TeamRepository } from '../../team/repositories/TeamRepository';
-import { AuditService } from '../../audit/services/AuditService';
-import { PermissionService } from '../../access-control/services/PermissionService';
+import { IWorkshopProjectRepository } from '../interfaces/IWorkshopProjectRepository';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
+import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
+import { IAuditService } from '../../audit/interfaces/IAuditService';
+import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
+import { IChatService } from '../../chat/interfaces/IChatService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { IWorkshopProjectService } from '../interfaces/IWorkshopProjectService';
 import { NotFoundError, AuthorizationError } from '../../../shared/utils/errors';
-import { AuditAction } from '../../../shared/types/index';
-import { ChatService } from '../../chat/services/ChatService';
-import { SocketService } from '../../../socket/SocketService';
 
 function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): string {
   if (ref && typeof ref === 'object' && '_id' in ref) {
@@ -21,18 +22,18 @@ function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): strin
   return ref?.toString() || '';
 }
 
-export class WorkshopProjectService {
+export class WorkshopProjectService implements IWorkshopProjectService {
   constructor(
-    private projectRepository: WorkshopProjectRepository,
-    private workshopRepository: WorkshopRepository,
-    private teamRepository: TeamRepository,
-    private auditService: AuditService,
-    private permissionService: PermissionService,
-    private chatService: ChatService,
-    private socketService: SocketService | null = null
+    private projectRepository: IWorkshopProjectRepository,
+    private workshopRepository: IWorkshopRepository,
+    private teamRepository: ITeamRepository,
+    private auditService: IAuditService,
+    private permissionService: IPermissionService,
+    private chatService: IChatService,
+    private socketService: ISocketService | null = null
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
     this.chatService.setSocketService(socketService);
   }

@@ -1,12 +1,12 @@
 import { Response } from 'express';
-import { NotificationService } from '../services/NotificationService';
+import { INotificationService } from '../interfaces/INotificationService';
 import { AuthRequest } from '../../../shared/types/index';
 import { asyncHandler } from '../../../shared/middlewares/errorMiddleware';
 
 export class NotificationController {
-  private notificationService: NotificationService;
+  private notificationService: INotificationService;
 
-  constructor(notificationService: NotificationService) {
+  constructor(notificationService: INotificationService) {
     this.notificationService = notificationService;
   }
 

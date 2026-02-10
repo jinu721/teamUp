@@ -2,8 +2,9 @@ import { Role } from '../models/Role';
 import { IRole, CreateRoleDTO, UpdateRoleDTO, PermissionScope } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IRoleRepository } from '../interfaces/IRoleRepository';
 
-export class RoleRepository {
+export class RoleRepository implements IRoleRepository {
   private readonly populateWorkshop = { path: 'workshop', select: 'name description' };
 
   async create(workshopId: string, roleData: CreateRoleDTO): Promise<IRole> {

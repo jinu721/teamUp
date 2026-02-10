@@ -1,8 +1,9 @@
 import { User } from '../models/User';
 import { IUser } from '../../../shared/types/index';
 import { Types } from 'mongoose';
+import { IUserRepository } from '../interfaces/IUserRepository';
 
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   async create(userData: Partial<IUser>): Promise<IUser> {
     const user = new User(userData);
     return await user.save();

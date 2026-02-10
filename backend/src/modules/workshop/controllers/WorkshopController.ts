@@ -1,14 +1,13 @@
 import { Request, Response, NextFunction } from 'express';
-import { WorkshopService } from '../services/WorkshopService';
+import { IWorkshopService } from '../interfaces/IWorkshopService';
 import { AuthRequest, WorkshopVisibility } from '../../../shared/types/index';
-
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class WorkshopController {
-  constructor(private workshopService: WorkshopService) { }
+  constructor(private workshopService: IWorkshopService) { }
 
-  setSocketService(socketService: SocketService): void {
-    this.workshopService.setSocketService(socketService);
+  setSocketService(socketService: ISocketService): void {
+    (this.workshopService as any).setSocketService?.(socketService);
   }
 
   createWorkshop = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {

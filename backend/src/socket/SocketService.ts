@@ -1,21 +1,22 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
-import { UserRepository } from '../modules/user/repositories/UserRepository';
-import { TokenProvider } from '../shared/providers/TokenProvider';
+import { IUserRepository } from '../modules/user/interfaces/IUserRepository';
+import { ITokenProvider } from '../shared/interfaces/ITokenProvider';
+import { ISocketService } from '../shared/interfaces/ISocketService';
 
 interface AuthenticatedSocket extends Socket {
   userId?: string;
   email?: string;
 }
 
-export class SocketService {
+export class SocketService implements ISocketService {
   private io: SocketIOServer;
   private connectedUsers: Map<string, string[]> = new Map();
 
   constructor(
     httpServer: HTTPServer,
-    private userRepository: UserRepository,
-    private tokenProvider: TokenProvider
+    private userRepository: IUserRepository,
+    private tokenProvider: ITokenProvider
   ) {
     this.io = new SocketIOServer(httpServer, {
       cors: {

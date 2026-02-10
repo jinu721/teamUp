@@ -1,7 +1,8 @@
 import { ActivityHistory, IActivityHistory } from '../models/ActivityHistory';
 import { FilterQuery } from 'mongoose';
+import { IActivityHistoryRepository } from '../interfaces/IActivityHistoryRepository';
 
-export class ActivityHistoryRepository {
+export class ActivityHistoryRepository implements IActivityHistoryRepository {
     async create(data: any): Promise<IActivityHistory> {
         return ActivityHistory.create(data);
     }

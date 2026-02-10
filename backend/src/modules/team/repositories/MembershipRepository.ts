@@ -2,6 +2,7 @@ import { Membership } from '../models/Membership';
 import { IMembership, MembershipState, MembershipSource } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IMembershipRepository } from '../interfaces/IMembershipRepository';
 
 export interface CreateMembershipDTO {
   workshopId: string;
@@ -11,7 +12,7 @@ export interface CreateMembershipDTO {
   state?: MembershipState;
 }
 
-export class MembershipRepository {
+export class MembershipRepository implements IMembershipRepository {
   private readonly populateUser = { path: 'user', select: 'name email profilePhoto' };
   private readonly populateWorkshop = { path: 'workshop', select: 'name description visibility' };
   private readonly populateInvitedBy = { path: 'invitedBy', select: 'name email' };

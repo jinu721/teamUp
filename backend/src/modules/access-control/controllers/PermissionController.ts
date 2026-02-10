@@ -1,13 +1,13 @@
 import { Response } from 'express';
-import { PermissionService } from '../services/PermissionService';
+import { IPermissionService } from '../interfaces/IPermissionService';
 import { AuthRequest } from '../../../shared/types/index';
 import { ValidationError } from '../../../shared/utils/errors';
 import { asyncHandler } from '../../../shared/middlewares/errorMiddleware';
 
 export class PermissionController {
-  private permissionService: PermissionService;
+  private permissionService: IPermissionService;
 
-  constructor(permissionService: PermissionService) {
+  constructor(permissionService: IPermissionService) {
     this.permissionService = permissionService;
   }
 

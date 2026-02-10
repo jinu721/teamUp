@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
-import { RoleRepository } from '../repositories/RoleRepository';
-import { RoleAssignmentRepository } from '../repositories/RoleAssignmentRepository';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
-import { AuditService } from '../../audit/services/AuditService';
-import { SocketService } from '../../../socket/SocketService';
-import { PermissionService } from '../services/PermissionService';
+import { IRoleRepository } from '../interfaces/IRoleRepository';
+import { IRoleAssignmentRepository } from '../interfaces/IRoleAssignmentRepository';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
+import { IAuditService } from '../../audit/interfaces/IAuditService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { IPermissionService } from '../interfaces/IPermissionService';
 import { AuthRequest } from '../../../shared/types/index';
 import {
   CreateRoleDTO,
@@ -15,17 +15,17 @@ import { NotFoundError, AuthorizationError, ValidationError } from '../../../sha
 import { Types } from 'mongoose';
 
 export class RoleController {
-  private socketService: SocketService | null = null;
+  private socketService: ISocketService | null = null;
 
   constructor(
-    private roleRepository: RoleRepository,
-    private roleAssignmentRepository: RoleAssignmentRepository,
-    private workshopRepository: WorkshopRepository,
-    private auditService: AuditService,
-    private permissionService: PermissionService
+    private roleRepository: IRoleRepository,
+    private roleAssignmentRepository: IRoleAssignmentRepository,
+    private workshopRepository: IWorkshopRepository,
+    private auditService: IAuditService,
+    private permissionService: IPermissionService
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
   }
 

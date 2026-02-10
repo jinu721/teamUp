@@ -1,13 +1,14 @@
-import { InvitationRepository } from '../repositories/InvitationRepository';
-import { WorkshopService } from '../../workshop/services/WorkshopService';
-import { UserRepository } from '../../user/repositories/UserRepository';
+import { IInvitationRepository } from '../interfaces/IInvitationRepository';
+import { IWorkshopService } from '../../workshop/interfaces/IWorkshopService';
+import { IUserRepository } from '../../user/interfaces/IUserRepository';
+import { IInvitationService } from '../interfaces/IInvitationService';
 import { NotFoundError, ValidationError } from '../../../shared/utils/errors';
 
-export class InvitationService {
+export class InvitationService implements IInvitationService {
     constructor(
-        private invitationRepo: InvitationRepository,
-        private workshopService: WorkshopService,
-        private userRepository: UserRepository
+        private invitationRepo: IInvitationRepository,
+        private workshopService: IWorkshopService,
+        private userRepository: IUserRepository
     ) { }
 
     async getInviteDetails(token: string): Promise<any> {

@@ -1,8 +1,9 @@
 import { Types } from 'mongoose';
 import { AuditLog } from '../models/AuditLog';
 import { IAuditLog, AuditAction, AuditLogFilters, Pagination } from '../../../shared/types/index';
+import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
 
-export class AuditLogRepository {
+export class AuditLogRepository implements IAuditLogRepository {
   private readonly populateActor = { path: 'actor', select: 'name email profilePhoto' };
   private readonly populateWorkshop = { path: 'workshop', select: 'name' };
 

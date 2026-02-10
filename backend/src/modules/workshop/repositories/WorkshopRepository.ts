@@ -2,8 +2,9 @@ import { Workshop } from '../models/Workshop';
 import { IWorkshop, CreateWorkshopDTO, UpdateWorkshopDTO, WorkshopVisibility } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IWorkshopRepository } from '../interfaces/IWorkshopRepository';
 
-export class WorkshopRepository {
+export class WorkshopRepository implements IWorkshopRepository {
   private readonly populateOwner = { path: 'owner', select: 'name email profilePhoto' };
   private readonly populateManagers = { path: 'managers', select: 'name email profilePhoto' };
 

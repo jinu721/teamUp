@@ -1,6 +1,7 @@
 import { Invitation, IInvitation } from '../models/Invitation';
+import { IInvitationRepository } from '../interfaces/IInvitationRepository';
 
-export class InvitationRepository {
+export class InvitationRepository implements IInvitationRepository {
     async findByToken(token: string): Promise<IInvitation | null> {
         return await Invitation.findOne({
             token,

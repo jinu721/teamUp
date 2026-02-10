@@ -2,8 +2,9 @@ import { WorkshopProject } from '../models/WorkshopProject';
 import { IWorkshopProject, CreateWorkshopProjectDTO, UpdateWorkshopProjectDTO } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IWorkshopProjectRepository } from '../interfaces/IWorkshopProjectRepository';
 
-export class WorkshopProjectRepository {
+export class WorkshopProjectRepository implements IWorkshopProjectRepository {
   private readonly populateAssignedTeams = { path: 'assignedTeams', select: 'name description members' };
   private readonly populateAssignedIndividuals = { path: 'assignedIndividuals', select: 'name email profilePhoto' };
   private readonly populateProjectManager = { path: 'projectManager', select: 'name email profilePhoto' };

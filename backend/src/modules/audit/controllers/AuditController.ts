@@ -1,14 +1,14 @@
 import { Response } from 'express';
-import { AuditService } from '../services/AuditService';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
+import { IAuditService } from '../interfaces/IAuditService';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
 import { AuthRequest, AuditAction } from '../../../shared/types/index';
 import { AuthorizationError } from '../../../shared/utils/errors';
 import { asyncHandler } from '../../../shared/middlewares/errorMiddleware';
 
 export class AuditController {
   constructor(
-    private auditService: AuditService,
-    private workshopRepository: WorkshopRepository
+    private auditService: IAuditService,
+    private workshopRepository: IWorkshopRepository
   ) { }
 
   private async checkAccess(workshopId: string, userId: string): Promise<void> {

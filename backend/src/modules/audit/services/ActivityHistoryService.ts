@@ -1,30 +1,10 @@
-import { IActivityHistory, ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
+import { IActivityHistory, ActivityEntityType } from '../models/ActivityHistory';
 import { Types } from 'mongoose';
-import { ActivityHistoryRepository } from '../repositories/ActivityHistoryRepository';
+import { IActivityHistoryRepository } from '../interfaces/IActivityHistoryRepository';
+import { IActivityHistoryService, LogActivityData, ActivityFilters } from '../interfaces/IActivityHistoryService';
 
-export interface LogActivityData {
-    workshop: string;
-    user: string;
-    action: ActivityAction;
-    entityType: ActivityEntityType;
-    entityId: string;
-    entityName: string;
-    description: string;
-    metadata?: any;
-    ipAddress?: string;
-    userAgent?: string;
-}
-
-export interface ActivityFilters {
-    action?: ActivityAction;
-    entityType?: ActivityEntityType;
-    entityId?: string;
-    startDate?: Date;
-    endDate?: Date;
-}
-
-export class ActivityHistoryService {
-    constructor(private activityRepository: ActivityHistoryRepository) { }
+export class ActivityHistoryService implements IActivityHistoryService {
+    constructor(private activityRepository: IActivityHistoryRepository) { }
 
     async logActivity(data: LogActivityData): Promise<IActivityHistory> {
         const activity = await this.activityRepository.create({

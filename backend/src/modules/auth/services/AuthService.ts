@@ -1,21 +1,22 @@
-import { UserRepository } from '../../user/repositories/UserRepository';
-import { PendingUserRepository } from '../repositories/PendingUserRepository';
-import { PasswordResetRepository } from '../repositories/PasswordResetRepository';
-import { TokenProvider } from '../../../shared/providers/TokenProvider';
-import { EmailProvider } from '../../../shared/providers/EmailProvider';
-import { HashProvider } from '../../../shared/providers/HashProvider';
+import { IUserRepository } from '../../user/interfaces/IUserRepository';
+import { IPendingUserRepository } from '../interfaces/IPendingUserRepository';
+import { IPasswordResetRepository } from '../interfaces/IPasswordResetRepository';
+import { ITokenProvider } from '../../../shared/interfaces/ITokenProvider';
+import { IEmailProvider } from '../../../shared/interfaces/IEmailProvider';
+import { IHashProvider } from '../../../shared/interfaces/IHashProvider';
+import { IAuthService } from '../interfaces/IAuthService';
 import { AuthenticationError, ValidationError, NotFoundError } from '../../../shared/utils/errors';
 import crypto from 'crypto';
 import { verificationOtpTemplate, passwordResetTemplate } from '../../../shared/templates/email';
 
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
-    private userRepository: UserRepository,
-    private pendingUserRepository: PendingUserRepository,
-    private passwordResetRepository: PasswordResetRepository,
-    private tokenProv: TokenProvider,
-    private emailProv: EmailProvider,
-    private hashProv: HashProvider
+    private userRepository: IUserRepository,
+    private pendingUserRepository: IPendingUserRepository,
+    private passwordResetRepository: IPasswordResetRepository,
+    private tokenProv: ITokenProvider,
+    private emailProv: IEmailProvider,
+    private hashProv: IHashProvider
   ) { }
 
   generateTokens(user: any): { token: string; refreshToken: string } {

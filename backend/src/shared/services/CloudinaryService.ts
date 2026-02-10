@@ -1,19 +1,8 @@
 import { v2 as cloudinary, UploadApiResponse, UploadApiErrorResponse } from 'cloudinary';
 import { Readable } from 'stream';
+import { ICloudinaryService, CloudinaryUploadResult } from '../interfaces/ICloudinaryService';
 
-export interface CloudinaryUploadResult {
-    publicId: string;
-    url: string;
-    secureUrl: string;
-    format: string;
-    resourceType: string;
-    bytes: number;
-    width?: number;
-    height?: number;
-    duration?: number;
-}
-
-export class CloudinaryService {
+export class CloudinaryService implements ICloudinaryService {
     constructor() {
     }
 

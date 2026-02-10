@@ -4,13 +4,14 @@ import {
   CreateTeamDTO,
   UpdateTeamDTO
 } from '../../../shared/types/index';
-import { TeamRepository } from '../repositories/TeamRepository';
-import { MembershipRepository } from '../repositories/MembershipRepository';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
-import { AuditService } from '../../audit/services/AuditService';
-import { PermissionService } from '../../access-control/services/PermissionService';
-import { ChatService } from '../../chat/services/ChatService';
-import { SocketService } from '../../../socket/SocketService';
+import { ITeamRepository } from '../interfaces/ITeamRepository';
+import { IMembershipRepository } from '../interfaces/IMembershipRepository';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
+import { IAuditService } from '../../audit/interfaces/IAuditService';
+import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
+import { IChatService } from '../../chat/interfaces/IChatService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { ITeamService } from '../interfaces/ITeamService';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
 
 function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): string {
@@ -20,18 +21,18 @@ function getIdString(ref: Types.ObjectId | { _id: Types.ObjectId } | any): strin
   return ref.toString();
 }
 
-export class TeamService {
+export class TeamService implements ITeamService {
   constructor(
-    private teamRepository: TeamRepository,
-    private membershipRepository: MembershipRepository,
-    private workshopRepository: WorkshopRepository,
-    private auditService: AuditService,
-    private permissionService: PermissionService,
-    private chatService: ChatService,
-    private socketService: SocketService | null = null
+    private teamRepository: ITeamRepository,
+    private membershipRepository: IMembershipRepository,
+    private workshopRepository: IWorkshopRepository,
+    private auditService: IAuditService,
+    private permissionService: IPermissionService,
+    private chatService: IChatService,
+    private socketService: ISocketService | null = null
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
     this.chatService.setSocketService(socketService);
   }

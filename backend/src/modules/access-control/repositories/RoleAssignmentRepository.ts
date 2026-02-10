@@ -2,6 +2,7 @@ import { RoleAssignment } from '../models/RoleAssignment';
 import { IRoleAssignment, PermissionScope } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IRoleAssignmentRepository } from '../interfaces/IRoleAssignmentRepository';
 
 export interface CreateRoleAssignmentDTO {
   workshopId: string;
@@ -12,7 +13,7 @@ export interface CreateRoleAssignmentDTO {
   assignedBy: string;
 }
 
-export class RoleAssignmentRepository {
+export class RoleAssignmentRepository implements IRoleAssignmentRepository {
   private readonly populateRole = { path: 'role', select: 'name description permissions scope' };
   private readonly populateUser = { path: 'user', select: 'name email profilePhoto' };
   private readonly populateAssignedBy = { path: 'assignedBy', select: 'name email' };

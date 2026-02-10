@@ -1,24 +1,25 @@
 import { PasswordReset, IPasswordReset } from '../models/PasswordReset';
+import { IPasswordResetRepository } from '../interfaces/IPasswordResetRepository';
 
-export class PasswordResetRepository {
+export class PasswordResetRepository implements IPasswordResetRepository {
     async create(data: Partial<IPasswordReset>): Promise<IPasswordReset> {
         const passwordReset = new PasswordReset(data);
         return await passwordReset.save();
     }
 
     async findByToken(token: string): Promise<IPasswordReset | null> {
-        return await PasswordReset.findOne({ 
-            token, 
-            used: false, 
-            expiresAt: { $gt: new Date() } 
+        return await PasswordReset.findOne({
+            token,
+            used: false,
+            expiresAt: { $gt: new Date() }
         });
     }
 
     async findByEmail(email: string): Promise<IPasswordReset | null> {
-        return await PasswordReset.findOne({ 
-            email, 
-            used: false, 
-            expiresAt: { $gt: new Date() } 
+        return await PasswordReset.findOne({
+            email,
+            used: false,
+            expiresAt: { $gt: new Date() }
         });
     }
 

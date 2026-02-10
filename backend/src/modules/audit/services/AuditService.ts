@@ -4,10 +4,11 @@ import {
   AuditLogFilters,
   Pagination
 } from '../../../shared/types/index';
-import { AuditLogRepository } from '../repositories/AuditLogRepository';
+import { IAuditLogRepository } from '../interfaces/IAuditLogRepository';
+import { IAuditService } from '../interfaces/IAuditService';
 
-export class AuditService {
-  constructor(private auditLogRepository: AuditLogRepository) { }
+export class AuditService implements IAuditService {
+  constructor(private auditLogRepository: IAuditLogRepository) { }
 
   async log(entry: {
     workshopId: string;

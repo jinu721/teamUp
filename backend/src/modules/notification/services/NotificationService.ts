@@ -1,15 +1,16 @@
-import { NotificationRepository } from '../repositories/NotificationRepository';
+import { INotificationRepository } from '../interfaces/INotificationRepository';
 import { INotification, NotificationType } from '../../../shared/types/index';
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { INotificationService } from '../interfaces/INotificationService';
 import { NotFoundError } from '../../../shared/utils/errors';
 
-export class NotificationService {
+export class NotificationService implements INotificationService {
   constructor(
-    private notificationRepo: NotificationRepository,
-    private socketService: SocketService | null = null
+    private notificationRepo: INotificationRepository,
+    private socketService: ISocketService | null = null
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
   }
 

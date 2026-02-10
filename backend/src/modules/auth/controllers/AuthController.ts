@@ -1,12 +1,12 @@
 import { Response, NextFunction } from 'express';
-import { AuthService } from '../services/AuthService';
+import { IAuthService } from '../interfaces/IAuthService';
 import { AuthRequest } from '../../../shared/types/index';
 import { ValidationError } from '../../../shared/utils/errors';
 import passport from 'passport';
 import { isStrategyEnabled } from '../../../config/passport';
 
 export class AuthController {
-  constructor(private authService: AuthService) { }
+  constructor(private authService: IAuthService) { }
 
   register = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     try {

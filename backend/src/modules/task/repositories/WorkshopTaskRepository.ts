@@ -2,12 +2,9 @@ import { WorkshopTask } from '../models/WorkshopTask';
 import { IWorkshopTask, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, ITaskAttachment } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { IWorkshopTaskRepository, TasksByStatus } from '../interfaces/IWorkshopTaskRepository';
 
-export interface TasksByStatus {
-  [status: string]: IWorkshopTask[];
-}
-
-export class WorkshopTaskRepository {
+export class WorkshopTaskRepository implements IWorkshopTaskRepository {
   private readonly populateAssignedTeams = { path: 'assignedTeams', select: 'name description' };
   private readonly populatePeople = [
     { path: 'primaryOwner', select: 'name email profilePhoto' },

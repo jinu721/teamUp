@@ -1,10 +1,10 @@
 import { Response, NextFunction } from 'express';
-import { ActivityHistoryService, ActivityFilters } from '../services/ActivityHistoryService';
+import { IActivityHistoryService, ActivityFilters } from '../interfaces/IActivityHistoryService';
 import { AuthRequest } from '../../../shared/types/index';
 import { ActivityAction, ActivityEntityType } from '../models/ActivityHistory';
 
 export class ActivityController {
-    constructor(private activityService: ActivityHistoryService) { }
+    constructor(private activityService: IActivityHistoryService) { }
 
     getWorkshopActivity = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
         try {

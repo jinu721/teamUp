@@ -2,8 +2,9 @@ import { Team } from '../models/Team';
 import { ITeam, CreateTeamDTO, UpdateTeamDTO } from '../../../shared/types/index';
 import { Types } from 'mongoose';
 import { NotFoundError } from '../../../shared/utils/errors';
+import { ITeamRepository } from '../interfaces/ITeamRepository';
 
-export class TeamRepository {
+export class TeamRepository implements ITeamRepository {
   private readonly populateMembers = { path: 'members', select: 'name email profilePhoto skills' };
   private readonly populateWorkshop = { path: 'workshop', select: 'name description' };
 

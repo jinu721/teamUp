@@ -1,27 +1,28 @@
-import { WorkshopTaskRepository, TasksByStatus } from '../repositories/WorkshopTaskRepository';
-import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
-import { MembershipRepository } from '../../team/repositories/MembershipRepository';
-import { TeamRepository } from '../../team/repositories/TeamRepository';
-import { NotificationRepository } from '../../notification/repositories/NotificationRepository';
+import { IWorkshopTaskRepository, TasksByStatus } from '../interfaces/IWorkshopTaskRepository';
+import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopProjectRepository';
+import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
+import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
+import { INotificationRepository } from '../../notification/interfaces/INotificationRepository';
 import { IWorkshopTask, IMembership, CreateWorkshopTaskDTO, UpdateWorkshopTaskDTO, NotificationType, AuditAction } from '../../../shared/types/index';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
-import { SocketService } from '../../../socket/SocketService';
-import { AuditService } from '../../audit/services/AuditService';
-import { PermissionService } from '../../access-control/services/PermissionService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { IAuditService } from '../../audit/interfaces/IAuditService';
+import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
+import { IWorkshopTaskService } from '../interfaces/IWorkshopTaskService';
 
-export class WorkshopTaskService {
+export class WorkshopTaskService implements IWorkshopTaskService {
   constructor(
-    private taskRepo: WorkshopTaskRepository,
-    private projectRepo: WorkshopProjectRepository,
-    private membershipRepo: MembershipRepository,
-    private teamRepo: TeamRepository,
-    private notificationRepo: NotificationRepository,
-    private auditService: AuditService,
-    private permissionService: PermissionService,
-    private socketService: SocketService | null = null
+    private taskRepo: IWorkshopTaskRepository,
+    private projectRepo: IWorkshopProjectRepository,
+    private membershipRepo: IMembershipRepository,
+    private teamRepo: ITeamRepository,
+    private notificationRepo: INotificationRepository,
+    private auditService: IAuditService,
+    private permissionService: IPermissionService,
+    private socketService: ISocketService | null = null
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
   }
 

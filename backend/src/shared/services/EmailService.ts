@@ -1,4 +1,5 @@
-import { EmailProvider } from '../providers/EmailProvider';
+import { IEmailProvider } from '../interfaces/IEmailProvider';
+import { IEmailService } from '../interfaces/IEmailService';
 import {
   projectInvitationTemplate,
   workshopInvitationTemplate,
@@ -6,10 +7,10 @@ import {
   joinResponseTemplate
 } from '../templates/email';
 
-export class EmailService {
+export class EmailService implements IEmailService {
   private appUrl: string;
 
-  constructor(private emailProv: EmailProvider) {
+  constructor(private emailProv: IEmailProvider) {
     this.appUrl = process.env.FRONTEND_URL || process.env.APP_URL || 'http://localhost:3000';
   }
 

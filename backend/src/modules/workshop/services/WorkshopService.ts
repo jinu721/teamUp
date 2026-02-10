@@ -11,18 +11,19 @@ import {
   PermissionType
 } from '../../../shared/types/index';
 
-import { WorkshopRepository } from '../repositories/WorkshopRepository';
-import { MembershipRepository } from '../../team/repositories/MembershipRepository';
-import { TeamRepository } from '../../team/repositories/TeamRepository';
-import { RoleRepository } from '../../access-control/repositories/RoleRepository';
-import { RoleAssignmentRepository } from '../../access-control/repositories/RoleAssignmentRepository';
-import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
-import { AuditService } from '../../audit/services/AuditService';
-import { PermissionService } from '../../access-control/services/PermissionService';
+import { IWorkshopRepository } from '../interfaces/IWorkshopRepository';
+import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
+import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
+import { IRoleRepository } from '../../access-control/interfaces/IRoleRepository';
+import { IRoleAssignmentRepository } from '../../access-control/interfaces/IRoleAssignmentRepository';
+import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopProjectRepository';
+import { IAuditService } from '../../audit/interfaces/IAuditService';
+import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { IEmailService } from '../../../shared/interfaces/IEmailService';
+import { IChatService } from '../../chat/interfaces/IChatService';
+import { IWorkshopService } from '../interfaces/IWorkshopService';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
-import { SocketService } from '../../../socket/SocketService';
-import { EmailService } from '../../../shared/services/EmailService';
-import { ChatService } from '../../chat/services/ChatService';
 import { Types } from 'mongoose';
 import { Membership } from '../../team/models/Membership';
 import { User } from '../../user/models/User';
@@ -36,22 +37,22 @@ function getIdString(ref: any): string {
   return ref?.toString() || '';
 }
 
-export class WorkshopService {
+export class WorkshopService implements IWorkshopService {
   constructor(
-    private workshopRepository: WorkshopRepository,
-    private membershipRepository: MembershipRepository,
-    private teamRepository: TeamRepository,
-    private roleRepository: RoleRepository,
-    private roleAssignmentRepository: RoleAssignmentRepository,
-    private projectRepository: WorkshopProjectRepository,
-    private auditService: AuditService,
-    private permissionService: PermissionService,
-    private emailService: EmailService,
-    private chatService: ChatService,
-    private socketService: SocketService | null = null
+    private workshopRepository: IWorkshopRepository,
+    private membershipRepository: IMembershipRepository,
+    private teamRepository: ITeamRepository,
+    private roleRepository: IRoleRepository,
+    private roleAssignmentRepository: IRoleAssignmentRepository,
+    private projectRepository: IWorkshopProjectRepository,
+    private auditService: IAuditService,
+    private permissionService: IPermissionService,
+    private emailService: IEmailService,
+    private chatService: IChatService,
+    private socketService: ISocketService | null = null
   ) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
     this.chatService.setSocketService(socketService);
   }

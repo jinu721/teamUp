@@ -1,14 +1,14 @@
 import { Response, NextFunction } from 'express';
-import { TeamService } from '../services/TeamService';
+import { ITeamService } from '../interfaces/ITeamService';
 import { AuthRequest } from '../../../shared/types/index';
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class TeamController {
-  private socketService: SocketService | null = null;
+  private socketService: ISocketService | null = null;
 
-  constructor(private teamService: TeamService) { }
+  constructor(private teamService: ITeamService) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
     this.teamService.setSocketService(socketService);
   }

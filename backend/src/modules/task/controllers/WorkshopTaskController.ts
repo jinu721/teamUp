@@ -1,13 +1,13 @@
 import { Response, NextFunction } from 'express';
-import { WorkshopTaskService } from '../services/WorkshopTaskService';
+import { IWorkshopTaskService } from '../interfaces/IWorkshopTaskService';
 import { AuthRequest } from '../../../shared/types/index';
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class WorkshopTaskController {
-  constructor(private taskService: WorkshopTaskService) { }
+  constructor(private taskService: IWorkshopTaskService) { }
 
-  setSocketService(socketService: SocketService): void {
-    this.taskService.setSocketService(socketService);
+  setSocketService(socketService: ISocketService): void {
+    (this.taskService as any).setSocketService?.(socketService);
   }
 
   createTask = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {

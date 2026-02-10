@@ -2,13 +2,14 @@ import { ChatRoom, IChatRoom, ChatRoomType } from '../models/ChatRoom';
 import { Message, IMessage, MessageType } from '../models/Message';
 import { NotFoundError, AuthorizationError, ValidationError } from '../../../shared/utils/errors';
 import { Types } from 'mongoose';
-import { ActivityHistoryService } from '../../audit/services/ActivityHistoryService';
+import { IActivityHistoryService } from '../../audit/interfaces/IActivityHistoryService';
 import { ActivityAction, ActivityEntityType } from '../../audit/models/ActivityHistory';
-import { SocketService } from '../../../socket/SocketService';
-import { WorkshopRepository } from '../../workshop/repositories/WorkshopRepository';
-import { TeamRepository } from '../../team/repositories/TeamRepository';
-import { WorkshopProjectRepository } from '../../project/repositories/WorkshopProjectRepository';
-import { MembershipRepository } from '../../team/repositories/MembershipRepository';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
+import { IWorkshopRepository } from '../../workshop/interfaces/IWorkshopRepository';
+import { ITeamRepository } from '../../team/interfaces/ITeamRepository';
+import { IWorkshopProjectRepository } from '../../project/interfaces/IWorkshopProjectRepository';
+import { IMembershipRepository } from '../../team/interfaces/IMembershipRepository';
+import { IChatService } from '../interfaces/IChatService';
 
 export interface CreateChatRoomData {
     roomType: ChatRoomType;
@@ -38,17 +39,17 @@ export interface MessageFilters {
     endDate?: Date;
 }
 
-export class ChatService {
+export class ChatService implements IChatService {
     constructor(
-        private activityService: ActivityHistoryService,
-        private workshopRepository: WorkshopRepository,
-        private teamRepository: TeamRepository,
-        private projectRepository: WorkshopProjectRepository,
-        private membershipRepository: MembershipRepository,
-        private socketService: SocketService | null = null
+        private activityService: IActivityHistoryService,
+        private workshopRepository: IWorkshopRepository,
+        private teamRepository: ITeamRepository,
+        private projectRepository: IWorkshopProjectRepository,
+        private membershipRepository: IMembershipRepository,
+        private socketService: ISocketService | null = null
     ) { }
 
-    setSocketService(socketService: SocketService): void {
+    setSocketService(socketService: ISocketService): void {
         this.socketService = socketService;
     }
 

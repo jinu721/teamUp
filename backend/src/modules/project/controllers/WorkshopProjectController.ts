@@ -1,15 +1,16 @@
 import { Response, NextFunction } from 'express';
-import { WorkshopProjectService } from '../services/WorkshopProjectService';
+import { IWorkshopProjectService } from '../interfaces/IWorkshopProjectService';
 import { AuthRequest } from '../../../shared/types/index';
-import { SocketService } from '../../../socket/SocketService';
+import { ISocketService } from '../../../shared/interfaces/ISocketService';
 
 export class WorkshopProjectController {
-  private socketService: SocketService | null = null;
+  private socketService: ISocketService | null = null;
 
-  constructor(private projectService: WorkshopProjectService) { }
+  constructor(private projectService: IWorkshopProjectService) { }
 
-  setSocketService(socketService: SocketService): void {
+  setSocketService(socketService: ISocketService): void {
     this.socketService = socketService;
+    (this.projectService as any).setSocketService?.(socketService);
   }
 
   createProject = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
