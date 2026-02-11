@@ -31,7 +31,8 @@ import {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
 class ApiService {
-  private api: AxiosInstance;
+  public api: AxiosInstance;
+
 
   constructor() {
     this.api = axios.create({

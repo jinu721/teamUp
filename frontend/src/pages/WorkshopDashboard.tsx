@@ -26,7 +26,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Plus, FolderKanban, Users, Shield, Inbox, Lock } from 'lucide-react';
+import { Plus, FolderKanban, Users, Shield, Inbox, Lock, Zap } from 'lucide-react';
+
 import { useToast } from '@/hooks/use-toast';
 import { usePermissions } from '@/hooks/usePermission';
 import { useWorkshopRoom } from '@/hooks/useSocket';
@@ -340,7 +341,14 @@ const WorkshopDashboard: React.FC = () => {
                     Roles
                   </TabsTrigger>
                 )}
+                {canManage && (
+                  <TabsTrigger value="automation" className="gap-2">
+                    <Zap className="h-4 w-4" />
+                    Automation
+                  </TabsTrigger>
+                )}
               </TabsList>
+
 
               <TabsContent value="projects" className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -503,7 +511,51 @@ const WorkshopDashboard: React.FC = () => {
                   )}
                 </TabsContent>
               )}
+
+              {canManage && (
+                <TabsContent value="automation" className="space-y-4">
+                  <div className="flex flex-col gap-6">
+                    <div className="flex justify-between items-center">
+                      <div className="space-y-1">
+                        <h2 className="text-2xl font-bold tracking-tight">Workshop Automations</h2>
+                        <p className="text-muted-foreground">Define rules to automate repetitive tasks and sync workflows.</p>
+                      </div>
+                      <Button onClick={() => navigate(`/workshops/${workshopId}/automation`)} className="gap-2">
+                        Open Automation Engine <Zap className="h-4 w-4 fill-current" />
+                      </Button>
+                    </div>
+
+                    <Card className="bg-gradient-to-br from-purple-500/5 to-pink-500/5 border-purple-500/10">
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Zap className="h-5 w-5 text-purple-500" />
+                          Workflow Rules
+                        </CardTitle>
+                        <CardDescription>
+                          Configure automated triggers and actions for this workshop.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground mb-6">
+                          Automations allow you to automatically update task status, notify members, or add comments based on specific events.
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate(`/workshops/${workshopId}/automation`)}>
+                            <h4 className="font-semibold mb-1">Status Sync</h4>
+                            <p className="text-xs text-muted-foreground">Automatically update parent project status when tasks are done.</p>
+                          </div>
+                          <div className="p-4 rounded-xl border bg-card hover:bg-accent/50 transition-colors cursor-pointer" onClick={() => navigate(`/workshops/${workshopId}/automation`)}>
+                            <h4 className="font-semibold mb-1">Smart Alerts</h4>
+                            <p className="text-xs text-muted-foreground">Notify owners when priority is escalated to High or Urgent.</p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </TabsContent>
+              )}
             </Tabs>
+
           )}
         </div>
       </div>
@@ -696,7 +748,7 @@ const WorkshopDashboard: React.FC = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </AppLayout>
+    </AppLayout >
   );
 };
 
