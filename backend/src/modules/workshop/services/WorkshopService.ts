@@ -22,6 +22,8 @@ import { User } from '../../user/models/User';
 import { Invitation } from '../../invitation/models/Invitation';
 import { IInvitation } from '../../invitation/types/index';
 import crypto from 'crypto';
+import { eventBus } from '../../../shared/utils/EventBus';
+
 
 function getIdString(ref: any): string {
   if (ref && typeof ref === 'object' && '_id' in ref) {
@@ -334,7 +336,14 @@ export class WorkshopService implements IWorkshopService {
       this.permissionService.invalidateUserCache(userId, workshopId);
       await this.chatService.syncUserToWorkshopRooms(userId, workshopId);
       if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:joined', membership);
+
+      eventBus.emit('member:joined', {
+        workshopId,
+        member: membership,
+        user: userId
+      });
     } else {
+
       if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:created', membership);
     }
     return membership;
@@ -349,7 +358,15 @@ export class WorkshopService implements IWorkshopService {
       await this.auditService.logJoinRequestApproved(workshopId, actorId, getIdString(updated.user));
     }
     if (this.socketService) this.socketService.emitToWorkshop(workshopId, 'membership:request:approved', updated);
+
+    eventBus.emit('member:joined', {
+      workshopId,
+      member: updated,
+      user: actorId
+    });
+
     return updated;
+
   }
 
   async rejectJoinRequest(workshopId: string, actorId: string, membershipId: string, reason?: string): Promise<IMembership> {

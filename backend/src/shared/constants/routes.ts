@@ -15,8 +15,10 @@ export const MODULE_BASE = {
     ROLES: '/workshops/:workshopId/roles',
     TEAMS: '/workshops/:workshopId/teams',
     PROJECTS: '/workshops/:workshopId/projects',
-    PROJECT_TASKS: '/workshops/:workshopId/projects/:projectId/tasks'
+    PROJECT_TASKS: '/workshops/:workshopId/projects/:projectId/tasks',
+    AUTOMATION: '/workshops'
 };
+
 
 export const AUTH_ROUTES = {
     REGISTER: '/register',
@@ -146,3 +148,11 @@ export const INVITE_ROUTES = {
     BY_TOKEN: '/:token',
     ACCEPT: '/:token/accept'
 };
+
+export const AUTOMATION_ROUTES = {
+    BASE: '/:workshopId/automation',
+    RULES: '/:workshopId/automation/rules',
+    RULE_BY_ID: '/:workshopId/automation/rules/:ruleId',
+    TOGGLE: '/:workshopId/automation/rules/:ruleId/toggle'
+};
+

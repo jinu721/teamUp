@@ -21,6 +21,8 @@ import TaskDetail from '@/pages/TaskDetail';
 import WorkshopAuditLog from '@/pages/WorkshopAuditLog';
 import ChatPage from '@/pages/Chat';
 import Landing from '@/pages/Landing';
+import WorkshopAutomation from '@/pages/WorkshopAutomation';
+
 import { Loader2 } from 'lucide-react';
 
 const SocketErrorHandler: React.FC = () => {
@@ -175,6 +177,15 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/workshops/:workshopId/automation"
+        element={
+          <PrivateRoute>
+            <WorkshopAutomation />
+          </PrivateRoute>
+        }
+      />
+
       <Route
         path="/workshops/:workshopId/chat"
         element={

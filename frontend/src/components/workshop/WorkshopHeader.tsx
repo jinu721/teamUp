@@ -11,7 +11,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Globe, Lock, Settings, MoreVertical, UserPlus, Trash2, Edit, MessageSquare } from 'lucide-react';
+import { Globe, Lock, Settings, MoreVertical, UserPlus, Trash2, Edit, MessageSquare, Zap } from 'lucide-react';
+
 import { usePermissions } from '@/hooks';
 
 interface WorkshopHeaderProps {
@@ -132,6 +133,11 @@ export const WorkshopHeader: React.FC<WorkshopHeaderProps> = ({
                       <Settings className="h-4 w-4 mr-2" />
                       Settings
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/workshops/${workshop._id}/automation`)}>
+                      <Zap className="h-4 w-4 mr-2" />
+                      Automations
+                    </DropdownMenuItem>
+
                     {isOwner && (
                       <>
                         <DropdownMenuSeparator />

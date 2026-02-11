@@ -4,7 +4,7 @@
   "description": "TeamUp Backend - Real-time collaboration platform",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon src/server.ts",
+    "dev": "nodemon -w src -e ts --exec \"ts-node -r tsconfig-paths/register src/server.ts\"",
     "build": "tsc",
     "start": "node dist/server.js"
   },
@@ -50,6 +50,7 @@
     "@types/passport-google-oauth20": "^2.0.17",
     "nodemon": "^3.0.2",
     "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.3.3"
   }
 }
