@@ -12,6 +12,8 @@ import { ISocketService } from '../../../shared/interfaces/ISocketService';
 import { IAuditService } from '../../audit/interfaces/IAuditService';
 import { IPermissionService } from '../../access-control/interfaces/IPermissionService';
 import { IWorkshopTaskService } from '../interfaces/IWorkshopTaskService';
+import { eventBus } from '../../../shared/utils/EventBus';
+
 
 export class WorkshopTaskService implements IWorkshopTaskService {
   constructor(
@@ -171,7 +173,15 @@ export class WorkshopTaskService implements IWorkshopTaskService {
       this.socketService.emitToProject(projectId, 'workshop:task:created', task);
     }
 
+    eventBus.emit('task:created', {
+      workshopId,
+      projectId,
+      task,
+      user: userId
+    });
+
     return task;
+
   }
 
   async getTaskById(taskId: string, userId: string): Promise<IWorkshopTask> {
@@ -375,7 +385,19 @@ export class WorkshopTaskService implements IWorkshopTaskService {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:updated', updatedTask);
     }
 
+    if (updates.priority && updates.priority !== task.priority) {
+      eventBus.emit('task:priority:changed', {
+        workshopId,
+        projectId: project._id.toString(),
+        task: updatedTask,
+        oldPriority: task.priority,
+        newPriority: updates.priority,
+        user: userId
+      });
+    }
+
     return updatedTask;
+
   }
 
   async updateTaskStatus(
@@ -424,7 +446,17 @@ export class WorkshopTaskService implements IWorkshopTaskService {
       this.socketService.emitToProject(project._id.toString(), 'workshop:task:status:changed', updatedTask);
     }
 
+    eventBus.emit('task:status:changed', {
+      workshopId,
+      projectId: project._id.toString(),
+      task: updatedTask,
+      oldStatus: task.status,
+      newStatus,
+      user: userId
+    });
+
     return updatedTask;
+
   }
 
   async assignTeamToTask(
@@ -681,7 +713,16 @@ export class WorkshopTaskService implements IWorkshopTaskService {
       });
     }
 
+    eventBus.emit('comment:added', {
+      workshopId,
+      projectId: project._id.toString(),
+      task: updatedTask,
+      comment: updatedTask.comments[updatedTask.comments.length - 1],
+      user: userId
+    });
+
     return updatedTask;
+
   }
 
   async addAttachment(

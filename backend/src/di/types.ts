@@ -42,6 +42,9 @@ import { WorkshopProjectController } from '../modules/project/controllers/Worksh
 import { WorkshopTaskController } from '../modules/task/controllers/WorkshopTaskController';
 import { IInvitationService } from '../modules/invitation/interfaces/IInvitationService';
 import { IInvitationRepository } from '../modules/invitation/interfaces/IInvitationRepository';
+import { IAutomationService } from '../modules/automation/interfaces/IAutomationService';
+import { AutomationController } from '../modules/automation/controllers/AutomationController';
+
 
 export interface Container {
     tokenProv: ITokenProvider;
@@ -77,6 +80,8 @@ export interface Container {
     workshopProjectSrv: IWorkshopProjectService;
     workshopSrv: IWorkshopService;
     workshopTaskSrv: IWorkshopTaskService;
+    automationSrv: IAutomationService;
+
 
     activityCtrl: ActivityController;
     auditCtrl: AuditController;
@@ -90,4 +95,6 @@ export interface Container {
     workshopCtrl: WorkshopController;
     workshopProjectCtrl: WorkshopProjectController;
     workshopTaskCtrl: WorkshopTaskController;
+    automationCtrl: AutomationController;
+
 }

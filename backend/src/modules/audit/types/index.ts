@@ -84,8 +84,14 @@ export enum AuditAction {
     JOIN_REQUEST_REJECTED = 'join_request_rejected',
     UNAUTHORIZED_ACCESS = 'unauthorized_access',
     PROJECT_MANAGER_ASSIGNED = 'project_manager_assigned',
-    PROJECT_MAINTAINER_ASSIGNED = 'project_maintainer_assigned'
+    PROJECT_MAINTAINER_ASSIGNED = 'project_maintainer_assigned',
+
+    AUTOMATION_RULE_CREATED = 'automation_rule_created',
+    AUTOMATION_RULE_UPDATED = 'automation_rule_updated',
+    AUTOMATION_RULE_DELETED = 'automation_rule_deleted',
+    AUTOMATION_RULE_TRIGGERED = 'automation_rule_triggered'
 }
+
 
 export interface IAuditLog extends Document {
     workshop: Types.ObjectId;

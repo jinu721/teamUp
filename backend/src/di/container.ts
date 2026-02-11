@@ -44,6 +44,10 @@ import { TeamController } from '../modules/team/controllers/TeamController';
 import { WorkshopController } from '../modules/workshop/controllers/WorkshopController';
 import { WorkshopProjectController } from '../modules/project/controllers/WorkshopProjectController';
 import { WorkshopTaskController } from '../modules/task/controllers/WorkshopTaskController';
+import { AutomationService } from '../modules/automation/services/AutomationService';
+import { AutomationController } from '../modules/automation/controllers/AutomationController';
+import { IAutomationService } from '../modules/automation/interfaces/IAutomationService';
+
 
 import { ITokenProvider } from '../shared/interfaces/ITokenProvider';
 import { IEmailProvider } from '../shared/interfaces/IEmailProvider';
@@ -111,6 +115,8 @@ export class DIContainer implements Container {
     public workshopProjectSrv: IWorkshopProjectService;
     public workshopSrv: IWorkshopService;
     public workshopTaskSrv: IWorkshopTaskService;
+    public automationSrv: IAutomationService;
+
 
     public activityCtrl: ActivityController;
     public auditCtrl: AuditController;
@@ -124,6 +130,8 @@ export class DIContainer implements Container {
     public workshopCtrl: WorkshopController;
     public workshopProjectCtrl: WorkshopProjectController;
     public workshopTaskCtrl: WorkshopTaskController;
+    public automationCtrl: AutomationController;
+
 
     constructor(httpServer: HTTPServer) {
         this.tokenProv = new TokenProvider();
@@ -226,6 +234,13 @@ export class DIContainer implements Container {
             this.socketSrv
         );
 
+        this.automationSrv = new AutomationService(
+            this.workshopTaskRepo,
+            this.notificationRepo,
+            this.auditSrv
+        );
+
+
         this.invitationSrv = new InvitationService(
             this.invitationRepo,
             this.workshopSrv,
@@ -267,5 +282,11 @@ export class DIContainer implements Container {
 
         this.workshopTaskCtrl = new WorkshopTaskController(this.workshopTaskSrv);
         this.workshopTaskCtrl.setSocketService(this.socketSrv);
+
+        this.automationCtrl = new AutomationController(
+            this.automationSrv,
+            this.workshopRepo
+        );
+
     }
 }

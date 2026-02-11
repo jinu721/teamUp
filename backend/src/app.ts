@@ -25,6 +25,8 @@ import createPermissionRoutes from './modules/access-control/routes/permissionRo
 import createChatRoutes from './modules/chat/routes/chatRoutes';
 import createActivityRoutes from './modules/audit/routes/activityRoutes';
 import createInviteRoutes from './modules/invitation/routes/inviteRoutes';
+import { setupAutomationRoutes } from './modules/automation/routes';
+
 
 import { errorHandler, injectContainer } from '@middlewares';
 import { configurePassport } from './config/passport';
@@ -67,6 +69,8 @@ export const createApp = (container: Container) => {
   app.use(`${API_PREFIX}${MODULE_BASE.CHAT}`, createChatRoutes(container));
   app.use(`${API_PREFIX}${MODULE_BASE.INVITES}`, createInviteRoutes(container));
   app.use(`${API_PREFIX}${MODULE_BASE.ACTIVITY}`, createActivityRoutes(container));
+  app.use(`${API_PREFIX}${MODULE_BASE.AUTOMATION}`, setupAutomationRoutes(container.automationCtrl));
+
 
   app.use(errorHandler);
 

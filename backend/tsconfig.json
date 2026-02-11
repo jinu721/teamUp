@@ -26,25 +26,25 @@
     "baseUrl": ".",
     "paths": {
       "@config/*": [
-        "src/config/*"
+        "./src/config/*"
       ],
       "@di/*": [
-        "src/di/*"
+        "./src/di/*"
       ],
       "@modules/*": [
-        "src/modules/*"
+        "./src/modules/*"
       ],
       "@shared/*": [
-        "src/shared/*"
+        "./src/shared/*"
       ],
       "@middlewares": [
-        "src/shared/middlewares/index"
+        "./src/shared/middlewares/index"
       ],
       "@middlewares/*": [
-        "src/shared/middlewares/*"
+        "./src/shared/middlewares/*"
       ],
       "@constants": [
-        "src/shared/constants/index"
+        "./src/shared/constants/index"
       ]
     }
   },
